@@ -91,44 +91,9 @@
   }
   scene.environment = new THREE.PMREMGenerator(renderer).fromScene(studio(), 0.02).texture;
 
-  // plastique bleu cobalt brillant, comme dans Blender ; des lumières en plus du décor (une matière non
-  // métallique a besoin d'être éclairée, pas seulement de refléter)
-  const mat = new THREE.MeshPhysicalMaterial({ color: 0x1238ff, envMapIntensity: 0.45, roughness: 0.22, clearcoat: 0.6, clearcoatRoughness: 0.2, sheen: 0.25, sheenColor: 0xffffff });
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x223388, 0.3));
-  const back = new THREE.DirectionalLight(0xffffff, 2.2); back.position.set(0.5, 2.6, -3.2); scene.add(back);
-  const back2 = new THREE.DirectionalLight(0xffffff, 1.2); back2.position.set(-2.8, -1.2, -2.4); scene.add(back2);
-  const face = new THREE.DirectionalLight(0xffffff, 0.5); face.position.set(1.5, 1.0, 4.0); scene.add(face);
-  // Texture « serti de strass » générée dans le calcul de la lumière (aucune image à charger) : la surface
-  // est pavée de petites pierres bombées (cellules 3D dans le repère de la pièce), chacune avec sa facette
-  // et son scintillement quand on tourne la pièce ; un grain fin par-dessus.
+  // métal argenté poli, comme le bijou : il reflète le studio (le bleu uni faisait plastique sans relief)
+  const mat = new THREE.MeshPhysicalMaterial({ color: 0xdcdee3, metalness: 1, roughness: 0.14 });
   const U = { uTime: { value: 0 }, uNM: { value: new THREE.Matrix3() } };
-  mat.onBeforeCompile = sh => {
-    sh.uniforms.uTime = U.uTime; sh.uniforms.uNM = U.uNM;
-    sh.vertexShader = 'varying vec3 vObj;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vObj = position;');
-    sh.fragmentShader = `varying vec3 vObj; uniform float uTime; uniform mat3 uNM;
-      float h3(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
-      vec3 strass(vec3 p, out float id) {           // décalage de normale d'une pierre bombée + identifiant
-        const float N = 24.0;   // nombre de pierres par unité (la pièce mesure 2)
-        vec3 q = p * N, c = floor(q), best = vec3(0.0); float bd = 9.0; id = 0.0;
-        for (int x = -1; x <= 1; x++) for (int y = -1; y <= 1; y++) for (int z = -1; z <= 1; z++) {
-          vec3 cc = c + vec3(x, y, z), ctr = cc + 0.5 + (vec3(h3(cc), h3(cc + 3.1), h3(cc + 7.7)) - 0.5) * 0.5;
-          vec3 d = q - ctr; float l = length(d);
-          if (l < bd) { bd = l; best = d; id = h3(cc + 1.7); }
-        }
-        float r = 0.62;                               // rayon d'une pierre (en cellules)
-        return bd < r ? best / r * 0.85 : -best * 0.15;   // dôme sur la pierre, petit creux entre deux
-      }
-      ` + sh.fragmentShader
-      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
-        float sid; vec3 sd = strass(vObj, sid);
-        vec3 sdv = uNM * sd;   // repère de la pièce → repère de la caméra
-        normal = normalize(normal + sdv * 0.9);
-        float grain = h3(floor(vObj * 600.0)) - 0.5;
-        normal = normalize(normal + vec3(grain) * 0.025);`)
-      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
-        float tw = pow(max(0.0, sin(sid * 40.0 + uTime * 2.0 + dot(normal, vec3(3.0)))), 24.0);   // scintillement
-        totalEmissiveRadiance += vec3(1.0) * tw * 0.9 * step(0.55, sid);`);
-  };
   const piece = new THREE.Mesh(g, mat);
   const pivot = new THREE.Group(); pivot.add(piece); scene.add(pivot);
   piece.rotation.set(-0.24, 0.28, -0.17);  // même pose de biais que le rendu Blender
