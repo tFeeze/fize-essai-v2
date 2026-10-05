@@ -179,24 +179,24 @@ if (orbitRenderer) {
       // qu'en hauteur, que l'écran soit en paysage (ordinateur) ou en portrait (téléphone)
       vec2 bend(vec2 c) {
         float r2 = dot(c, c);
-        float a = uPsy * (sin(uT * 0.9 + sqrt(r2) * 11.0) * 1.3 + uT * 0.25);          // tourbillon (psyché)
+        float a = uPsy * sin(uT * 0.9 + sqrt(r2) * 7.0) * 0.28;          // tourbillon (psyché)
         c = mat2(cos(a), -sin(a), sin(a), cos(a)) * c;
-        float k = uK + uPsy * (2.2 + 1.1 * sin(uT * 1.3));
-        c += uPsy * 0.035 * vec2(sin(c.y * 24.0 + uT * 4.0), cos(c.x * 24.0 + uT * 3.3));   // vagues         // grand angle qui respire
+        float k = uK + uPsy * (0.75 + 0.3 * sin(uT * 1.3));
+        c += uPsy * 0.007 * vec2(sin(c.y * 24.0 + uT * 4.0), cos(c.x * 24.0 + uT * 3.3));   // vagues         // grand angle qui respire
         return c * (1.0 - k * r2) + 0.5; }
       vec3 hue(vec3 col, float h) {                                       // rotation de teinte
         const vec3 w = vec3(0.57735); float c = cos(h), s = sin(h);
         return col * c + cross(w, col) * s + w * dot(w, col) * (1.0 - c); }
       void main() {
         vec2 c = vUv - 0.5;
-        float ca = uCA + uPsy * (0.16 + 0.08 * sin(uT * 2.1));             // aberration chromatique à fond
-        float e = dot(c, c) * ca * 8.0 + uPsy * 0.045;
-        vec2 off = uPsy * vec2(sin(uT * 3.0 + c.y * 20.0), cos(uT * 2.4 + c.x * 20.0)) * 0.022;
+        float ca = uCA + uPsy * (0.012 + 0.006 * sin(uT * 2.1));             // aberration chromatique à fond
+        float e = dot(c, c) * ca * 8.0 + uPsy * 0.004;
+        vec2 off = uPsy * vec2(sin(uT * 3.0 + c.y * 20.0), cos(uT * 2.4 + c.x * 20.0)) * 0.003;
         vec4 g = texture2D(tDiffuse, bend(c));
         vec4 r = texture2D(tDiffuse, bend(c * (1.0 - e)) + off);
         vec4 b = texture2D(tDiffuse, bend(c * (1.0 + e)) - off);
         vec4 col = vec4(r.r, g.g, b.b, max(g.a, max(r.a, b.a)));
-        col.rgb = mix(col.rgb, hue(col.rgb, uT * 2.5 + length(c) * 14.0) * 1.5, uPsy);
+        col.rgb = mix(col.rgb, hue(col.rgb, uT * 2.0 + length(c) * 8.0) * 1.3, uPsy * 0.6);
         gl_FragColor = col;
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
@@ -207,6 +207,45 @@ if (orbitRenderer) {
   wide = { rt, mat, sc, cam: new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1) };
 }
 const wideOn = () => wide && (WIDE || psy > 0.002);
+// fond kaléidoscope (mode psyché) : un petit canvas WebGL sous toute la page, créé au premier passage
+let kal = null;
+function kaleido() {
+  if (kal) return kal;
+  const c = document.createElement('canvas'); c.className = 'psy-kal'; document.body.prepend(c);
+  const gl = c.getContext('webgl', { alpha: false, antialias: false });
+  if (!gl) return (kal = { draw() {} });
+  const sh = (t, src) => { const o = gl.createShader(t); gl.shaderSource(o, src); gl.compileShader(o); return o; };
+  const pr = gl.createProgram();
+  gl.attachShader(pr, sh(gl.VERTEX_SHADER, 'attribute vec2 p; void main() { gl_Position = vec4(p, 0.0, 1.0); }'));
+  gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, `precision highp float; uniform vec2 uR; uniform float uT, uA;
+    vec3 pal(float t) { return 0.5 + 0.5 * cos(6.2831 * (t + vec3(0.0, 0.33, 0.67))); }
+    void main() {
+      vec2 p = (gl_FragCoord.xy - 0.5 * uR) / min(uR.x, uR.y);
+      float r = length(p), a = atan(p.y, p.x) + uT * 0.12;
+      const float N = 8.0; float seg = 6.2831 / N;                       // 8 miroirs
+      a = abs(mod(a, seg) - seg * 0.5);
+      vec2 q = vec2(cos(a), sin(a)) * r;
+      q = q * (1.6 + 0.4 * sin(uT * 0.3)) + vec2(uT * 0.08, 0.0);          // le motif avance et respire
+      vec3 col = vec3(0.0);
+      for (int i = 0; i < 5; i++) {                                       // formes repliées sur elles-mêmes
+        q = abs(q) / clamp(dot(q, q), 0.15, 4.0) - vec2(0.72, 0.55) - 0.06 * sin(uT * 0.21);
+        float d = abs(sin(length(q) * 3.0 - uT * 0.6));                   // fines lignes concentriques
+        col += pal(float(i) * 0.19 + r * 0.6 + uT * 0.04) * smoothstep(0.35, 0.0, d) * 0.45;
+      }
+      col = clamp(col + pal(r * 0.8 - uT * 0.05) * 0.18, 0.0, 1.0);
+      gl_FragColor = vec4(mix(vec3(1.0), col, uA), 1.0);
+    }`));
+  gl.linkProgram(pr); gl.useProgram(pr);
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  const uR = gl.getUniformLocation(pr, 'uR'), uT = gl.getUniformLocation(pr, 'uT'), uA = gl.getUniformLocation(pr, 'uA');
+  return (kal = { draw(t, a) {
+    const k = Math.min(devicePixelRatio, 1) * 0.6, w = Math.round(innerWidth * k), h = Math.round(innerHeight * k);   // basse définition : c'est un fond flou
+    if (c.width !== w || c.height !== h) { c.width = w; c.height = h; gl.viewport(0, 0, w, h); }
+    gl.uniform2f(uR, w, h); gl.uniform1f(uT, t); gl.uniform1f(uA, a); gl.drawArrays(gl.TRIANGLES, 0, 3);
+  } });
+}
 function togglePsy() {
   psyOn = !psyOn;
   document.documentElement.classList.toggle('psy', psyOn);
@@ -229,7 +268,7 @@ function togglePsy() {
 // un point de l'écran → l'endroit correspondant de l'image non déformée (pour viser les pièces)
 const unwide = (nx, ny, asp) => {
   if (!wideOn()) return [nx, ny];
-  const cx = nx / 2, cy = ny / 2, f = 1 - (wide.mat.uniforms.uK.value + psy * 2.2) * (cx * cx + cy * cy);
+  const cx = nx / 2, cy = ny / 2, f = 1 - (wide.mat.uniforms.uK.value + psy * 0.75) * (cx * cx + cy * cy);
   return [cx * f * 2, cy * f * 2];
 };
 // ── Impression à l'apparition ────────────────────────────────────────────────────
@@ -785,6 +824,7 @@ function tick() {
   } else if (!FLAT || IN_STAGE) renderer.render(scene, camera);
   if (orbitRenderer && (orbit.visible || orbitShown > 0)) {
     psy += ((psyOn ? 1 : 0) - psy) * (1 - Math.exp(-dt * 2.5));
+    if (psy > 0.002) { kaleido().draw(t, Math.min(1, psy)); document.documentElement.style.setProperty('--psy', psy.toFixed(3)); }
     if (wide) { const u = wide.mat.uniforms; u.uPsy.value = psy; u.uT.value = t; u.uK.value = WIDE ? WIDE_K : 0; u.uCA.value = WIDE ? WIDE_CA : 0; }
     if (wideOn()) {
       const sz = orbitRenderer.getDrawingBufferSize(new THREE.Vector2());
