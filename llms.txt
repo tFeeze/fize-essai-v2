@@ -1,0 +1,27 @@
+# Impression 3D by Fize
+
+> Atelier d'impression 3D à Paris 18e (63 bis rue Ramey), tenu par Tom Fize. Conception, impression 3D
+> (filament et résine) et finition à la main : ponçage, mastic, apprêt, peinture, vernis, effet métal.
+> Pour le spectacle, le cinéma, l'événementiel, les agences de communication et les PME. Travail sur devis.
+
+## Pages principales
+- [Réalisations](https://fize-lab.com/) : les projets de l'atelier
+- [À propos](https://fize-lab.com/about.html) : l'atelier, les clients, les finitions
+- [FAQ](https://fize-lab.com/faq.html) : délais, taille, précision, matériaux, finitions, limites
+- [Contact](https://fize-lab.com/contact.html) : demander un devis (contact@fize-lab.com, 09 83 62 84 04)
+
+## Projets
+- [Justice](https://fize-lab.com/justice.html) : Décor — Blanc veiné d'or. Une statue de la Justice imprimée en 3D pour un décor de chicha, finie en blanc et veinée d'or.
+- [Micro serti](https://fize-lab.com/micro.html) : Accessoire de scène — Serti de strass. Un habillage de micro pour la scène : lettrage gothique et cœur, sertis de strass.
+- [Bijoux](https://fize-lab.com/bijoux.html) : Accessoire de scène — Effet métal argent. Des bijoux triangulaires surdimensionnés, portés en image.
+- [Plaque logo](https://fize-lab.com/plaque-logo.html) : Objet de marque — Impression multicolore. Des plaques logo imprimées en plusieurs couleurs, sans peinture : la couleur vient directement du filament.
+- [Kit rose](https://fize-lab.com/kit-rose.html) : Objet de marque — PLA rose brut. Une série de pièces roses — tirelire, maisons, damier — produites en nombre pour un événement.
+- [Lance-flammes](https://fize-lab.com/lance-flammes.html) : Accessoire de scène — Conception 3D. Un lance-flammes de scène, conçu en 3D avant impression.
+- [Pièce scooter](https://fize-lab.com/scooter.html) : Pièce technique — Brut d'impression. Une pièce de scooter renforcée, modélisée pour être imprimée et montée.
+- [Guitare chicha](https://fize-lab.com/guitare-chicha.html) : Décor — Conception 3D. Un décor de chicha en forme de guitare, découpé en tranches décalées, conçu en 3D avant impression.
+- [Tabourets 1:20](https://fize-lab.com/tabourets.html) : Maquette d'architecture — Échelle 1:20. Le mobilier d'une maquette d'architecture au 1:20 : tabourets, chaises et tables, imprimés en série.
+
+## Informations légales
+- [Mentions légales](https://fize-lab.com/mentions-legales.html)
+- [Conditions générales de vente](https://fize-lab.com/cgv.html)
+- [Confidentialité](https://fize-lab.com/confidentialite.html)

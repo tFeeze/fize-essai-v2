@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Essai 3D — Micro serti</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="site.css?v=ad8fdfc3">
+<style>
+  /* Essai : rendu Blender (image) à gauche, la même pièce en 3D temps réel à droite */
+  body.essai3d { background: #fff; }
+  .duo { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; }
+  .duo figure { margin: 0; position: relative; display: grid; place-items: center; border-left: 1px solid var(--line); }
+  .duo figure:first-child { border-left: 0; }
+  .duo img { max-width: 78%; max-height: 82vh; object-fit: contain; }
+  .duo canvas { width: 100%; height: 100vh; display: block; cursor: grab; touch-action: none; }
+  .duo canvas:active { cursor: grabbing; }
+  .duo figcaption { position: absolute; left: 24px; bottom: 20px; font: 500 10px/1.4 Menlo, monospace; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--mute); }
+  @media (max-width: 800px) { .duo { grid-template-columns: 1fr; } .duo canvas { height: 70vh; }
+    .duo figure { border-left: 0; border-top: 1px solid var(--line); } .duo img { max-height: 60vh; } }
+</style>
+  <meta name="description" content="">
+  <link rel="canonical" href="https://fize-lab.com/micro-3d.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Impression 3D by Fize">
+  <meta property="og:title" content="micro-3d">
+  <meta property="og:description" content="">
+  <meta property="og:url" content="https://fize-lab.com/micro-3d.html">
+  <meta property="og:image" content="https://fize-lab.com/img/justice-cover.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="og:locale" content="fr_FR">
+<script>try{if(0)document.documentElement.classList.add('warp-in')}catch(e){}</script>
+</head>
+<body class="essai3d">
+  <a class="skip" href="#contenu">Aller au contenu</a>
+  <nav aria-label="Menu principal">
+    <a href="index.html">Work</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="faq.html">FAQ</a>
+  </nav>
+  <main class="duo">
+    <figure><img src="img/v2-micro-bleu-800.webp" alt="Micro serti, rendu Blender"><figcaption>Rendu Blender (image fixe)</figcaption></figure>
+    <figure><canvas id="live"></canvas><figcaption>3D temps réel — glisser pour tourner</figcaption></figure>
+  </main>
+  <footer class="site-foot">
+    <span>Impression 3D by Fize — Paris 18e</span>
+    <a href="mentions-legales.html">Mentions légales</a>
+    <a href="confidentialite.html">Confidentialité</a>
+    <a href="faq.html">FAQ</a>
+    <a href="cgv.html">CGV</a>
+    <span>Médiation de la consommation : [MÉDIATEUR À CHOISIR]</span>
+  </footer>
+
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
+<script src="models-micro.js"></script>
+<script type="module">
+  import * as THREE from 'three';
+  // La pièce, exportée telle qu'imprimée (repère de l'atelier : Y en haut, face vers +Z), normales lissées
+  // seulement là où les faces se suivent (arêtes vives gardées)
+  const D = window.PIECE_MICRO, bytes = b => Uint8Array.from(atob(b), c => c.charCodeAt(0)).buffer;
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(Float32Array.from(new Int16Array(bytes(D.pos)), v => v / 32767 * D.scale), 3));
+  g.setAttribute('normal', new THREE.Float32BufferAttribute(Float32Array.from(new Int8Array(bytes(D.nor)), v => v / 127), 3));
+  g.setIndex(new THREE.BufferAttribute(D.wide ? new Uint32Array(bytes(D.idx)) : new Uint16Array(bytes(D.idx)), 1));
+
+  const canvas = document.getElementById('live');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.toneMapping = THREE.NeutralToneMapping ?? THREE.ACESFilmicToneMapping;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  const scene = new THREE.Scene();
+
+  // Le studio de Blender, reproduit pour les reflets : fond sombre et les mêmes panneaux lumineux, aux mêmes
+  // places (repère Blender (x, y, z) → ici (x, z, −y)). Le métal reflète exactement ce décor.
+  function studio() {
+    const s = new THREE.Scene();
+    s.add(new THREE.Mesh(new THREE.SphereGeometry(20, 32, 16), new THREE.MeshBasicMaterial({ color: 0x0d0d0f, side: THREE.BackSide })));
+    const panel = (x, y, z, w, h, k) => {
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: new THREE.Color(k, k, k), side: THREE.DoubleSide }));
+      m.position.set(x, y, z); m.lookAt(0, 0, 0); s.add(m);
+    };
+    panel(-3.2, 0.5, 1.5, 5, 0.9, 9);      // bande gauche
+    panel(3.0, 1.6, 0.8, 4, 0.72, 7);      // bande droite
+    panel(0.3, -3.4, 1.0, 5, 0.9, 3);      // bande basse
+    panel(0.5, 2.6, -3.2, 4, 4, 6);        // contre-jour
+    panel(-2.8, -1.2, -2.4, 3, 3, 4);      // contre-jour 2
+    panel(1.5, 1.0, 4.0, 6, 6, 0.6);       // face, très douce
+    return s;
+  }
+  scene.environment = new THREE.PMREMGenerator(renderer).fromScene(studio(), 0.02).texture;
+
+  // plastique bleu cobalt brillant, comme dans Blender ; des lumières en plus du décor (une matière non
+  // métallique a besoin d'être éclairée, pas seulement de refléter)
+  const mat = new THREE.MeshPhysicalMaterial({ color: 0x1238ff, envMapIntensity: 0.45, roughness: 0.22, clearcoat: 0.6, clearcoatRoughness: 0.2, sheen: 0.25, sheenColor: 0xffffff });
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x223388, 0.3));
+  const back = new THREE.DirectionalLight(0xffffff, 2.2); back.position.set(0.5, 2.6, -3.2); scene.add(back);
+  const back2 = new THREE.DirectionalLight(0xffffff, 1.2); back2.position.set(-2.8, -1.2, -2.4); scene.add(back2);
+  const face = new THREE.DirectionalLight(0xffffff, 0.5); face.position.set(1.5, 1.0, 4.0); scene.add(face);
+  // Texture « serti de strass » générée dans le calcul de la lumière (aucune image à charger) : la surface
+  // est pavée de petites pierres bombées (cellules 3D dans le repère de la pièce), chacune avec sa facette
+  // et son scintillement quand on tourne la pièce ; un grain fin par-dessus.
+  const U = { uTime: { value: 0 }, uNM: { value: new THREE.Matrix3() } };
+  mat.onBeforeCompile = sh => {
+    sh.uniforms.uTime = U.uTime; sh.uniforms.uNM = U.uNM;
+    sh.vertexShader = 'varying vec3 vObj;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vObj = position;');
+    sh.fragmentShader = `varying vec3 vObj; uniform float uTime; uniform mat3 uNM;
+      float h3(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
+      vec3 strass(vec3 p, out float id) {           // décalage de normale d'une pierre bombée + identifiant
+        const float N = 24.0;   // nombre de pierres par unité (la pièce mesure 2)
+        vec3 q = p * N, c = floor(q), best = vec3(0.0); float bd = 9.0; id = 0.0;
+        for (int x = -1; x <= 1; x++) for (int y = -1; y <= 1; y++) for (int z = -1; z <= 1; z++) {
+          vec3 cc = c + vec3(x, y, z), ctr = cc + 0.5 + (vec3(h3(cc), h3(cc + 3.1), h3(cc + 7.7)) - 0.5) * 0.5;
+          vec3 d = q - ctr; float l = length(d);
+          if (l < bd) { bd = l; best = d; id = h3(cc + 1.7); }
+        }
+        float r = 0.62;                               // rayon d'une pierre (en cellules)
+        return bd < r ? best / r * 0.85 : -best * 0.15;   // dôme sur la pierre, petit creux entre deux
+      }
+      ` + sh.fragmentShader
+      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+        float sid; vec3 sd = strass(vObj, sid);
+        vec3 sdv = uNM * sd;   // repère de la pièce → repère de la caméra
+        normal = normalize(normal + sdv * 0.9);
+        float grain = h3(floor(vObj * 600.0)) - 0.5;
+        normal = normalize(normal + vec3(grain) * 0.025);`)
+      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+        float tw = pow(max(0.0, sin(sid * 40.0 + uTime * 2.0 + dot(normal, vec3(3.0)))), 24.0);   // scintillement
+        totalEmissiveRadiance += vec3(1.0) * tw * 0.9 * step(0.55, sid);`);
+  };
+  const piece = new THREE.Mesh(g, mat);
+  const pivot = new THREE.Group(); pivot.add(piece); scene.add(pivot);
+  piece.rotation.set(-0.24, 0.28, -0.17);  // même pose de biais que le rendu Blender
+
+  const camera = new THREE.PerspectiveCamera(30, 1, 0.01, 100);
+  function fit() {
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    renderer.setSize(w, h, false); camera.aspect = w / h;
+    const r = 1.15, fov = THREE.MathUtils.degToRad(camera.fov);
+    camera.position.set(0, 0, r / Math.sin(Math.min(fov, fov * camera.aspect) / 2) * 1.05);
+    camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(fit).observe(canvas); fit();
+
+  // tourner à la main (souris ou doigt), avec de l'élan ; sinon, rotation lente
+  let rx = 0, ry = 0, vx = 0, vy = 0.004, drag = null;
+  canvas.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY }; canvas.setPointerCapture(e.pointerId); });
+  canvas.addEventListener('pointermove', e => {
+    if (!drag) return;
+    vy = (e.clientX - drag.x) * 0.006; vx = (e.clientY - drag.y) * 0.006; drag = { x: e.clientX, y: e.clientY };
+  });
+  addEventListener('pointerup', () => { drag = null; });
+  (function tick() {
+    if (!drag) { vy += (0.004 - vy) * 0.02; vx *= 0.94; }
+    ry += vy; rx = Math.max(-1.2, Math.min(1.2, rx + vx));
+    if (drag) { vx *= 0.5; vy *= 0.5; }
+    pivot.rotation.set(rx, ry, 0);
+    U.uTime.value = performance.now() / 1000;
+    pivot.updateMatrixWorld(); camera.updateMatrixWorld();
+    U.uNM.value.getNormalMatrix(new THREE.Matrix4().multiplyMatrices(camera.matrixWorldInverse, piece.matrixWorld));
+    renderer.render(scene, camera);
+    requestAnimationFrame(tick);
+  })();
+</script>
+<script>
+// ── Transition vers un projet : le logo chrome se transforme ─────────────────────────────
+// Départ (n'importe quelle page) : le logo quitte sa place, pivote en 3D et grandit jusqu'à couvrir
+// l'écran de chrome ; on change de page. Arrivée (page projet) : le chrome recouvre l'écran puis se
+// replie en pivotant jusqu'au médaillon, et la page apparaît derrière.
+// Une image du logo (img/logo-chrome.webp) fait le travail : identique sur ordinateur et téléphone,
+// et indépendante du moteur 3D (qui recharge à chaque page). Injecté en ligne par build.py.
+(() => {
+  const SLUGS = ["justice", "micro", "bijoux", "plaque-logo", "kit-rose", "lance-flammes", "scooter", "guitare-chicha", "tabourets"];
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const KEY = 'fize-warp';
+  // pivot : le centre de l'étoile (mesuré sur l'image du logo) ; SR = rayon du disque inscrit dans l'étoile
+  const OX = 0.5766, OY = 0.4714, SR = 0.0968, RATIO = 733 / 744;
+
+  // où est le logo à l'écran (centre et largeur) : l'image sur téléphone, sinon le cadre du logo 3D
+  function logoBox() {
+    const flat = document.querySelector('.logo-flat');
+    if (flat && flat.offsetWidth) { const r = flat.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, w: r.width }; }
+    const st = document.getElementById('stage');
+    if (!st) return { x: innerWidth / 2, y: innerHeight / 2, w: 120 };
+    const r = st.getBoundingClientRect(), f = (window.LOGO_CONFIG || {}).frame ?? 0.42;
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2, w: Math.min(f, f * r.width / r.height) * r.height };
+  }
+  function layer() {
+    const wrap = document.createElement('div'); wrap.className = 'warp';
+    const im = new Image(); im.src = 'img/logo-chrome.webp'; im.alt = '';
+    wrap.appendChild(im); document.body.appendChild(wrap);
+    return { wrap, im };
+  }
+  // position : le pivot du logo posé sur (x, y), largeur w, rotation a (degrés)
+  const pose = (w, x, y, a, base) => {
+    const s = w / base;
+    return `translate(${x - OX * base}px, ${y - OY * base * RATIO}px) rotateY(${a}deg) rotateZ(${a / 8}deg) scale(${s})`;
+  };
+  // largeur où le logo, centré sur son étoile, couvre tout l'écran ; puis largeur où l'étoile seule le couvre
+  const coverW = () => Math.max(innerWidth / Math.min(OX, 1 - OX), innerHeight / Math.min(OY, 1 - OY) / RATIO) * 0.52;
+  const throughW = () => Math.hypot(innerWidth, innerHeight) / 2 / SR * 1.15;
+
+  const touch = matchMedia('(pointer: coarse)').matches;
+  // aperçu de la page projet : une page chargée d'avance (au survol), invisible, réutilisée au clic
+  let peekEl = null;
+  function preview(url) {
+    const src = url + (url.includes('?') ? '&' : '?') + 'apercu';
+    if (peekEl && peekEl.dataset.src === src) return peekEl;
+    peekEl?.remove();
+    const peek = document.createElement('iframe');
+    peek.className = 'warp-peek'; peek.setAttribute('aria-hidden', 'true'); peek.tabIndex = -1;
+    peek.dataset.src = src; peek.src = src; peek.style.visibility = 'hidden';   // visible seulement pendant la transition (logo3d.js)
+    peek.onload = () => {
+      try {                                         // dans l'aperçu : ni logo, ni écran de chargement
+        const st = peek.contentDocument.createElement('style');
+        st.textContent = '#stage,#loading,.warp,.warp-peek{display:none!important}';
+        peek.contentDocument.head.appendChild(st);
+      } catch {}
+      peek.classList.add('on');
+    };
+    document.body.appendChild(peek);
+    return (peekEl = peek);
+  }
+  function warpTo(url) {
+    const go = () => { try { sessionStorage.setItem(KEY, '1'); } catch {} location.href = url; };
+    if (!window.logoWarpOut) return go();
+    // la page du projet doit être prête avant de lancer l'animation (la charger pendant figerait le logo) :
+    // ordinateur → préparée au survol ; téléphone → préparée dès que le doigt touche le lien. Si elle
+    // n'est pas encore là, on l'attend un court instant (0,8 s au plus), puis on part quoi qu'il arrive.
+    const ready = () => peekEl && peekEl.dataset.src.startsWith(url) && peekEl.classList.contains('on');
+    if (!peekEl || !peekEl.dataset.src.startsWith(url)) preview(url);
+    const start = () => {
+      if (started) return; started = true;
+      const run3d = window.logoWarpOut();
+      if (!run3d) return go();
+      if (ready()) peekEl.classList.add('go'); else { peekEl?.remove(); peekEl = null; }
+      run3d.then(go); setTimeout(go, 1600);
+    };
+    let started = false;
+    if (ready()) return start();
+    peekEl.addEventListener('load', () => requestAnimationFrame(() => requestAnimationFrame(start)), { once: true });
+    setTimeout(start, 800);
+    return;
+  }
+  function warpImage(url) {
+    const go = () => { try { sessionStorage.setItem(KEY, '1'); } catch {} location.href = url; };
+    const b = logoBox(), { wrap, im } = layer(), base = 400;
+    im.style.width = base + 'px'; im.style.transformOrigin = `${OX * 100}% ${OY * 100}%`;
+    // le pivot part de sa vraie place sur le logo affiché
+    const sx = b.x + (OX - 0.5) * b.w, sy = b.y + (OY - 0.5) * b.w * RATIO;
+    // aberration chromatique : franges rouge / cyan qui s'écartent en approchant
+    im.animate([
+      { filter: 'none' },
+      { filter: 'drop-shadow(0.6px 0 0 rgba(255,0,70,.75)) drop-shadow(-0.6px 0 0 rgba(0,210,255,.75))', offset: 0.7 },
+      { filter: 'drop-shadow(1.2px 0 0 rgba(255,0,70,.8)) drop-shadow(-1.2px 0 0 rgba(0,210,255,.8))' },
+    ], { duration: 820, easing: 'ease-in', fill: 'forwards' });
+    const anim = im.animate([
+      { transform: pose(b.w, sx, sy, 0, base) },
+      { transform: pose(b.w * 1.5, innerWidth / 2, innerHeight / 2, 0, base), offset: 0.45 },
+      { transform: pose(coverW(), innerWidth / 2, innerHeight / 2, 360, base) },
+    ], { duration: 820, easing: 'cubic-bezier(.6,0,.35,1)', fill: 'forwards' });
+    document.documentElement.classList.add('warping');            // la page s'efface sous le chrome
+    anim.onfinish = go;
+    setTimeout(go, 1200);                                           // filet de sécurité
+  }
+  window.warpTo = warpTo;
+
+  // survol d'un lien de projet : la page est préchargée, l'aperçu dans l'étoile s'affiche aussitôt au clic
+  const pre = new Set();
+  document.addEventListener('pointerover', e => {
+    const a = e.target.closest?.('a[href]'); if (!a) return;
+    const slug = new URL(a.href, location.href).pathname.split('/').pop().replace(/\.html$/, '');
+    if (!SLUGS.includes(slug) || pre.has(slug)) return;
+    pre.add(slug); const l = document.createElement('link'); l.rel = 'prefetch'; l.href = slug + '.html'; document.head.appendChild(l);
+  }, { passive: true });
+  document.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse') return;
+    const a = e.target.closest?.('a[href]'); if (!a) return;
+    const u = new URL(a.href, location.href), slug = u.pathname.split('/').pop().replace(/\.html$/, '');
+    if (u.origin === location.origin && SLUGS.includes(slug)) preview(u.href);
+  }, { passive: true });
+  let dwell;
+  document.addEventListener('pointerover', e => {
+    if (touch || e.pointerType !== 'mouse') return;
+    const a = e.target.closest?.('a[href]'); clearTimeout(dwell); if (!a) return;
+    const u = new URL(a.href, location.href), slug = u.pathname.split('/').pop().replace(/\.html$/, '');
+    if (u.origin !== location.origin || !SLUGS.includes(slug)) return;
+    dwell = setTimeout(() => preview(u.href), 150);   // la page est déjà prête quand on clique
+  }, { passive: true });
+
+  // clics vers une page projet (liste, bande de photos, « projet suivant »…)
+  document.addEventListener('click', e => {
+    if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const a = e.target.closest('a[href]');
+    if (!a || a.target === '_blank') return;
+    const u = new URL(a.href, location.href);
+    const slug = u.pathname.split('/').pop().replace(/\.html$/, '');
+    if (u.origin !== location.origin || !SLUGS.includes(slug) || u.hash) return;
+    e.preventDefault(); warpTo(u.href);
+  });
+
+  // arrivée sur une page projet après une transition : le chrome se replie jusqu'au médaillon
+  let arrived = false;
+  try { arrived = sessionStorage.getItem(KEY) === '1'; sessionStorage.removeItem(KEY); } catch {}
+  const root = document.documentElement;
+  if (false) {   // ancienne arrivée par image (téléphone), remplacée par le logo 3D   // ordinateur : la page s'affiche directement
+    const { wrap, im } = layer(), base = 400;
+    im.style.width = base + 'px'; im.style.transformOrigin = `${OX * 100}% ${OY * 100}%`;
+    im.style.transform = pose(coverW(), innerWidth / 2, innerHeight / 2, 0, base);
+    root.classList.add('warp-in');
+    let started = false;
+    const start = () => { if (started) return; started = true; requestAnimationFrame(() => {
+      root.classList.remove('warp-cover', 'warp-in');              // la nouvelle page apparaît… dans l'étoile
+      im.animate([
+        { transform: pose(coverW(), innerWidth / 2, innerHeight / 2, 0, base) },
+        { transform: pose(throughW(), innerWidth / 2, innerHeight / 2, 0, base) },
+      ], { duration: 800, easing: 'cubic-bezier(.55,0,.85,.35)', fill: 'forwards' }).onfinish = () => wrap.remove();
+    }); };
+    im.decode().then(start, start);                                 // l'image doit être prête avant de découvrir l'écran
+    setTimeout(start, 900);                                         // jamais bloqué sous le chrome si l'image tarde
+    setTimeout(() => { wrap.remove(); root.classList.remove('warp-in', 'warp-cover'); }, 3500);   // filet de sécurité
+  } else root.classList.remove('warp-in', 'warp-cover');
+  // retour arrière : la page revient du cache telle qu'on l'a quittée (chrome plein écran) → on nettoie
+  addEventListener('pageshow', e => {
+    if (!e.persisted) return;
+    document.querySelectorAll('.warp, .warp-peek').forEach(w => w.remove()); peekEl = null;
+    const st = document.getElementById('stage'); if (st) { st.style.visibility = ''; st.style.transform = ''; }
+    root.classList.remove('warping', 'warp-in', 'warp-cover');
+  });
+})();
+</script>
+</body>
+</html>

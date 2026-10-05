@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta name="robots" content="noindex, nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contact — Fize</title>
+<link rel="stylesheet" href="site.css?v=ad8fdfc3">
+  <meta name="description" content="Décrivez votre projet d&#x27;impression 3D : fichier ou référence, dimensions, finition, date. Atelier à Paris 18e.">
+  <link rel="canonical" href="https://fize-lab.com/contact.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Impression 3D by Fize">
+  <meta property="og:title" content="Contact — Impression 3D by Fize">
+  <meta property="og:description" content="Décrivez votre projet d&#x27;impression 3D : fichier ou référence, dimensions, finition, date. Atelier à Paris 18e.">
+  <meta property="og:url" content="https://fize-lab.com/contact.html">
+  <meta property="og:image" content="https://fize-lab.com/img/justice-cover.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="og:locale" content="fr_FR">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "LocalBusiness", "name": "Impression 3D by Fize", "description": "Accessoires et décors, objets de marque, prototypes et pièces techniques : conception, impression 3D et finition à la main, à Paris 18e.", "url": "https://fize-lab.com/", "email": "contact@fize-lab.com", "telephone": "+33983628404", "founder": {"@type": "Person", "name": "Tom Fize"}, "address": {"@type": "PostalAddress", "streetAddress": "63 bis rue Ramey", "postalCode": "75018", "addressLocality": "Paris", "addressCountry": "FR"}, "areaServed": "Paris, Île-de-France", "knowsAbout": ["impression 3D", "accessoires de scène", "props", "objets de marque", "prototypage", "finition"]}</script>
+<script>try{if(0)document.documentElement.classList.add('warp-in')}catch(e){}</script>
+</head>
+<body class="contact">
+  <a class="skip" href="#contenu">Aller au contenu</a>
+  <div id="stage"><a class="home" href="index.html" aria-label="Accueil"><canvas id="scene"></canvas></a></div>
+  <!-- Écran de chargement : une bobine en volume (CSS 3D, sans attendre le moteur 3D) dont le fil
+     s'enroule au rythme du chargement. Injecté par build.py.
+     Étapes : page lue → modèle du logo chargé → moteur 3D prêt → première image affichée.
+     Entre deux étapes, le fil avance doucement ; window.loadStep(p) fixe le minimum atteint (0 à 1). -->
+<div id="loading" aria-label="Chargement" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+  <div class="ld-3d">
+    <div class="ld-rig" id="ld-rig">
+      <div class="ld-flange" style="--z:-26px"></div>
+      <div id="ld-drum"></div>
+      <div class="ld-flange" style="--z:26px"></div>
+    </div>
+  </div>
+  <span id="ld-pc">000 %</span>
+</div>
+<script>
+  (() => {
+    // La bobine n'apparaît que si le chargement traîne (plus de SHOW_AFTER ms). Sur un appareil rapide
+    // ou une page en cache, on ne la voit jamais et rien ne tourne pour rien.
+    const SHOW_AFTER = 600;
+    const el = document.getElementById('loading'), drum = document.getElementById('ld-drum');
+    const rig = document.getElementById('ld-rig'), pc = document.getElementById('ld-pc');
+    const HUB = 17, MAX = 50, SLICES = 11;                // rayons en px ; tranches du tambour de fil
+    let floor = 0.08, shown = 0, visible = false, done = false, spin = 0, last = 0;
+    el.classList.add('quiet');
+    const finish = () => {                                // on retire l'écran, en fondu court si la bobine n'a pas été vue
+      done = true;
+      el.classList.add(visible ? 'done' : 'done-fast');
+      setTimeout(() => el.remove(), visible ? 900 : 300);
+    };
+    window.loadStep = p => {
+      floor = Math.max(floor, p);
+      if (floor >= 1 && !visible && !done) finish();      // chargé avant le délai : pas d'animation du tout
+    };
+    addEventListener('DOMContentLoaded', () => loadStep(0.2));
+    setTimeout(() => loadStep(1), 9000);                  // filet de sécurité : jamais bloqué sur l'écran de chargement
+    setTimeout(() => {
+      if (done) return;
+      visible = true; el.classList.remove('quiet');
+      drum.innerHTML = Array.from({ length: SLICES }, (_, i) =>
+        `<i style="--z:${(-22 + 44 * i / (SLICES - 1)).toFixed(1)}px"></i>`).join('');
+      last = performance.now(); requestAnimationFrame(frame);
+    }, SHOW_AFTER);
+    function frame(now) {
+      const dt = Math.min(0.05, (now - last) / 1000); last = now;
+      // on avance vers l'étape atteinte, et on grignote un peu au-delà tant qu'on attend la suivante
+      const goal = floor >= 1 ? 1 : Math.min(floor + 0.12, 0.97);
+      shown += (goal - shown) * (1 - Math.exp(-dt * (floor >= 1 ? 7 : 1.4)));
+      spin += dt * 160;
+      rig.style.setProperty('--spin', (spin % 360) + 'deg');
+      drum.style.setProperty('--r', (HUB + (MAX - HUB) * shown).toFixed(1) + 'px');   // le fil s'épaissit
+      const v = Math.round(shown * 100);
+      pc.textContent = String(v).padStart(3, '0') + ' %';
+      el.setAttribute('aria-valuenow', v);
+      if (floor >= 1 && shown > 0.995 && !done) { pc.textContent = '100 %'; setTimeout(finish, 200); done = true; return; }
+      requestAnimationFrame(frame);
+    }
+  })();
+</script>
+
+
+  <nav>
+    <a href="index.html">Work</a>
+    <a href="about.html">About</a>
+    <a href="contact.html" aria-current="page">Contact</a>
+    <a href="faq.html">FAQ</a>
+  </nav>
+
+  <main id="contenu">
+    <h1 class="label">Contact — un projet&nbsp;?</h1>
+    <a class="mega" id="mail" href="mailto:contact@fize-lab.com"><span>contact</span><span>@fize-lab.com</span></a>
+
+    <!-- Netlify Forms : le formulaire est détecté au déploiement grâce à data-netlify.
+         Un seul fichier par champ chez Netlify → cinq champs fichier1…fichier5, remplis par le script. -->
+    <form id="brief" class="form" name="brief" method="POST" enctype="multipart/form-data"
+          data-netlify="true" netlify-honeypot="bot-field" novalidate>
+      <input type="hidden" name="form-name" value="brief">
+      <p hidden><label>Ne pas remplir <input name="bot-field"></label></p>
+      <input type="file" name="fichier1" hidden><input type="file" name="fichier2" hidden><input type="file" name="fichier3" hidden>
+      <input type="file" name="fichier4" hidden><input type="file" name="fichier5" hidden>
+      <div class="row">
+        <label class="f"><span>Nom *</span><input name="nom" autocomplete="name" required></label>
+        <label class="f"><span>E-mail *</span><input name="email" type="email" autocomplete="email" required></label>
+      </div>
+      <div class="row">
+        <label class="f"><span>Société (facultatif)</span><input name="societe" autocomplete="organization"></label>
+        <label class="f"><span>Téléphone (facultatif)</span><input name="telephone" type="tel" autocomplete="tel"></label>
+      </div>
+
+
+      <label class="f"><span>Le projet</span><textarea name="message" rows="4" placeholder="L'usage, le contexte (scène, tournage, salon…), les contraintes."></textarea></label>
+
+      <div class="drop" id="drop" tabindex="0" role="button" aria-label="Ajouter des fichiers">
+        <input type="file" id="files" multiple hidden
+               accept=".stl,.obj,.step,.stp,.3mf,.iges,.igs,.f3d,.blend,.pdf,.jpg,.jpeg,.png,.heic,.webp,.zip">
+        <strong>Déposez vos fichiers ici</strong>
+        <span>ou cliquez pour parcourir — STL, OBJ, STEP, 3MF, PDF, photos, croquis</span>
+      </div>
+      <ul class="filelist" id="filelist"></ul>
+      <label class="f"><span>Fichiers trop lourds&nbsp;? Un lien WeTransfer, Drive…</span><input name="lien" type="url" placeholder="https://"></label>
+
+      <div class="submit">
+        <button type="submit">Envoyer la demande →</button>
+        <p class="note">Ces informations et vos fichiers servent uniquement à répondre à votre demande et à établir un devis. Le bouton ouvre votre messagerie : rien n'est envoyé tant que vous n'avez pas envoyé l'e-mail. <a href="confidentialite.html">Politique de confidentialité</a>.</p>
+      </div>
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+    </form>
+
+    <p class="note faq-link">Une question avant d'écrire&nbsp;? <a href="faq.html">Voir la FAQ →</a></p>
+
+    <div class="infos">
+      <div><span>E-mail</span><a href="mailto:contact@fize-lab.com">contact@fize-lab.com</a></div>
+      <div><span>Téléphone</span><a href="tel:+33983628404">09 83 62 84 04</a></div>
+      <div><span>Atelier</span><a href="https://maps.app.goo.gl/2783uBBpM2BBhTuz6" target="_blank" rel="noopener">63 bis rue Ramey, 75018 Paris</a></div>
+    </div>
+  </main>
+  <footer class="site-foot">
+    <span>Impression 3D by Fize — Paris 18e</span>
+    <a href="mentions-legales.html">Mentions légales</a>
+    <a href="confidentialite.html">Confidentialité</a>
+    <a href="faq.html">FAQ</a>
+    <a href="cgv.html">CGV</a>
+    <span>Médiation de la consommation : [MÉDIATEUR À CHOISIR]</span>
+  </footer>
+
+<script>
+  window.LOGO_CONFIG = { mode: 'fixed', frame: 0.38 };
+
+  // ── Où partent les demandes ───────────────────────────────────────────────────────
+  // En ligne sur Netlify : envoi à Netlify Forms (POST sur « / »), qui transmet la demande par e-mail.
+  // En local (aperçu, fichier ouvert à la main) : pas de Netlify, le bouton ouvre un e-mail pré-rempli.
+  // Netlify Forms pas encore activé : on reste sur l'e-mail pré-rempli. Pour l'activer, passer
+  // NETLIFY_FORMS à true, activer « Form detection » dans Netlify, puis redéployer.
+  const NETLIFY_FORMS = false;
+  const ONLINE = NETLIFY_FORMS && location.protocol.startsWith('http') && !['localhost', '127.0.0.1'].includes(location.hostname);
+  const FORM_ENDPOINT = ONLINE ? '/' : '';
+  const MAX_TOTAL = 8 * 1024 * 1024;   // limite Netlify par envoi
+  const MAX_FILES = 5;                 // un fichier par champ : fichier1 … fichier5
+
+  const TO = 'contact@fize-lab.com';
+  const form = document.getElementById('brief');
+  const status = document.getElementById('status');
+  const drop = document.getElementById('drop');
+  const input = document.getElementById('files');
+  const list = document.getElementById('filelist');
+  let files = [];
+
+  // mailto simple (lien e-mail en haut et en bas de page)
+  document.querySelectorAll('a[href^="mailto:"]').forEach(a => a.href = `mailto:${TO}?subject=${encodeURIComponent('Projet — ')}`);
+  const mail = document.getElementById('mail');
+
+  // ── Fichiers ──────────────────────────────────────────────────────────────────────
+  const size = b => b > 1048576 ? (b / 1048576).toFixed(1).replace('.', ',') + ' Mo' : Math.max(1, Math.round(b / 1024)) + ' Ko';
+  const total = () => files.reduce((s, f) => s + f.size, 0);
+  function render() {
+    list.innerHTML = files.map((f, i) =>
+      `<li><span>${f.name.replace(/</g, '&lt;')}</span><span>${size(f.size)}</span><button type="button" data-i="${i}" aria-label="Retirer">✕</button></li>`).join('');
+    if (files.length) list.insertAdjacentHTML('beforeend',
+      `<li class="sum ${ONLINE && (total() > MAX_TOTAL || files.length > MAX_FILES) ? 'over' : ''}"><span>${files.length} fichier${files.length > 1 ? 's' : ''}</span><span>${size(total())}</span><span></span></li>`);
+  }
+  function add(fl) {
+    for (const f of fl) if (!files.some(g => g.name === f.name && g.size === f.size)) files.push(f);
+    render();
+  }
+  list.addEventListener('click', e => { const b = e.target.closest('button'); if (b) { files.splice(+b.dataset.i, 1); render(); } });
+  drop.addEventListener('click', () => input.click());
+  drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); } });
+  input.addEventListener('change', () => { add(input.files); input.value = ''; });
+  ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+  ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+  drop.addEventListener('drop', e => add(e.dataTransfer.files));
+  // un fichier lâché à côté de la zone ne doit pas ouvrir le fichier dans l'onglet
+  addEventListener('dragover', e => e.preventDefault());
+  addEventListener('drop', e => e.preventDefault());
+
+  // ── Envoi ─────────────────────────────────────────────────────────────────────────
+  function summary(fd) {
+    const lines = [
+      ['Nom', fd.get('nom')], ['E-mail', fd.get('email')], ['Société', fd.get('societe')], ['Téléphone', fd.get('telephone')],
+      ['Lien fichiers', fd.get('lien')],
+    ].filter(([, v]) => v).map(([k, v]) => `${k} : ${v}`);
+    return lines.join('\n') + '\n\n' + (fd.get('message') || '');
+  }
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    status.className = 'status';
+    const bad = [...form.querySelectorAll('[required]')].find(el => !el.checkValidity());
+    if (bad) { status.textContent = 'Il manque votre nom ou une adresse e-mail valide.'; status.classList.add('err'); bad.focus(); return; }
+    // limites Netlify : seulement quand l'envoi passe par Netlify Forms (pas pour l'e-mail pré-rempli)
+    if (ONLINE && files.length > MAX_FILES) { status.textContent = `${MAX_FILES} fichiers maximum : regroupez-les dans un .zip ou passez par un lien.`; status.classList.add('err'); return; }
+    if (ONLINE && total() > MAX_TOTAL) { status.textContent = 'Les fichiers dépassent 8 Mo : retirez-en ou passez par un lien WeTransfer.'; status.classList.add('err'); return; }
+
+    const fd = new FormData(form);
+    for (let i = 1; i <= MAX_FILES; i++) fd.delete('fichier' + i);
+    files.forEach((f, i) => fd.append('fichier' + (i + 1), f, f.name));
+    const subject = `Projet — ${fd.get('nom')}${fd.get('societe') ? ' — ' + fd.get('societe') : ''}`;
+
+    if (!FORM_ENDPOINT) {
+      // pas encore de service branché : e-mail pré-rempli, fichiers à joindre à la main
+      const body = summary(fd) + (files.length ? `\n\nFichiers à joindre : ${files.map(f => f.name).join(', ')}` : '');
+      location.href = `mailto:${TO}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      status.textContent = files.length
+        ? 'Votre messagerie s\'ouvre avec la demande : pensez à y joindre vos fichiers.'
+        : 'Votre messagerie s\'ouvre avec la demande pré-remplie.';
+      return;
+    }
+
+    const btn = form.querySelector('button[type=submit]');
+    btn.disabled = true; btn.textContent = 'Envoi…';
+    try {
+      // pas d'en-tête Content-Type : le navigateur le pose lui-même avec les fichiers (recommandation Netlify)
+      const r = await fetch(FORM_ENDPOINT, { method: 'POST', body: fd });
+      if (!r.ok) throw new Error(r.status);
+      form.reset(); files = []; render();
+      status.textContent = 'Merci, c\'est reçu. Réponse rapide par e-mail.'; status.classList.add('ok');
+    } catch {
+      status.textContent = `L'envoi n'a pas abouti. Écrivez directement à ${TO}.`; status.classList.add('err');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Envoyer la demande →';
+    }
+  });
+</script>
+<script type="importmap">
+{ "imports": {
+  "three": "./vendor/three.module.min.js",
+  "three/addons/loaders/OBJLoader.js": "./vendor/OBJLoader.js"
+} }
+</script>
+<script>
+(() => {
+  const C = window.LOGO_CONFIG || {}, touch = matchMedia('(pointer: coarse)').matches;
+  // aperçu dans l'étoile pendant une transition : page seule, sans moteur 3D (rien ne la ralentit)
+  if (location.search.includes('apercu')) { window.loadStep?.(1); return; }
+  const add = (src, mod) => new Promise(ok => {
+    const s = document.createElement('script'); if (mod) s.type = 'module'; s.src = src; s.onload = ok; document.body.appendChild(s);
+  });
+  {
+    // pièces en orbite (accueil) et modèle du logo en parallèle, puis le moteur ;
+    // chargés en arrière-plan : la page (liste des projets…) s'affiche sans les attendre
+    const need = [add('logo-data.js?v=de6bd7e0')];
+    if (C.orbit) need.push(add('models-home.js?v=8c2298e7'));
+    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=1fa060ab', true); });
+  }
+})();
+</script>
+<script>
+// ── Transition vers un projet : le logo chrome se transforme ─────────────────────────────
+// Départ (n'importe quelle page) : le logo quitte sa place, pivote en 3D et grandit jusqu'à couvrir
+// l'écran de chrome ; on change de page. Arrivée (page projet) : le chrome recouvre l'écran puis se
+// replie en pivotant jusqu'au médaillon, et la page apparaît derrière.
+// Une image du logo (img/logo-chrome.webp) fait le travail : identique sur ordinateur et téléphone,
+// et indépendante du moteur 3D (qui recharge à chaque page). Injecté en ligne par build.py.
+(() => {
+  const SLUGS = ["justice", "micro", "bijoux", "plaque-logo", "kit-rose", "lance-flammes", "scooter", "guitare-chicha", "tabourets"];
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const KEY = 'fize-warp';
+  // pivot : le centre de l'étoile (mesuré sur l'image du logo) ; SR = rayon du disque inscrit dans l'étoile
+  const OX = 0.5766, OY = 0.4714, SR = 0.0968, RATIO = 733 / 744;
+
+  // où est le logo à l'écran (centre et largeur) : l'image sur téléphone, sinon le cadre du logo 3D
+  function logoBox() {
+    const flat = document.querySelector('.logo-flat');
+    if (flat && flat.offsetWidth) { const r = flat.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, w: r.width }; }
+    const st = document.getElementById('stage');
+    if (!st) return { x: innerWidth / 2, y: innerHeight / 2, w: 120 };
+    const r = st.getBoundingClientRect(), f = (window.LOGO_CONFIG || {}).frame ?? 0.42;
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2, w: Math.min(f, f * r.width / r.height) * r.height };
+  }
+  function layer() {
+    const wrap = document.createElement('div'); wrap.className = 'warp';
+    const im = new Image(); im.src = 'img/logo-chrome.webp'; im.alt = '';
+    wrap.appendChild(im); document.body.appendChild(wrap);
+    return { wrap, im };
+  }
+  // position : le pivot du logo posé sur (x, y), largeur w, rotation a (degrés)
+  const pose = (w, x, y, a, base) => {
+    const s = w / base;
+    return `translate(${x - OX * base}px, ${y - OY * base * RATIO}px) rotateY(${a}deg) rotateZ(${a / 8}deg) scale(${s})`;
+  };
+  // largeur où le logo, centré sur son étoile, couvre tout l'écran ; puis largeur où l'étoile seule le couvre
+  const coverW = () => Math.max(innerWidth / Math.min(OX, 1 - OX), innerHeight / Math.min(OY, 1 - OY) / RATIO) * 0.52;
+  const throughW = () => Math.hypot(innerWidth, innerHeight) / 2 / SR * 1.15;
+
+  const touch = matchMedia('(pointer: coarse)').matches;
+  // aperçu de la page projet : une page chargée d'avance (au survol), invisible, réutilisée au clic
+  let peekEl = null;
+  function preview(url) {
+    const src = url + (url.includes('?') ? '&' : '?') + 'apercu';
+    if (peekEl && peekEl.dataset.src === src) return peekEl;
+    peekEl?.remove();
+    const peek = document.createElement('iframe');
+    peek.className = 'warp-peek'; peek.setAttribute('aria-hidden', 'true'); peek.tabIndex = -1;
+    peek.dataset.src = src; peek.src = src; peek.style.visibility = 'hidden';   // visible seulement pendant la transition (logo3d.js)
+    peek.onload = () => {
+      try {                                         // dans l'aperçu : ni logo, ni écran de chargement
+        const st = peek.contentDocument.createElement('style');
+        st.textContent = '#stage,#loading,.warp,.warp-peek{display:none!important}';
+        peek.contentDocument.head.appendChild(st);
+      } catch {}
+      peek.classList.add('on');
+    };
+    document.body.appendChild(peek);
+    return (peekEl = peek);
+  }
+  function warpTo(url) {
+    const go = () => { try { sessionStorage.setItem(KEY, '1'); } catch {} location.href = url; };
+    if (!window.logoWarpOut) return go();
+    // la page du projet doit être prête avant de lancer l'animation (la charger pendant figerait le logo) :
+    // ordinateur → préparée au survol ; téléphone → préparée dès que le doigt touche le lien. Si elle
+    // n'est pas encore là, on l'attend un court instant (0,8 s au plus), puis on part quoi qu'il arrive.
+    const ready = () => peekEl && peekEl.dataset.src.startsWith(url) && peekEl.classList.contains('on');
+    if (!peekEl || !peekEl.dataset.src.startsWith(url)) preview(url);
+    const start = () => {
+      if (started) return; started = true;
+      const run3d = window.logoWarpOut();
+      if (!run3d) return go();
+      if (ready()) peekEl.classList.add('go'); else { peekEl?.remove(); peekEl = null; }
+      run3d.then(go); setTimeout(go, 1600);
+    };
+    let started = false;
+    if (ready()) return start();
+    peekEl.addEventListener('load', () => requestAnimationFrame(() => requestAnimationFrame(start)), { once: true });
+    setTimeout(start, 800);
+    return;
+  }
+  function warpImage(url) {
+    const go = () => { try { sessionStorage.setItem(KEY, '1'); } catch {} location.href = url; };
+    const b = logoBox(), { wrap, im } = layer(), base = 400;
+    im.style.width = base + 'px'; im.style.transformOrigin = `${OX * 100}% ${OY * 100}%`;
+    // le pivot part de sa vraie place sur le logo affiché
+    const sx = b.x + (OX - 0.5) * b.w, sy = b.y + (OY - 0.5) * b.w * RATIO;
+    // aberration chromatique : franges rouge / cyan qui s'écartent en approchant
+    im.animate([
+      { filter: 'none' },
+      { filter: 'drop-shadow(0.6px 0 0 rgba(255,0,70,.75)) drop-shadow(-0.6px 0 0 rgba(0,210,255,.75))', offset: 0.7 },
+      { filter: 'drop-shadow(1.2px 0 0 rgba(255,0,70,.8)) drop-shadow(-1.2px 0 0 rgba(0,210,255,.8))' },
+    ], { duration: 820, easing: 'ease-in', fill: 'forwards' });
+    const anim = im.animate([
+      { transform: pose(b.w, sx, sy, 0, base) },
+      { transform: pose(b.w * 1.5, innerWidth / 2, innerHeight / 2, 0, base), offset: 0.45 },
+      { transform: pose(coverW(), innerWidth / 2, innerHeight / 2, 360, base) },
+    ], { duration: 820, easing: 'cubic-bezier(.6,0,.35,1)', fill: 'forwards' });
+    document.documentElement.classList.add('warping');            // la page s'efface sous le chrome
+    anim.onfinish = go;
+    setTimeout(go, 1200);                                           // filet de sécurité
+  }
+  window.warpTo = warpTo;
+
+  // survol d'un lien de projet : la page est préchargée, l'aperçu dans l'étoile s'affiche aussitôt au clic
+  const pre = new Set();
+  document.addEventListener('pointerover', e => {
+    const a = e.target.closest?.('a[href]'); if (!a) return;
+    const slug = new URL(a.href, location.href).pathname.split('/').pop().replace(/\.html$/, '');
+    if (!SLUGS.includes(slug) || pre.has(slug)) return;
+    pre.add(slug); const l = document.createElement('link'); l.rel = 'prefetch'; l.href = slug + '.html'; document.head.appendChild(l);
+  }, { passive: true });
+  document.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse') return;
+    const a = e.target.closest?.('a[href]'); if (!a) return;
+    const u = new URL(a.href, location.href), slug = u.pathname.split('/').pop().replace(/\.html$/, '');
+    if (u.origin === location.origin && SLUGS.includes(slug)) preview(u.href);
+  }, { passive: true });
+  let dwell;
+  document.addEventListener('pointerover', e => {
+    if (touch || e.pointerType !== 'mouse') return;
+    const a = e.target.closest?.('a[href]'); clearTimeout(dwell); if (!a) return;
+    const u = new URL(a.href, location.href), slug = u.pathname.split('/').pop().replace(/\.html$/, '');
+    if (u.origin !== location.origin || !SLUGS.includes(slug)) return;
+    dwell = setTimeout(() => preview(u.href), 150);   // la page est déjà prête quand on clique
+  }, { passive: true });
+
+  // clics vers une page projet (liste, bande de photos, « projet suivant »…)
+  document.addEventListener('click', e => {
+    if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const a = e.target.closest('a[href]');
+    if (!a || a.target === '_blank') return;
+    const u = new URL(a.href, location.href);
+    const slug = u.pathname.split('/').pop().replace(/\.html$/, '');
+    if (u.origin !== location.origin || !SLUGS.includes(slug) || u.hash) return;
+    e.preventDefault(); warpTo(u.href);
+  });
+
+  // arrivée sur une page projet après une transition : le chrome se replie jusqu'au médaillon
+  let arrived = false;
+  try { arrived = sessionStorage.getItem(KEY) === '1'; sessionStorage.removeItem(KEY); } catch {}
+  const root = document.documentElement;
+  if (false) {   // ancienne arrivée par image (téléphone), remplacée par le logo 3D   // ordinateur : la page s'affiche directement
+    const { wrap, im } = layer(), base = 400;
+    im.style.width = base + 'px'; im.style.transformOrigin = `${OX * 100}% ${OY * 100}%`;
+    im.style.transform = pose(coverW(), innerWidth / 2, innerHeight / 2, 0, base);
+    root.classList.add('warp-in');
+    let started = false;
+    const start = () => { if (started) return; started = true; requestAnimationFrame(() => {
+      root.classList.remove('warp-cover', 'warp-in');              // la nouvelle page apparaît… dans l'étoile
+      im.animate([
+        { transform: pose(coverW(), innerWidth / 2, innerHeight / 2, 0, base) },
+        { transform: pose(throughW(), innerWidth / 2, innerHeight / 2, 0, base) },
+      ], { duration: 800, easing: 'cubic-bezier(.55,0,.85,.35)', fill: 'forwards' }).onfinish = () => wrap.remove();
+    }); };
+    im.decode().then(start, start);                                 // l'image doit être prête avant de découvrir l'écran
+    setTimeout(start, 900);                                         // jamais bloqué sous le chrome si l'image tarde
+    setTimeout(() => { wrap.remove(); root.classList.remove('warp-in', 'warp-cover'); }, 3500);   // filet de sécurité
+  } else root.classList.remove('warp-in', 'warp-cover');
+  // retour arrière : la page revient du cache telle qu'on l'a quittée (chrome plein écran) → on nettoie
+  addEventListener('pageshow', e => {
+    if (!e.persisted) return;
+    document.querySelectorAll('.warp, .warp-peek').forEach(w => w.remove()); peekEl = null;
+    const st = document.getElementById('stage'); if (st) { st.style.visibility = ''; st.style.transform = ''; }
+    root.classList.remove('warping', 'warp-in', 'warp-cover');
+  });
+})();
+</script>
+</body>
+</html>
