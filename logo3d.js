@@ -221,7 +221,10 @@ function togglePsy() {
     if (Math.abs(e.clientX - r.left - r.width / 2) > half || Math.abs(e.clientY - r.top - r.height / 2) > half) return;
     const n = performance.now(); taps = taps.filter(x => n - x < 1600); taps.push(n);
     if (taps.length >= 5) { taps = []; togglePsy(); } });
-  if (window.PSY_START || location.hash === '#psyche') setTimeout(togglePsy, 600);       // lien direct vers l'easter egg
+  if (window.PSY_START || location.hash === '#psyche') setTimeout(togglePsy, 600);
+  // lien « PSY » du pied de page : sur la page 3D même, on remonte en haut et on bascule sans recharger
+  document.addEventListener('click', e => { const l = e.target.closest?.('a.psy-link'); if (!l || !orbitRenderer) return;
+    e.preventDefault(); scrollTo({ top: 0, behavior: 'smooth' }); togglePsy(); });       // lien direct vers l'easter egg
 }
 // un point de l'écran → l'endroit correspondant de l'image non déformée (pour viser les pièces)
 const unwide = (nx, ny, asp) => {
