@@ -164,7 +164,7 @@ const pieces = [];
 // Les pièces passent par un dernier calcul qui étire l'image vers les bords du cadre, comme un objectif
 // grand angle : plus une pièce s'approche du bord, plus elle s'allonge vers l'extérieur ; le centre ne
 // bouge presque pas. Léger dédoublement rouge/bleu tout au bord. Le survol tient compte de la déformation.
-const WIDE = !!orbitRenderer, WIDE_K = TOUCH ? 0.55 : 0.85, WIDE_CA = 0.0012;   // ordinateur : grand angle plus marqué   // grand angle sur les pièces, ordinateur et téléphone
+const WIDE = !!orbitRenderer, WIDE_K = TOUCH ? 0.55 : 0.72, WIDE_CA = 0.0012;   // ordinateur : grand angle plus marqué   // grand angle sur les pièces, ordinateur et téléphone
 let wide = null;
 if (WIDE) {
   const rt = new THREE.WebGLRenderTarget(4, 4, { samples: 4 });
@@ -661,7 +661,7 @@ function tick() {
       let x = sx * hw - p.lx * z * 0.6 + p.lx * 0.25;
       let y = sy * hh + Math.sin(t * 0.9 + p.phase) * 0.05 * h / 4 + p.ly * z * 0.6 - p.ly * 0.25;
       // …bornée pour que la pièce entière, même en tournant, reste dans le cadre (marge de 3 %)
-      const edge = wide ? 0.97 * (1 - WIDE_K * 0.3) : 0.97;            // le grand angle repousse les bords : on garde la marge
+      const edge = wide ? 0.97 * (1 - WIDE_K * 0.42) : 0.97;            // le grand angle repousse les bords : on garde la marge
       const mx = Math.max(0, hw * edge - reach), my = Math.max(0, hh * edge - reach);
       x = Math.min(mx, Math.max(-mx, x));
       const top = tall ? Math.max(0, hh * 0.87 * (wide ? 1 - WIDE_K * 0.3 : 1) - reach) : my;   // téléphone : on reste sous la barre de menu
