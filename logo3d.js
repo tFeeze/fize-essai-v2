@@ -164,7 +164,7 @@ const pieces = [];
 // Les pièces passent par un dernier calcul qui étire l'image vers les bords du cadre, comme un objectif
 // grand angle : plus une pièce s'approche du bord, plus elle s'allonge vers l'extérieur ; le centre ne
 // bouge presque pas. Léger dédoublement rouge/bleu tout au bord. Le survol tient compte de la déformation.
-const WIDE = !!orbitRenderer, WIDE_K = 0.34, WIDE_CA = 0.0022;   // grand angle sur les pièces, ordinateur et téléphone
+const WIDE = !!orbitRenderer, WIDE_K = 0.55, WIDE_CA = 0.003;   // grand angle sur les pièces, ordinateur et téléphone
 let wide = null;
 if (WIDE) {
   const rt = new THREE.WebGLRenderTarget(4, 4, { samples: 4 });
@@ -172,7 +172,9 @@ if (WIDE) {
     uniforms: { tDiffuse: { value: rt.texture }, uAspect: { value: 1 } },
     vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
     fragmentShader: `uniform sampler2D tDiffuse; uniform float uAspect; varying vec2 vUv;
-      vec2 bend(vec2 c) { vec2 a = c * vec2(uAspect, 1.0) / max(uAspect, 1.0); return c * (1.0 - ${WIDE_K.toFixed(3)} * dot(a, a)) + 0.5; }
+      // distance au centre mesurée en fraction du cadre (pas en pixels) : l'effet est aussi fort en largeur
+      // qu'en hauteur, que l'écran soit en paysage (ordinateur) ou en portrait (téléphone)
+      vec2 bend(vec2 c) { return c * (1.0 - ${WIDE_K.toFixed(3)} * dot(c, c)) + 0.5; }
       void main() {
         vec2 c = vUv - 0.5; float e = dot(c, c) * ${WIDE_CA.toFixed(4)} * 8.0;
         vec4 g = texture2D(tDiffuse, bend(c));
@@ -190,7 +192,7 @@ if (WIDE) {
 // un point de l'écran → l'endroit correspondant de l'image non déformée (pour viser les pièces)
 const unwide = (nx, ny, asp) => {
   if (!wide) return [nx, ny];
-  const cx = nx / 2, cy = ny / 2, m = Math.max(asp, 1), ax = cx * asp / m, ay = cy / m, f = 1 - WIDE_K * (ax * ax + ay * ay);
+  const cx = nx / 2, cy = ny / 2, f = 1 - WIDE_K * (cx * cx + cy * cy);
   return [cx * f * 2, cy * f * 2];
 };
 // ── Impression à l'apparition ────────────────────────────────────────────────────
@@ -485,7 +487,7 @@ addEventListener('scroll', () => {
 // profondeur de chaque pièce (unités du logo, qui mesure 1) : devant / derrière le logo, pour étager la scène
 const DEPTHS = [0.55, -0.9, 0.25, -0.45, 0.8, -1.3, -0.2, 0.4];
 const SLOTS_WIDE = [[-0.58, 0.36], [0.6, 0.44], [-0.66, -0.4], [0.56, -0.46], [-0.08, -0.78], [0.2, 0.78], [-0.38, -0.74], [0.34, -0.76]];
-const SLOTS_TALL = [[-0.55, 0.42], [0.55, 0.4], [-0.55, -0.5], [0.55, -0.5], [-0.45, 0.86], [0.45, 0.86], [-0.52, -0.86], [0.52, -0.84]];   // téléphone
+const SLOTS_TALL = [[-0.48, 0.62], [0.5, 0.6], [-0.78, 0.02], [0.78, -0.02], [-0.48, -0.62], [0.5, -0.64]];   // téléphone : 6 pièces (2 au-dessus, 2 de côté, 2 en dessous)
 
 // ── Cadrage (dans la colonne gauche) ───────────────────
 let rw = 0, rh = 0, camZ = 5;
@@ -631,10 +633,12 @@ function tick() {
     orbit.visible = orbitShown > 0.01;
     const h = 2 * orbitCam.position.z * Math.tan(THREE.MathUtils.degToRad(orbitCam.fov / 2)), w = h * orbitCam.aspect;
     const tall = orbitCam.aspect < 1, slots = CFG.slots || (tall ? SLOTS_TALL : SLOTS_WIDE);   // une page peut imposer ses emplacements
-    const size = (tall ? 0.11 * w : 0.075 * h) * (STUDIO && !tall ? 1.45 : 1);   // téléphone : pièces plus petites ; STUDIO (ordinateur) : gros objets, comme la référence
+    const size = (tall ? 0.085 * w : 0.075 * h) * (STUDIO && !tall ? 1.45 : 1);   // téléphone : pièces plus petites ; STUDIO (ordinateur) : gros objets, comme la référence
     const gone = 1 - orbitShown;                        // 0 en haut de page → 1 quand on a descendu
     pieces.forEach((p, i) => {
-      const [sx, sy] = slots[i % slots.length];
+      if (i >= slots.length) { p.holder.visible = false; return; }   // téléphone : place pour 6 pièces seulement
+      p.holder.visible = true;
+      const [sx, sy] = slots[i];
       // au scroll, chaque pièce s'envole vers le haut, les plus basses un peu plus vite (départ en accélérant)
       const fly = Math.pow(gone, 1.6) * h * (1.1 + 0.5 * (0.5 - sy) + 0.08 * i);
       // projets phares (projects.json : "vedette": true) : plus gros et au premier plan
@@ -657,11 +661,11 @@ function tick() {
       let x = sx * hw - p.lx * z * 0.6 + p.lx * 0.25;
       let y = sy * hh + Math.sin(t * 0.9 + p.phase) * 0.05 * h / 4 + p.ly * z * 0.6 - p.ly * 0.25;
       // …bornée pour que la pièce entière, même en tournant, reste dans le cadre (marge de 3 %)
-      const edge = wide ? 0.97 * (1 - WIDE_K * 0.25) : 0.97;            // le grand angle repousse les bords : on garde la marge
+      const edge = wide ? 0.97 * (1 - WIDE_K * 0.3) : 0.97;            // le grand angle repousse les bords : on garde la marge
       const mx = Math.max(0, hw * edge - reach), my = Math.max(0, hh * edge - reach);
       x = Math.min(mx, Math.max(-mx, x));
-      const top = tall ? Math.max(0, hh * 0.87 - reach) : my;   // téléphone : on reste sous la barre de menu
-      const bottom = tall ? Math.max(0, hh * 0.8 - reach) : my;  // …et au-dessus de la barre de Safari en bas
+      const top = tall ? Math.max(0, hh * 0.87 * (wide ? 1 - WIDE_K * 0.3 : 1) - reach) : my;   // téléphone : on reste sous la barre de menu
+      const bottom = tall ? Math.max(0, hh * 0.8 * (wide ? 1 - WIDE_K * 0.3 : 1) - reach) : my;  // …et au-dessus de la barre de Safari en bas
       y = Math.min(top, Math.max(-bottom, y));
       p.holder.position.set(x, y + fly, z);                        // l'envol au scroll, lui, peut sortir par le haut
       p.holder.rotation.set(p.ly * 0.5, p.lx * 0.5, 0);
