@@ -595,3 +595,9 @@ html.warp-stage #stage { right: 0; bottom: 0; width: 100vw; height: 100vh; z-ind
 .obj .tag i { font-style: normal; color: var(--mute); margin-right: 8px; }
 .obj:hover .tag, .obj:focus-visible .tag { opacity: 1; translate: -50% 0; }
 @media (max-width: 800px) { .obj .tag { display: none; } }
+
+/* V2 : bascule entre la version images (rendus Blender) et la version 3D interactive */
+.v2-switch { position: fixed; right: 32px; top: 30px; z-index: 30; font: 500 11px/1 Menlo, monospace; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--mute); text-decoration: none; }
+.v2-switch b { color: var(--ink); font-weight: 500; text-decoration: underline; text-underline-offset: 4px; }
+@media (max-width: 800px) { .v2-switch { top: 64px; right: 16px; } }

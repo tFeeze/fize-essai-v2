@@ -8,6 +8,8 @@ import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 //   frame : part de la hauteur du cadre occupée par le logo (0,42 par défaut)
 //   orbit : true (canvas plein écran) ou 'stage' (dans le cadre du logo) ; orbitScale : taille des pièces
 window.loadStep?.(0.8);   // le moteur 3D est chargé
+// V2 interactive : pièces fines (rendus.json → models-v2.js), chacune avec sa vraie matière
+if (window.PIECES_V2) window.LOGO_MODELS = window.PIECES_V2;
 const CFG = Object.assign({ mode: 'fixed', stage: 0, frame: 0.42 }, window.LOGO_CONFIG);
 // Téléphone et tablette : le logo ne suit pas de souris et ne tourne pas, donc une image du logo
 // en chrome (fond et étoile transparents) remplace le rendu 3D : rien à calculer à chaque image.
@@ -264,6 +266,59 @@ const gum = hex => { const c = new THREE.Color(hex), hsl = {}; c.getHSL(hsl);   
 const backlit = (p, c) => { const hsl = {}; c.getHSL(hsl);
   p.mat.userData.uDeep.value.setHSL(hsl.h, 1, 0.13); p.mat.userData.uRim.value.setHSL(hsl.h, 1, 0.62); };
 const vivid = hex => { const hsl = {}; new THREE.Color(hex).getHSL(hsl); return hsl.s > 0.18; };
+// matière « finie » d'une pièce V2 (mêmes matières que le rendu Blender) — calculée dans le shader, sans image
+function finishMaterial(m) {
+  const col = new THREE.Color(m.couleur);
+  const P = { argent: { color: 0xdcdee3, metalness: 1, roughness: 0.14 },
+              'blanc-or': { color: col, roughness: 0.25, clearcoat: 0.3 },
+              pla: { color: col, roughness: 0.45, clearcoat: 0.15 },
+              bois: { color: col, roughness: 0.5, clearcoat: 0.5, clearcoatRoughness: 0.2 },
+              resine: { color: col, roughness: 0.62 },
+              multi: { color: 0xffffff, roughness: 0.4, clearcoat: 0.2, vertexColors: true } }[m.matiere] || { color: col };
+  const mat = new THREE.MeshPhysicalMaterial(P);
+  if (m.matiere === 'argent') { mat.envMapIntensity = 2.6; mat.color.set(0xeef0f4); }           // le métal vit de ses reflets
+  const kind = { 'blanc-or': 1, pla: 2, bois: 3 }[m.matiere] || 0;
+  if (!kind) return mat;
+  // période des stries d'impression : 0,2 mm réels, sur une pièce qui mesure 2 unités
+  const per = 2 * 0.2 / Math.max(1, m.reel);
+  mat.customProgramCacheKey = () => m.matiere + ':' + per.toFixed(6) + ':' + (m.axe || 'z');   // un programme par matière
+  mat.onBeforeCompile = sh => {
+    sh.vertexShader = 'varying vec3 vObj;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vObj = position;');
+    sh.fragmentShader = `varying vec3 vObj;
+      float h3(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
+      float vnoise(vec3 p) { vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+        return mix(mix(mix(h3(i), h3(i + vec3(1,0,0)), f.x), mix(h3(i + vec3(0,1,0)), h3(i + vec3(1,1,0)), f.x), f.y),
+                   mix(mix(h3(i + vec3(0,0,1)), h3(i + vec3(1,0,1)), f.x), mix(h3(i + vec3(0,1,1)), h3(i + vec3(1,1,1)), f.x), f.y), f.z); }
+      float edge(vec3 p) {                         // distance au bord de cellule (veines d'or)
+        vec3 c = floor(p); float d1 = 9.0, d2 = 9.0;
+        for (int x = -1; x <= 1; x++) for (int y = -1; y <= 1; y++) for (int z = -1; z <= 1; z++) {
+          vec3 cc = c + vec3(x, y, z), q = cc + vec3(h3(cc), h3(cc + 3.1), h3(cc + 7.7));
+          float d = length(p - q); if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) d2 = d; }
+        return d2 - d1; }
+      ` + sh.fragmentShader
+      .replace('#include <color_fragment>', `#include <color_fragment>
+        float vein = 0.0;
+        ${kind === 1 ? `vec3 wp = vObj * 1.6 + (vec3(vnoise(vObj * 3.0), vnoise(vObj * 3.0 + 9.0), vnoise(vObj * 3.0 + 17.0)) - 0.5) * 0.35;
+          vein = 1.0 - smoothstep(0.0, 0.05, edge(wp));
+          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.83, 0.62, 0.22), vein);` : ''}
+        ${kind === 3 ? `float g = vnoise(vec3(vObj.x * 6.0, vObj.y * 0.6, vObj.z * 6.0) + vnoise(vObj * 4.0) * 1.5);
+          diffuseColor.rgb *= 0.78 + 0.32 * g;` : ''}`)
+      .replace('#include <metalnessmap_fragment>', `#include <metalnessmap_fragment>
+        ${kind === 1 ? 'metalnessFactor = mix(metalnessFactor, 1.0, vein);' : ''}`)
+      .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
+        ${kind === 1 ? 'roughnessFactor = mix(roughnessFactor, 0.18, vein);' : ''}`)
+      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+        ${kind === 2 ? `// stries de couches, atténuées quand elles deviennent plus fines qu'un pixel (pas de moiré)
+          float ly = vObj.${m.axe || 'z'} / ${per.toFixed(6)} * 6.2832;
+          float fw = fwidth(ly); float amp = 0.35 * clamp(1.0 - fw / 3.0, 0.0, 1.0);
+          float hh = sin(ly) * amp * ${per.toFixed(6)} * 0.25;          // relief de la strie
+          vec3 dpx = dFdx(-vViewPosition), dpy = dFdy(-vViewPosition);   // bump à partir des dérivées écran
+          vec3 r1 = cross(dpy, normal), r2 = cross(normal, dpx); float det = dot(dpx, r1);
+          vec3 grad = sign(det) * (dFdx(hh) * r1 + dFdy(hh) * r2);
+          normal = normalize(abs(det) * normal - grad);` : ''}`);
+  };
+  return mat;
+}
 if (CFG.orbit && window.LOGO_MODELS) {
   const COLORS = ['#ff7a00', '#2d5bd6', '#e63946', '#f1eee7', '#ff5fa2', '#2bb24c'];
   const bytes = b64 => Uint8Array.from(atob(b64), c => c.charCodeAt(0)).buffer;
@@ -271,10 +326,14 @@ if (CFG.orbit && window.LOGO_MODELS) {
     const q = new Int16Array(bytes(m.pos));
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(Float32Array.from(q, v => v / 32767), 3));
+    if (m.scale) g.attributes.position.array.forEach((v, k, a) => { a[k] = v * m.scale; });
+    if (m.nor) g.setAttribute('normal', new THREE.Float32BufferAttribute(Float32Array.from(new Int8Array(bytes(m.nor)), v => v / 127), 3));
+    if (m.col) g.setAttribute('color', new THREE.Float32BufferAttribute(Float32Array.from(new Uint8Array(bytes(m.col)), v => (v / 255) ** 2.2), 3));
     g.setIndex(new THREE.BufferAttribute(m.wide ? new Uint32Array(bytes(m.idx)) : new Uint16Array(bytes(m.idx)), 1));
     let geo, mat, flatPic = null;
     const prj = projectOf(m.slug);
-    if (prj?.orbit_image) {
+    if (m.matiere) { geo = g; mat = finishMaterial(m); }      // V2 : vraie matière, normales fournies
+    else if (prj?.orbit_image) {
       // ESSAI : la pièce est remplacée par un rendu photo détouré (projects.json : "orbit_image"),
       // posé sur un plan face à la caméra ; il flotte et se balance, mais ne tourne pas sur lui-même
       const r = prj.orbit_ratio || 1;
@@ -344,7 +403,7 @@ if (CFG.orbit && window.LOGO_MODELS) {
       new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false }));
     holder.add(hit);
     mesh.rotation.set(0, flatPic ? 0 : Math.random() * 6, 0);   // debout, dans son bon sens : seul le cap de départ change
-    pieces.push({ pu, dots, build: 0, holder, mesh, hit, slug: m.slug, phase: i * 1.7, spin: (i % 2 ? -1 : 1) * (0.25 + 0.1 * i), grow: 1, lx: 0, ly: 0, mat, flat: flatPic, rest: flatPic ? new THREE.Color('#ffffff') : STUDIO === 'gomme' ? gum(COLORS[i % COLORS.length]) : STUDIO ? bright(COLORS[i % COLORS.length]) : NEUTRAL,
+    pieces.push({ pu, dots, build: 0, holder, mesh, hit, slug: m.slug, phase: i * 1.7, spin: (i % 2 ? -1 : 1) * (0.25 + 0.1 * i), grow: 1, lx: 0, ly: 0, mat, flat: flatPic, finish: !!m.matiere, rest: flatPic ? new THREE.Color('#ffffff') : STUDIO === 'gomme' ? gum(COLORS[i % COLORS.length]) : STUDIO ? bright(COLORS[i % COLORS.length]) : NEUTRAL,
       tint: (STUDIO === 'gomme' ? gum : STUDIO ? bright : muted)(COLORS[i % COLORS.length]),
       // rayon réel de la pièce (sphère qui la contient quelle que soit sa rotation), pour la garder à l'écran
       radius: geo.boundingSphere.radius + geo.boundingSphere.center.length() });
@@ -424,9 +483,9 @@ addEventListener('scroll', () => {
 
 // emplacements autour du logo, en fraction de la zone visible (x, y) — écran large puis écran en hauteur
 // profondeur de chaque pièce (unités du logo, qui mesure 1) : devant / derrière le logo, pour étager la scène
-const DEPTHS = [0.55, -0.9, 0.25, -0.45, 0.8, -1.3];
-const SLOTS_WIDE = [[-0.58, 0.36], [0.6, 0.44], [-0.66, -0.4], [0.56, -0.46], [-0.08, -0.78], [0.2, 0.78]];
-const SLOTS_TALL = [[-0.55, 0.42], [0.55, 0.4], [-0.55, -0.5], [0.55, -0.5], [-0.45, 0.86], [0.45, 0.86]];   // téléphone : 4 en haut, 2 en bas (la barre Safari mange le bas)
+const DEPTHS = [0.55, -0.9, 0.25, -0.45, 0.8, -1.3, -0.2, 0.4];
+const SLOTS_WIDE = [[-0.58, 0.36], [0.6, 0.44], [-0.66, -0.4], [0.56, -0.46], [-0.08, -0.78], [0.2, 0.78], [-0.74, 0.0], [0.76, -0.02]];
+const SLOTS_TALL = [[-0.55, 0.42], [0.55, 0.4], [-0.55, -0.5], [0.55, -0.5], [-0.45, 0.86], [0.45, 0.86], [-0.52, -0.86], [0.52, -0.84]];   // téléphone
 
 // ── Cadrage (dans la colonne gauche) ───────────────────
 let rw = 0, rh = 0, camZ = 5;
@@ -616,7 +675,7 @@ function tick() {
       }
       if (p.mat.userData.uDeep) { if (!p.lit) { backlit(p, p.rest); p.lit = true; }
         p.mat.emissiveIntensity = 1; p.mat.color.setScalar(p === hovered ? 1.25 : 1); }   // survol : plus lumineuse
-      else if (!p.flat) p.mat.color.lerp(p === hovered ? p.tint : p.rest, 1 - Math.exp(-dt * 8));   // la couleur monte en fondu
+      else if (!p.flat && !p.finish) p.mat.color.lerp(p === hovered ? p.tint : p.rest, 1 - Math.exp(-dt * 8));   // la couleur monte en fondu
       p.holder.scale.setScalar(s * p.grow);
       if (p.pu && p.build < 1) {
         // départ décalé d'une pièce à l'autre ; 2,6 s par pièce ; la hauteur avance par couches entières
