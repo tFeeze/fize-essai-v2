@@ -216,7 +216,10 @@ function togglePsy() {
 { let typed = '', taps = [];
   addEventListener('keydown', e => { if (e.target.closest?.('input, textarea')) return;
     typed = (typed + e.key.toLowerCase()).slice(-4); if (typed === 'fize') togglePsy(); });
-  stageEl.addEventListener('pointerdown', () => { const n = performance.now(); taps = taps.filter(x => n - x < 1600); taps.push(n);
+  // le calque du logo laisse passer les clics (ordinateur) : on regarde si le clic tombe sur la zone du logo
+  addEventListener('pointerdown', e => { const r = stageEl.getBoundingClientRect(), half = CFG.frame * Math.min(r.width, r.height) / 2;
+    if (Math.abs(e.clientX - r.left - r.width / 2) > half || Math.abs(e.clientY - r.top - r.height / 2) > half) return;
+    const n = performance.now(); taps = taps.filter(x => n - x < 1600); taps.push(n);
     if (taps.length >= 5) { taps = []; togglePsy(); } });
   if (window.PSY_START || location.hash === '#psyche') setTimeout(togglePsy, 600);       // lien direct vers l'easter egg
 }
