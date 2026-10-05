@@ -165,22 +165,39 @@ const pieces = [];
 // grand angle : plus une pièce s'approche du bord, plus elle s'allonge vers l'extérieur ; le centre ne
 // bouge presque pas. Léger dédoublement rouge/bleu tout au bord. Le survol tient compte de la déformation.
 const WIDE = TOUCH && !!orbitRenderer, WIDE_K = 0.55, WIDE_CA = 0.0012;   // grand angle : téléphone seulement (retiré sur ordinateur)
+// ── Easter egg « psyché » : taper F-I-Z-E au clavier, ou toucher 5 fois de suite le logo.
+// Grand angle et aberration chromatique à fond, qui ondulent ; tourbillon ; couleurs qui dérivent.
+let psy = 0, psyOn = false;                       // psy : intensité affichée (0 → 1, en fondu)
 let wide = null;
-if (WIDE) {
+if (orbitRenderer) {
   const rt = new THREE.WebGLRenderTarget(4, 4, { samples: 4 });
   const mat = new THREE.ShaderMaterial({
-    uniforms: { tDiffuse: { value: rt.texture }, uAspect: { value: 1 } },
+    uniforms: { tDiffuse: { value: rt.texture }, uAspect: { value: 1 }, uK: { value: WIDE_K }, uCA: { value: WIDE_CA }, uPsy: { value: 0 }, uT: { value: 0 } },
     vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
-    fragmentShader: `uniform sampler2D tDiffuse; uniform float uAspect; varying vec2 vUv;
+    fragmentShader: `uniform sampler2D tDiffuse; uniform float uAspect, uK, uCA, uPsy, uT; varying vec2 vUv;
       // distance au centre mesurée en fraction du cadre (pas en pixels) : l'effet est aussi fort en largeur
       // qu'en hauteur, que l'écran soit en paysage (ordinateur) ou en portrait (téléphone)
-      vec2 bend(vec2 c) { return c * (1.0 - ${WIDE_K.toFixed(3)} * dot(c, c)) + 0.5; }
+      vec2 bend(vec2 c) {
+        float r2 = dot(c, c);
+        float a = uPsy * (sin(uT * 0.9 + sqrt(r2) * 11.0) * 1.3 + uT * 0.25);          // tourbillon (psyché)
+        c = mat2(cos(a), -sin(a), sin(a), cos(a)) * c;
+        float k = uK + uPsy * (2.2 + 1.1 * sin(uT * 1.3));
+        c += uPsy * 0.035 * vec2(sin(c.y * 24.0 + uT * 4.0), cos(c.x * 24.0 + uT * 3.3));   // vagues         // grand angle qui respire
+        return c * (1.0 - k * r2) + 0.5; }
+      vec3 hue(vec3 col, float h) {                                       // rotation de teinte
+        const vec3 w = vec3(0.57735); float c = cos(h), s = sin(h);
+        return col * c + cross(w, col) * s + w * dot(w, col) * (1.0 - c); }
       void main() {
-        vec2 c = vUv - 0.5; float e = dot(c, c) * ${WIDE_CA.toFixed(4)} * 8.0;
+        vec2 c = vUv - 0.5;
+        float ca = uCA + uPsy * (0.16 + 0.08 * sin(uT * 2.1));             // aberration chromatique à fond
+        float e = dot(c, c) * ca * 8.0 + uPsy * 0.045;
+        vec2 off = uPsy * vec2(sin(uT * 3.0 + c.y * 20.0), cos(uT * 2.4 + c.x * 20.0)) * 0.022;
         vec4 g = texture2D(tDiffuse, bend(c));
-        vec4 r = texture2D(tDiffuse, bend(c * (1.0 - e)));
-        vec4 b = texture2D(tDiffuse, bend(c * (1.0 + e)));
-        gl_FragColor = vec4(r.r, g.g, b.b, max(g.a, max(r.a, b.a)));
+        vec4 r = texture2D(tDiffuse, bend(c * (1.0 - e)) + off);
+        vec4 b = texture2D(tDiffuse, bend(c * (1.0 + e)) - off);
+        vec4 col = vec4(r.r, g.g, b.b, max(g.a, max(r.a, b.a)));
+        col.rgb = mix(col.rgb, hue(col.rgb, uT * 2.5 + length(c) * 14.0) * 1.5, uPsy);
+        gl_FragColor = col;
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
       }`,
@@ -189,10 +206,24 @@ if (WIDE) {
   const sc = new THREE.Scene(); sc.add(q);
   wide = { rt, mat, sc, cam: new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1) };
 }
+const wideOn = () => wide && (WIDE || psy > 0.002);
+function togglePsy() {
+  psyOn = !psyOn;
+  document.documentElement.classList.toggle('psy', psyOn);
+  const t = document.createElement('div'); t.className = 'psy-toast'; t.textContent = psyOn ? '◉ MODE PSYCHÉ' : '○ RETOUR AU CALME';
+  document.body.appendChild(t); setTimeout(() => t.remove(), 1800);
+}
+{ let typed = '', taps = [];
+  addEventListener('keydown', e => { if (e.target.closest?.('input, textarea')) return;
+    typed = (typed + e.key.toLowerCase()).slice(-4); if (typed === 'fize') togglePsy(); });
+  stageEl.addEventListener('pointerdown', () => { const n = performance.now(); taps = taps.filter(x => n - x < 1600); taps.push(n);
+    if (taps.length >= 5) { taps = []; togglePsy(); } });
+  if (window.PSY_START || location.hash === '#psyche') setTimeout(togglePsy, 600);       // lien direct vers l'easter egg
+}
 // un point de l'écran → l'endroit correspondant de l'image non déformée (pour viser les pièces)
 const unwide = (nx, ny, asp) => {
-  if (!wide) return [nx, ny];
-  const cx = nx / 2, cy = ny / 2, f = 1 - WIDE_K * (cx * cx + cy * cy);
+  if (!wideOn()) return [nx, ny];
+  const cx = nx / 2, cy = ny / 2, f = 1 - (wide.mat.uniforms.uK.value + psy * 2.2) * (cx * cx + cy * cy);
   return [cx * f * 2, cy * f * 2];
 };
 // ── Impression à l'apparition ────────────────────────────────────────────────────
@@ -661,11 +692,11 @@ function tick() {
       let x = sx * hw - p.lx * z * 0.6 + p.lx * 0.25;
       let y = sy * hh + Math.sin(t * 0.9 + p.phase) * 0.05 * h / 4 + p.ly * z * 0.6 - p.ly * 0.25;
       // …bornée pour que la pièce entière, même en tournant, reste dans le cadre (marge de 3 %)
-      const edge = wide ? 0.97 * (1 - WIDE_K * 0.42) : 0.97;            // le grand angle repousse les bords : on garde la marge
+      const edge = WIDE ? 0.97 * (1 - WIDE_K * 0.3) : 0.97;            // le grand angle repousse les bords : on garde la marge
       const mx = Math.max(0, hw * edge - reach), my = Math.max(0, hh * edge - reach);
       x = Math.min(mx, Math.max(-mx, x));
-      const top = tall ? Math.max(0, hh * 0.87 * (wide ? 1 - WIDE_K * 0.3 : 1) - reach) : my;   // téléphone : on reste sous la barre de menu
-      const bottom = tall ? Math.max(0, hh * 0.8 * (wide ? 1 - WIDE_K * 0.3 : 1) - reach) : my;  // …et au-dessus de la barre de Safari en bas
+      const top = tall ? Math.max(0, hh * 0.87 * (WIDE ? 1 - WIDE_K * 0.3 : 1) - reach) : my;   // téléphone : on reste sous la barre de menu
+      const bottom = tall ? Math.max(0, hh * 0.8 * (WIDE ? 1 - WIDE_K * 0.3 : 1) - reach) : my;  // …et au-dessus de la barre de Safari en bas
       y = Math.min(top, Math.max(-bottom, y));
       p.holder.position.set(x, y + fly, z);                        // l'envol au scroll, lui, peut sortir par le haut
       p.holder.rotation.set(p.ly * 0.5, p.lx * 0.5, 0);
@@ -747,7 +778,9 @@ function tick() {
     renderer.setRenderTarget(null); renderer.render(L.sc, L.cam);
   } else if (!FLAT || IN_STAGE) renderer.render(scene, camera);
   if (orbitRenderer && (orbit.visible || orbitShown > 0)) {
-    if (wide) {
+    psy += ((psyOn ? 1 : 0) - psy) * (1 - Math.exp(-dt * 2.5));
+    if (wide) { const u = wide.mat.uniforms; u.uPsy.value = psy; u.uT.value = t; u.uK.value = WIDE ? WIDE_K : 0; u.uCA.value = WIDE ? WIDE_CA : 0; }
+    if (wideOn()) {
       const sz = orbitRenderer.getDrawingBufferSize(new THREE.Vector2());
       if (wide.rt.width !== sz.x || wide.rt.height !== sz.y) { wide.rt.setSize(sz.x, sz.y); wide.mat.uniforms.uAspect.value = sz.x / sz.y; }
       orbitRenderer.setRenderTarget(wide.rt); orbitRenderer.setClearColor(0x000000, 0); orbitRenderer.clear();

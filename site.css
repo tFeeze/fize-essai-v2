@@ -601,3 +601,15 @@ html.warp-stage #stage { right: 0; bottom: 0; width: 100vw; height: 100vh; z-ind
   text-transform: uppercase; color: var(--mute); text-decoration: none; }
 .v2-switch b { color: var(--ink); font-weight: 500; text-decoration: underline; text-underline-offset: 4px; }
 @media (max-width: 800px) { .v2-switch { top: 64px; right: 16px; } }
+
+/* ═══ Easter egg « psyché » (taper F-I-Z-E ou toucher 5 fois le logo) : toute la page dérive en couleurs ═══ */
+html.psy body { animation: psy-hue 2.4s linear infinite; }
+@keyframes psy-hue { from { filter: hue-rotate(0deg) saturate(3) contrast(1.25); } to { filter: hue-rotate(360deg) saturate(3) contrast(1.25); } }
+html.psy #stage { animation: psy-wob 1.6s ease-in-out infinite alternate; }
+@keyframes psy-wob { from { scale: 1.12 .88; rotate: -6deg; } to { scale: .9 1.14; rotate: 6deg; } }
+html.psy nav a, html.psy h1, html.psy h2, html.psy .v2-switch { animation: psy-txt .5s steps(2) infinite; }
+@keyframes psy-txt { from { text-shadow: -4px 0 #f0f, 4px 0 #0ff; } to { text-shadow: 4px 2px #ff0, -4px -2px #0f0; } }
+.psy-toast { position: fixed; left: 50%; bottom: 40px; translate: -50% 0; z-index: 500; padding: 8px 14px; background: #000; color: #fff;
+  font: 500 11px/1 Menlo, monospace; letter-spacing: .14em; animation: psy-toast 1.8s ease forwards; pointer-events: none; }
+@keyframes psy-toast { 0% { opacity: 0; translate: -50% 10px; } 15%, 75% { opacity: 1; translate: -50% 0; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { html.psy body, html.psy #stage { animation: none; } }
