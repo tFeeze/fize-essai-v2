@@ -164,7 +164,7 @@ const pieces = [];
 // Les pièces passent par un dernier calcul qui étire l'image vers les bords du cadre, comme un objectif
 // grand angle : plus une pièce s'approche du bord, plus elle s'allonge vers l'extérieur ; le centre ne
 // bouge presque pas. Léger dédoublement rouge/bleu tout au bord. Le survol tient compte de la déformation.
-const WIDE = !TOUCH && !!orbitRenderer, WIDE_K = 0.2, WIDE_CA = 0.0015;
+const WIDE = !!orbitRenderer, WIDE_K = 0.34, WIDE_CA = 0.0022;   // grand angle sur les pièces, ordinateur et téléphone
 let wide = null;
 if (WIDE) {
   const rt = new THREE.WebGLRenderTarget(4, 4, { samples: 4 });
@@ -484,7 +484,7 @@ addEventListener('scroll', () => {
 // emplacements autour du logo, en fraction de la zone visible (x, y) — écran large puis écran en hauteur
 // profondeur de chaque pièce (unités du logo, qui mesure 1) : devant / derrière le logo, pour étager la scène
 const DEPTHS = [0.55, -0.9, 0.25, -0.45, 0.8, -1.3, -0.2, 0.4];
-const SLOTS_WIDE = [[-0.58, 0.36], [0.6, 0.44], [-0.66, -0.4], [0.56, -0.46], [-0.08, -0.78], [0.2, 0.78], [-0.74, 0.0], [0.76, -0.02]];
+const SLOTS_WIDE = [[-0.58, 0.36], [0.6, 0.44], [-0.66, -0.4], [0.56, -0.46], [-0.08, -0.78], [0.2, 0.78], [-0.38, -0.74], [0.34, -0.76]];
 const SLOTS_TALL = [[-0.55, 0.42], [0.55, 0.4], [-0.55, -0.5], [0.55, -0.5], [-0.45, 0.86], [0.45, 0.86], [-0.52, -0.86], [0.52, -0.84]];   // téléphone
 
 // ── Cadrage (dans la colonne gauche) ───────────────────
@@ -657,7 +657,8 @@ function tick() {
       let x = sx * hw - p.lx * z * 0.6 + p.lx * 0.25;
       let y = sy * hh + Math.sin(t * 0.9 + p.phase) * 0.05 * h / 4 + p.ly * z * 0.6 - p.ly * 0.25;
       // …bornée pour que la pièce entière, même en tournant, reste dans le cadre (marge de 3 %)
-      const mx = Math.max(0, hw * 0.97 - reach), my = Math.max(0, hh * 0.97 - reach);
+      const edge = wide ? 0.97 * (1 - WIDE_K * 0.25) : 0.97;            // le grand angle repousse les bords : on garde la marge
+      const mx = Math.max(0, hw * edge - reach), my = Math.max(0, hh * edge - reach);
       x = Math.min(mx, Math.max(-mx, x));
       const top = tall ? Math.max(0, hh * 0.87 - reach) : my;   // téléphone : on reste sous la barre de menu
       const bottom = tall ? Math.max(0, hh * 0.8 - reach) : my;  // …et au-dessus de la barre de Safari en bas
