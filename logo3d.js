@@ -164,7 +164,7 @@ const pieces = [];
 // Les pièces passent par un dernier calcul qui étire l'image vers les bords du cadre, comme un objectif
 // grand angle : plus une pièce s'approche du bord, plus elle s'allonge vers l'extérieur ; le centre ne
 // bouge presque pas. Léger dédoublement rouge/bleu tout au bord. Le survol tient compte de la déformation.
-const WIDE = !!orbitRenderer, WIDE_K = TOUCH ? 0.55 : 0.72, WIDE_CA = 0.0012;   // ordinateur : grand angle plus marqué   // grand angle sur les pièces, ordinateur et téléphone
+const WIDE = TOUCH && !!orbitRenderer, WIDE_K = 0.55, WIDE_CA = 0.0012;   // grand angle : téléphone seulement (retiré sur ordinateur)
 let wide = null;
 if (WIDE) {
   const rt = new THREE.WebGLRenderTarget(4, 4, { samples: 4 });
