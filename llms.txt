@@ -20,6 +20,7 @@
 - [Pièce scooter](https://fize-lab.com/scooter.html) : Pièce technique — Brut d'impression. Une pièce de scooter renforcée, modélisée pour être imprimée et montée.
 - [Guitare chicha](https://fize-lab.com/guitare-chicha.html) : Décor — Conception 3D. Un décor de chicha en forme de guitare, découpé en tranches décalées, conçu en 3D avant impression.
 - [Tabourets 1:20](https://fize-lab.com/tabourets.html) : Maquette d'architecture — Échelle 1:20. Le mobilier d'une maquette d'architecture au 1:20 : tabourets, chaises et tables, imprimés en série.
+- [Boîtier Raspberry Pi](https://fize-lab.com/rpi-case.html) : Projet perso — Résine transparente. Un boîtier pour Raspberry Pi 3 B+, imprimé en résine transparente : la carte reste visible à travers.
 
 ## Informations légales
 - [Mentions légales](https://fize-lab.com/mentions-legales.html)

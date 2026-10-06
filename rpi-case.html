@@ -4,43 +4,118 @@
 <meta name="robots" content="noindex, nofollow">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mentions légales — Fize</title>
-<meta name="description" content="Mentions légales du site Impression 3D by Fize.">
+<title>Boîtier Raspberry Pi — Fize</title>
+<meta name="description" content="Projet perso — Résine transparente. Un boîtier pour Raspberry Pi 3 B+, imprimé en résine transparente : la carte reste visible à travers.">
 <link rel="stylesheet" href="site.css?v=6d10c6a4">
-  <link rel="canonical" href="https://fize-lab.com/mentions-legales.html">
+  <link rel="canonical" href="https://fize-lab.com/rpi-case.html">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Impression 3D by Fize">
-  <meta property="og:title" content="Mentions légales — Impression 3D by Fize">
-  <meta property="og:description" content="Mentions légales du site Impression 3D by Fize.">
-  <meta property="og:url" content="https://fize-lab.com/mentions-legales.html">
+  <meta property="og:title" content="Boîtier Raspberry Pi — Impression 3D by Fize">
+  <meta property="og:description" content="Un boîtier pour Raspberry Pi 3 B+, imprimé en résine transparente : la carte reste visible à travers.">
+  <meta property="og:url" content="https://fize-lab.com/rpi-case.html">
   <meta property="og:image" content="https://fize-lab.com/img/justice-cover.jpg">
   <meta name="twitter:card" content="summary_large_image">
   <meta property="og:locale" content="fr_FR">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "CreativeWork", "name": "Boîtier Raspberry Pi", "description": "Un boîtier pour Raspberry Pi 3 B+, imprimé en résine transparente : la carte reste visible à travers.", "genre": "Projet perso", "creator": {"@type": "Organization", "name": "Impression 3D by Fize", "url": "https://fize-lab.com/"}}</script>
 <script>try{if(0)document.documentElement.classList.add('warp-in')}catch(e){}</script>
 </head>
-<body class="legal">
+<!-- Gabarit d'une page projet : build.py le remplit pour chaque entrée de projects.json -->
+<body class="projet">
   <a class="skip" href="#contenu">Aller au contenu</a>
-  <nav aria-label="Menu principal">
-    <a href="index.html">Work</a>
+  <div id="stage"><a class="home" href="index.html" aria-label="Accueil"><canvas id="scene"></canvas></a></div>
+  <!-- Écran de chargement : une bobine en volume (CSS 3D, sans attendre le moteur 3D) dont le fil
+     s'enroule au rythme du chargement. Injecté par build.py.
+     Étapes : page lue → modèle du logo chargé → moteur 3D prêt → première image affichée.
+     Entre deux étapes, le fil avance doucement ; window.loadStep(p) fixe le minimum atteint (0 à 1). -->
+<div id="loading" aria-label="Chargement" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+  <div class="ld-3d">
+    <div class="ld-rig" id="ld-rig">
+      <div class="ld-flange" style="--z:-26px"></div>
+      <div id="ld-drum"></div>
+      <div class="ld-flange" style="--z:26px"></div>
+    </div>
+  </div>
+  <span id="ld-pc">000 %</span>
+</div>
+<script>
+  (() => {
+    // La bobine n'apparaît que si le chargement traîne (plus de SHOW_AFTER ms). Sur un appareil rapide
+    // ou une page en cache, on ne la voit jamais et rien ne tourne pour rien.
+    const SHOW_AFTER = 600;
+    const el = document.getElementById('loading'), drum = document.getElementById('ld-drum');
+    const rig = document.getElementById('ld-rig'), pc = document.getElementById('ld-pc');
+    const HUB = 17, MAX = 50, SLICES = 11;                // rayons en px ; tranches du tambour de fil
+    let floor = 0.08, shown = 0, visible = false, done = false, spin = 0, last = 0;
+    el.classList.add('quiet');
+    const finish = () => {                                // on retire l'écran, en fondu court si la bobine n'a pas été vue
+      done = true;
+      el.classList.add(visible ? 'done' : 'done-fast');
+      setTimeout(() => el.remove(), visible ? 900 : 300);
+    };
+    window.loadStep = p => {
+      floor = Math.max(floor, p);
+      if (floor >= 1 && !visible && !done) finish();      // chargé avant le délai : pas d'animation du tout
+    };
+    addEventListener('DOMContentLoaded', () => loadStep(0.2));
+    setTimeout(() => loadStep(1), 9000);                  // filet de sécurité : jamais bloqué sur l'écran de chargement
+    setTimeout(() => {
+      if (done) return;
+      visible = true; el.classList.remove('quiet');
+      drum.innerHTML = Array.from({ length: SLICES }, (_, i) =>
+        `<i style="--z:${(-22 + 44 * i / (SLICES - 1)).toFixed(1)}px"></i>`).join('');
+      last = performance.now(); requestAnimationFrame(frame);
+    }, SHOW_AFTER);
+    function frame(now) {
+      const dt = Math.min(0.05, (now - last) / 1000); last = now;
+      // on avance vers l'étape atteinte, et on grignote un peu au-delà tant qu'on attend la suivante
+      const goal = floor >= 1 ? 1 : Math.min(floor + 0.12, 0.97);
+      shown += (goal - shown) * (1 - Math.exp(-dt * (floor >= 1 ? 7 : 1.4)));
+      spin += dt * 160;
+      rig.style.setProperty('--spin', (spin % 360) + 'deg');
+      drum.style.setProperty('--r', (HUB + (MAX - HUB) * shown).toFixed(1) + 'px');   // le fil s'épaissit
+      const v = Math.round(shown * 100);
+      pc.textContent = String(v).padStart(3, '0') + ' %';
+      el.setAttribute('aria-valuenow', v);
+      if (floor >= 1 && shown > 0.995 && !done) { pc.textContent = '100 %'; setTimeout(finish, 200); done = true; return; }
+      requestAnimationFrame(frame);
+    }
+  })();
+</script>
+
+
+  <nav>
+    <a href="index.html" aria-current="page">Work</a>
     <a href="about.html">About</a>
     <a href="contact.html">Contact</a>
     <a href="faq.html">FAQ</a>
   </nav>
+  <a class="back" href="index.html#liste">← Tous les projets</a>
+
+  <header class="p-head">
+    <!-- numéro, catégorie et infos (finition, client…) sur la ligne du titre, à sa suite -->
+    <div class="p-titlerow">
+      <h1 class="printed long"><span class="stretch">Boîtier Raspberry Pi</span></h1>
+      <span class="label p-num">10 / 10 — Projet perso</span>
+      <dl class="p-meta"><div><dt>Finition</dt><dd>Résine transparente</dd></div><div><dt>Client</dt><dd>Projet personnel</dd></div><div><dt>Année</dt><dd>2026</dd></div></dl>
+    </div>
+  </header>
+
   <main id="contenu">
-    <h1>Mentions légales</h1>
-    <h2>Éditeur du site</h2>
-    <p>Tom Fize, entrepreneur individuel (EI), sous le nom commercial « Impression 3D by Fize ».<br>
-      Micro-entreprise — 63 bis rue Ramey, 75018 Paris, France.<br>
-      SIRET : 939 526 711 00022 — RCS Paris 939 526 711 — Répertoire des métiers : 939 526 711 75.<br>
-      TVA non applicable, art. 293 B du CGI.<br>
-      Contact : <a href="mailto:contact@fize-lab.com">contact@fize-lab.com</a> — 09 83 62 84 04.</p>
-    <h2>Directeur de la publication</h2>
-    <p>Tom Fize.</p>
-    <h2>Hébergeur</h2>
-    <p>[HÉBERGEUR À COMPLÉTER : nom, forme juridique, adresse, téléphone].</p>
-    <h2>Propriété intellectuelle</h2>
-    <p>Les textes, le logo et les créations présentés sur ce site appartiennent à Tom Fize, sauf mention contraire.
-      Les pièces réalisées pour des clients sont présentées avec leur accord. Toute reproduction sans autorisation est interdite.</p>
+    <!-- photo d'ouverture et texte côte à côte -->
+    <section class="p-top">
+      <div class="ph p-hero">PHOTO À VENIR</div>
+      <div class="p-side">
+        <p class="p-intro">Un boîtier pour Raspberry Pi 3 B+, imprimé en résine transparente : la carte reste visible à travers.</p>
+        <div class="p-cols"><div><h2>Le besoin</h2><p>Protéger la carte sans la cacher : un boîtier qu&#x27;on regarde autant qu&#x27;il protège.</p></div><div><h2>La pièce</h2><p>Boîtier « TurboPi » (modèle libre de Tripnutz, Thingiverse) : capot à ailettes, fond ajouré, montage par clips.</p></div><div><h2>La finition</h2><p>Résine transparente, imprimée sur l&#x27;Elegoo Saturn 4 Ultra 16K.</p></div></div>
+      </div>
+    </section>
+
+    
+
+    <div class="p-next">
+      <a href="tabourets.html"><span class="label">Précédent</span><span class="t">Tabourets 1:20</span></a>
+      <a href="justice.html"><span class="label">Suivant</span><span class="t">Justice</span></a>
+    </div>
   </main>
   <footer class="site-foot">
     <span>Impression 3D by Fize — Paris 18e</span>
@@ -51,6 +126,88 @@
     <a href="3d.html#psyche" class="psy-link">PSY</a>
     <span>Médiation de la consommation : [MÉDIATEUR À CHOISIR]</span>
   </footer>
+
+<script>window.LOGO_CONFIG = { mode: 'fixed', frame: 0.62 };</script>
+<script>
+  // le titre est étiré à l'affichage (scaleX), ce qui ne change pas sa place dans la mise en page :
+  // on réserve l'espace en plus pour que « 01 / 09 — Décor » ne passe pas sous le titre
+  (() => {
+    const s = document.querySelector('.p-titlerow .stretch');
+    const fit = () => {
+      const m = new DOMMatrix(getComputedStyle(s).transform);
+      s.parentElement.style.marginRight = (s.offsetWidth * (m.a - 1)) + 'px';
+    };
+    if (s) { fit(); document.fonts.ready.then(fit); addEventListener('resize', fit); }
+  })();
+</script>
+<script>
+  // ── Titre « imprimé » ──────────────────────────────────────────────────────────────
+  // Le titre se dépose couche par couche, de bas en haut ; chaque couche se remplit de gauche à
+  // droite (85 % du temps), puis la tête revient à gauche sans déposer (15 %), comme une imprimante.
+  // Le masque est fait de deux dégradés CSS (les couches finies + la couche en cours), recalculés à
+  // chaque image : aucune image à décoder, donc pas de clignotement sur iPhone.
+  (() => {
+    const h1 = document.querySelector('h1.printed');
+    if (!h1) return;
+    const el = h1.querySelector('.stretch');
+
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;   // pas d'animation : titre affiché tel quel
+    // aperçu dans l'étoile pendant la transition, puis arrivée sur la vraie page : le titre est déjà
+    // affiché, on ne le réimprime pas (sinon il disparaîtrait d'un coup en entrant)
+    if (location.search.includes('apercu')) return;
+    try { if (sessionStorage.getItem('fize-warp') === '1' && !matchMedia('(pointer: coarse)').matches) return; } catch {}
+    const ROW_MS = 105, DEPOSIT = 0.85, DELAY = 400;
+    const ease = x => x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+    const st = el.style, FILL = 'linear-gradient(#000, #000)';
+    const set = (k, v) => { st['webkit' + k[0].toUpperCase() + k.slice(1)] = v; st[k] = v; };
+    set('maskImage', `${FILL}, ${FILL}`);
+    set('maskRepeat', 'no-repeat');
+    const draw = (H, rowH, done, pct) => {             // done : couches finies ; pct : avancée de la couche en cours
+      set('maskSize', `100% ${done * rowH}px, ${pct}% ${rowH}px`);
+      set('maskPosition', `0 ${H - done * rowH}px, 0 ${H - (done + 1) * rowH}px`);
+    };
+    draw(1, 1, 0, 0);                                    // titre caché au départ
+    let t0 = null, H, rows, rowH;
+
+    function frame(now) {
+      t0 ??= now;
+      const p = Math.max(0, now - t0 - DELAY) / ROW_MS, row = Math.min(rows, Math.floor(p));
+      if (row >= rows) { set('maskImage', 'none'); return; }
+      draw(H, rowH, row, ease(Math.min(1, (p - row) / DEPOSIT)) * 100);
+      requestAnimationFrame(frame);
+    }
+    document.fonts.ready.then(() => {                    // attend la typo du projet pour mesurer le titre
+      const fs = parseFloat(getComputedStyle(h1).fontSize);
+      H = el.offsetHeight;
+      rows = Math.max(8, Math.round(H / (0.03 * fs)));   // 0,03 em = --layer dans site.css
+      rowH = H / rows;
+      requestAnimationFrame(frame);
+    });
+  })();
+</script>
+<script type="importmap">
+{ "imports": {
+  "three": "./vendor/three.module.min.js",
+  "three/addons/loaders/OBJLoader.js": "./vendor/OBJLoader.js"
+} }
+</script>
+<script>
+(() => {
+  const C = window.LOGO_CONFIG || {}, touch = matchMedia('(pointer: coarse)').matches;
+  // aperçu dans l'étoile pendant une transition : page seule, sans moteur 3D (rien ne la ralentit)
+  if (location.search.includes('apercu')) { window.loadStep?.(1); return; }
+  const add = (src, mod) => new Promise(ok => {
+    const s = document.createElement('script'); if (mod) s.type = 'module'; s.src = src; s.onload = ok; document.body.appendChild(s);
+  });
+  {
+    // pièces en orbite (accueil) et modèle du logo en parallèle, puis le moteur ;
+    // chargés en arrière-plan : la page (liste des projets…) s'affiche sans les attendre
+    const need = [add('logo-data.js?v=de6bd7e0')];
+    if (C.orbit) need.push(add(C.models ? C.models + '?v=7b47a007' : 'models-home.js?v=8c2298e7'));
+    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=db603f3e', true); });
+  }
+})();
+</script>
 <script>
 // ── Transition vers un projet : le logo chrome se transforme ─────────────────────────────
 // Départ (n'importe quelle page) : le logo quitte sa place, pivote en 3D et grandit jusqu'à couvrir

@@ -95,7 +95,7 @@
     <!-- numéro, catégorie et infos (finition, client…) sur la ligne du titre, à sa suite -->
     <div class="p-titlerow">
       <h1 class="printed long"><span class="stretch">Pièce scooter</span></h1>
-      <span class="label p-num">07 / 09 — Pièce technique</span>
+      <span class="label p-num">07 / 10 — Pièce technique</span>
       <dl class="p-meta"><div><dt>Finition</dt><dd>Brut d&#x27;impression</dd></div></dl>
     </div>
   </header>
@@ -203,8 +203,8 @@
     // pièces en orbite (accueil) et modèle du logo en parallèle, puis le moteur ;
     // chargés en arrière-plan : la page (liste des projets…) s'affiche sans les attendre
     const need = [add('logo-data.js?v=de6bd7e0')];
-    if (C.orbit) need.push(add(C.models ? C.models + '?v=f5b59271' : 'models-home.js?v=8c2298e7'));
-    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=ba6a8386', true); });
+    if (C.orbit) need.push(add(C.models ? C.models + '?v=7b47a007' : 'models-home.js?v=8c2298e7'));
+    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=db603f3e', true); });
   }
 })();
 </script>
@@ -216,7 +216,7 @@
 // Une image du logo (img/logo-chrome.webp) fait le travail : identique sur ordinateur et téléphone,
 // et indépendante du moteur 3D (qui recharge à chaque page). Injecté en ligne par build.py.
 (() => {
-  const SLUGS = ["justice", "micro", "bijoux", "plaque-logo", "kit-rose", "lance-flammes", "scooter", "guitare-chicha", "tabourets"];
+  const SLUGS = ["justice", "micro", "bijoux", "plaque-logo", "kit-rose", "lance-flammes", "scooter", "guitare-chicha", "tabourets", "rpi-case"];
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const KEY = 'fize-warp';
   // pivot : le centre de l'étoile (mesuré sur l'image du logo) ; SR = rayon du disque inscrit dans l'étoile

@@ -352,9 +352,23 @@ function finishMaterial(m) {
               pla: { color: col, roughness: 0.45, clearcoat: 0.15 },
               bois: { color: col, roughness: 0.5, clearcoat: 0.5, clearcoatRoughness: 0.2 },
               resine: { color: col, roughness: 0.62 },
-              multi: { color: 0xffffff, roughness: 0.4, clearcoat: 0.2, vertexColors: true } }[m.matiere] || { color: col };
+              multi: { color: 0xffffff, roughness: 0.4, clearcoat: 0.2, vertexColors: true },
+              // résine transparente : presque invisible de face, la matière se lit sur les bords et dans les reflets
+              cristal: { color: col, roughness: 0.04, clearcoat: 1, clearcoatRoughness: 0.03, envMapIntensity: 2.2,
+                transparent: true, depthWrite: false, side: THREE.DoubleSide } }[m.matiere] || { color: col };
   const mat = new THREE.MeshPhysicalMaterial(P);
   if (m.matiere === 'argent') { mat.envMapIntensity = 2.6; mat.color.set(0xeef0f4); }           // le métal vit de ses reflets
+  if (m.matiere === 'cristal') {
+    mat.customProgramCacheKey = () => 'cristal';
+    mat.onBeforeCompile = sh => {            // opacité selon l'angle (Fresnel) : bords nets, face transparente
+      sh.fragmentShader = sh.fragmentShader.replace('#include <opaque_fragment>', `
+        float fr = pow(1.0 - abs(dot(normal, normalize(vViewPosition))), 2.2);
+        diffuseColor.a = mix(0.07, 0.62, fr);
+        outgoingLight += vec3(0.9, 0.95, 1.0) * fr * 0.35;
+        #include <opaque_fragment>`);
+    };
+    return mat;
+  }
   const kind = { 'blanc-or': 1, pla: 2, bois: 3 }[m.matiere] || 0;
   if (!kind) return mat;
   // période des stries d'impression : 0,2 mm réels, sur une pièce qui mesure 2 unités
@@ -474,6 +488,17 @@ if (CFG.orbit && window.LOGO_MODELS) {
       pu = printable(mat, new THREE.Color('#fff4e0'));
       dots = filament(geo, mat.color, pu); dots.visible = PRINT; mesh.add(dots);
     }
+    if (m.interieur) {                    // ce qu'on voit à travers la pièce (ex. la carte dans le boîtier transparent)
+      const d = m.interieur, ig = new THREE.BufferGeometry();
+      ig.setAttribute('position', new THREE.Float32BufferAttribute(Float32Array.from(new Int16Array(bytes(d.pos)), v => v / 32767 * m.scale), 3));
+      ig.setAttribute('normal', new THREE.Float32BufferAttribute(Float32Array.from(new Int8Array(bytes(d.nor)), v => v / 127), 3));
+      ig.setAttribute('color', new THREE.Float32BufferAttribute(Float32Array.from(new Uint8Array(bytes(d.col)), v => (v / 255) ** 2.2), 3));
+      ig.setIndex(new THREE.BufferAttribute(d.wide ? new Uint32Array(bytes(d.idx)) : new Uint16Array(bytes(d.idx)), 1));
+      const im = new THREE.MeshPhysicalMaterial({ color: 0xffffff, vertexColors: true, roughness: 0.35, metalness: 0.15, clearcoat: 0.4 });
+      if (pu) { const iu = printable(im, new THREE.Color('#fff4e0')); iu.uLevel = pu.uLevel; }   // s'imprime en même temps que le boîtier
+      const inner = new THREE.Mesh(ig, im); inner.renderOrder = -1; mesh.add(inner);
+      mesh.renderOrder = 1;
+    }
     const holder = new THREE.Group(); holder.add(mesh); orbit.add(holder);
     // zone de survol invisible, une sphère un peu plus large que la pièce : pas de « trou » où le survol décroche
     geo.computeBoundingSphere();
@@ -481,7 +506,7 @@ if (CFG.orbit && window.LOGO_MODELS) {
       new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false }));
     holder.add(hit);
     mesh.rotation.set(0, flatPic ? 0 : Math.random() * 6, 0);   // debout, dans son bon sens : seul le cap de départ change
-    pieces.push({ pu, dots, build: 0, holder, mesh, hit, slug: m.slug, phase: i * 1.7, spin: (i % 2 ? -1 : 1) * (0.25 + 0.1 * i), grow: 1, lx: 0, ly: 0, mat, flat: flatPic, finish: !!m.matiere, rest: flatPic ? new THREE.Color('#ffffff') : STUDIO === 'gomme' ? gum(COLORS[i % COLORS.length]) : STUDIO ? bright(COLORS[i % COLORS.length]) : NEUTRAL,
+    pieces.push({ pu, dots, build: 0, holder, mesh, hit, slug: m.slug, tilt: m.incline || 0, phase: i * 1.7, spin: (i % 2 ? -1 : 1) * (0.25 + 0.1 * i), grow: 1, lx: 0, ly: 0, mat, flat: flatPic, finish: !!m.matiere, rest: flatPic ? new THREE.Color('#ffffff') : STUDIO === 'gomme' ? gum(COLORS[i % COLORS.length]) : STUDIO ? bright(COLORS[i % COLORS.length]) : NEUTRAL,
       tint: (STUDIO === 'gomme' ? gum : STUDIO ? bright : muted)(COLORS[i % COLORS.length]),
       // rayon réel de la pièce (sphère qui la contient quelle que soit sa rotation), pour la garder à l'écran
       radius: geo.boundingSphere.radius + geo.boundingSphere.center.length() });
@@ -769,7 +794,7 @@ function tick() {
       // au scroll, elles basculent en s'envolant
       if (p.flat) p.mesh.rotation.y = Math.sin(t * 0.5 + p.phase) * 0.25;   // image : se balance sans montrer sa tranche
       else p.mesh.rotation.y += dt * p.spin * 0.6 * (p === hovered ? 2.5 : 1);
-      p.mesh.rotation.x = Math.sin(t * 0.7 + p.phase) * 0.08 + gone * gone * 1.2 * Math.sign(p.spin);
+      p.mesh.rotation.x = p.tilt + Math.sin(t * 0.7 + p.phase) * 0.08 + gone * gone * 1.2 * Math.sign(p.spin);
       p.mesh.rotation.z = Math.sin(t * 0.55 + p.phase * 1.3) * 0.1 + gone * gone * 0.8 * p.spin;
     });
 
