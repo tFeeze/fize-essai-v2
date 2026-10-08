@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Guitare chicha — Fize</title>
 <meta name="description" content="Décor — Conception 3D. Un décor de chicha en forme de guitare, découpé en tranches décalées, conçu en 3D avant impression.">
-<link rel="stylesheet" href="site.css?v=6d10c6a4">
+<link rel="stylesheet" href="site.css?v=e11ea303">
   <link rel="canonical" href="https://fize-lab.com/guitare-chicha.html">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Impression 3D by Fize">
@@ -85,6 +85,7 @@
 
   <nav>
     <a href="index.html" aria-current="page">Work</a>
+    <a href="finitions.html">Finitions</a>
     <a href="about.html">About</a>
     <a href="contact.html">Contact</a>
     <a href="faq.html">FAQ</a>
@@ -204,7 +205,7 @@
     // chargés en arrière-plan : la page (liste des projets…) s'affiche sans les attendre
     const need = [add('logo-data.js?v=de6bd7e0')];
     if (C.orbit) need.push(add(C.models ? C.models + '?v=7b47a007' : 'models-home.js?v=8c2298e7'));
-    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=db603f3e', true); });
+    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=d234ded3', true); });
   }
 })();
 </script>

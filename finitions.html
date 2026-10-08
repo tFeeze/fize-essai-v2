@@ -4,23 +4,26 @@
 <meta name="robots" content="noindex, nofollow">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tabourets 1:20 — Fize</title>
-<meta name="description" content="Maquette d&#x27;architecture — Échelle 1:20. Le mobilier d&#x27;une maquette d&#x27;architecture au 1:20 : tabourets, chaises et tables, imprimés en série.">
+<title>Finitions — Fize</title>
 <link rel="stylesheet" href="site.css?v=e11ea303">
-  <link rel="canonical" href="https://fize-lab.com/tabourets.html">
+  <meta name="description" content="Brut d&#x27;impression, lissé, peint verni, résine transparente, aspect métal, multicolore : les finitions de l&#x27;atelier, en 3D.">
+  <link rel="canonical" href="https://fize-lab.com/finitions.html">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Impression 3D by Fize">
-  <meta property="og:title" content="Tabourets 1:20 — Impression 3D by Fize">
-  <meta property="og:description" content="Le mobilier d&#x27;une maquette d&#x27;architecture au 1:20 : tabourets, chaises et tables, imprimés en série.">
-  <meta property="og:url" content="https://fize-lab.com/tabourets.html">
+  <meta property="og:title" content="Finitions — Impression 3D by Fize">
+  <meta property="og:description" content="Brut d&#x27;impression, lissé, peint verni, résine transparente, aspect métal, multicolore : les finitions de l&#x27;atelier, en 3D.">
+  <meta property="og:url" content="https://fize-lab.com/finitions.html">
   <meta property="og:image" content="https://fize-lab.com/img/justice-cover.jpg">
   <meta name="twitter:card" content="summary_large_image">
   <meta property="og:locale" content="fr_FR">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "CreativeWork", "name": "Tabourets 1:20", "description": "Le mobilier d'une maquette d'architecture au 1:20 : tabourets, chaises et tables, imprimés en série.", "genre": "Maquette d'architecture", "creator": {"@type": "Organization", "name": "Impression 3D by Fize", "url": "https://fize-lab.com/"}}</script>
 <script>try{if(0)document.documentElement.classList.add('warp-in')}catch(e){}</script>
 </head>
-<!-- Gabarit d'une page projet : build.py le remplit pour chaque entrée de projects.json -->
-<body class="projet">
+<!-- Finitions : ce que l'atelier sait faire après l'impression, chaque finition montrée en 3D sur une vraie pièce.
+     Contenu tiré de data/capacites.md et des skills finition-lissage, finition-transparente-resine, finition-metal.
+     Pas de galvanoplastie : capacité non installée (data/galvanoplastie.md). Aucun prix : renvoyé au devis.
+     Les pièces 3D viennent de models-v2.js (rendus.json) ; « matiere »/« couleur » remplacent celles du projet
+     quand la finition montrée n'est pas celle de la pièce livrée. -->
+<body class="finitions">
   <a class="skip" href="#contenu">Aller au contenu</a>
   <div id="stage"><a class="home" href="index.html" aria-label="Accueil"><canvas id="scene"></canvas></a></div>
   <!-- Écran de chargement : une bobine en volume (CSS 3D, sans attendre le moteur 3D) dont le fil
@@ -82,43 +85,81 @@
   })();
 </script>
 
-
-  <nav>
-    <a href="index.html" aria-current="page">Work</a>
-    <a href="finitions.html">Finitions</a>
+  <nav aria-label="Menu principal">
+    <a href="index.html">Work</a>
+    <a href="finitions.html" aria-current="page">Finitions</a>
     <a href="about.html">About</a>
     <a href="contact.html">Contact</a>
     <a href="faq.html">FAQ</a>
   </nav>
-  <a class="back" href="index.html#liste">← Tous les projets</a>
-
-  <header class="p-head">
-    <!-- numéro, catégorie et infos (finition, client…) sur la ligne du titre, à sa suite -->
-    <div class="p-titlerow">
-      <h1 class="printed long"><span class="stretch">Tabourets 1:20</span></h1>
-      <span class="label p-num">09 / 10 — Maquette d&#x27;architecture</span>
-      <dl class="p-meta"><div><dt>Finition</dt><dd>Échelle 1:20</dd></div></dl>
-    </div>
-  </header>
 
   <main id="contenu">
-    <!-- photo d'ouverture et texte côte à côte -->
-    <section class="p-top">
-      <div class="ph p-hero">PHOTO À VENIR</div>
-      <div class="p-side">
-        <p class="p-intro">Le mobilier d&#x27;une maquette d&#x27;architecture au 1:20 : tabourets, chaises et tables, imprimés en série.</p>
-        <div class="p-cols"><div><h2>La pièce</h2><p>28 tabourets au 1:20, avec le reste du mobilier de la maquette.</p></div></div>
-      </div>
+    <header class="fin-head">
+      <h1>Finitions</h1>
+      <p>L'impression n'est que la moitié du travail. Ce qui fait qu'une pièce passe pour du verre, du métal ou un objet moulé, c'est la finition — faite à la main, à l'atelier. Faites tourner les pièces.</p>
+    </header>
+
+    <ol class="fin-grid">
+      <li class="fin" data-piece="kit-rose">
+        <div class="fin-view" aria-hidden="true"></div>
+        <p class="label">01 · FDM</p>
+        <h2>Brut d'impression</h2>
+        <p>Les couches restent visibles&nbsp;: c'est la signature de l'impression 3D, assumée. Le plus rapide et le plus économique, idéal pour un prototype ou une pièce technique.</p>
+        <a class="fin-ex" href="kit-rose.html">Exemple&nbsp;: Kit rose →</a>
+      </li>
+      <li class="fin" data-piece="scooter" data-matiere="resine" data-couleur="#a7a8a4">
+        <div class="fin-view" aria-hidden="true"></div>
+        <p class="label">02 · Lissage · +2 jours</p>
+        <h2>Lissé apprêté</h2>
+        <p>Mastic, ponçages successifs et apprêt, comme en carrosserie&nbsp;: une surface lisse et uniforme, sans aucune strie. La pièce est prête à peindre.</p>
+      </li>
+      <li class="fin" data-piece="bijoux" data-matiere="laque" data-couleur="#d4231b">
+        <div class="fin-view" aria-hidden="true"></div>
+        <p class="label">03 · Lissage + peinture · +3 jours</p>
+        <h2>Lissé peint verni</h2>
+        <p>Peinture et vernis sur une base lissée&nbsp;: un fini de pièce injectée, protégé, dans la teinte de votre choix.</p>
+      </li>
+      <li class="fin" data-piece="rpi-case">
+        <div class="fin-view" aria-hidden="true"></div>
+        <p class="label">04 · Résine</p>
+        <h2>Résine transparente</h2>
+        <p>Imprimée en résine claire, puis affinée, polie ou vernie&nbsp;: on voit à travers. Du satiné fin jusqu'à la clarté optique du poli miroir.</p>
+        <a class="fin-ex" href="rpi-case.html">Exemple&nbsp;: Boîtier Raspberry Pi →</a>
+      </li>
+      <li class="fin" data-piece="tabourets">
+        <div class="fin-view" aria-hidden="true"></div>
+        <p class="label">05 · Résine</p>
+        <h2>Résine détaillée</h2>
+        <p>La résine haute définition garde les plus petits détails, sur une surface mate et régulière&nbsp;: maquettes, miniatures, pièces fines.</p>
+        <a class="fin-ex" href="tabourets.html">Exemple&nbsp;: Tabourets 1:20 →</a>
+      </li>
+      <li class="fin" data-piece="micro">
+        <div class="fin-view" aria-hidden="true"></div>
+        <p class="label">06 · Peinture & lestage</p>
+        <h2>Aspect métal</h2>
+        <p>Graphite lustré, cires métalliques, chrome sur noir poli — et du lest pour la masse. Fonte, acier, bronze ou aluminium&nbsp;: la pièce se lit comme du métal, à l'œil comme en main.</p>
+        <a class="fin-ex" href="micro.html">Exemple&nbsp;: Micro serti →</a>
+      </li>
+      <li class="fin" data-piece="plaque-logo" data-cap="3.14">
+        <div class="fin-view" aria-hidden="true"></div>
+        <p class="label">07 · FDM multi-filaments</p>
+        <h2>Multicolore</h2>
+        <p>Plusieurs couleurs en une seule impression, sans peinture&nbsp;: logos, lettrages, signalétique, objets de marque.</p>
+        <a class="fin-ex" href="plaque-logo.html">Exemple&nbsp;: Plaque logo →</a>
+      </li>
+      <li class="fin" data-piece="justice">
+        <div class="fin-view" aria-hidden="true"></div>
+        <p class="label">08 · Peinture à la main</p>
+        <h2>Peinture décorative</h2>
+        <p>Patines, veines, vieillissement, effets de matière&nbsp;: la pièce prend un caractère qu'aucune impression ne donne seule.</p>
+        <a class="fin-ex" href="justice.html">Exemple&nbsp;: Justice →</a>
+      </li>
+    </ol>
+
+    <section class="fin-cta">
+      <p class="lead">Un rendu en tête&nbsp;? <a href="contact.html">Décrivez-le nous →</a></p>
     </section>
-
-    
-
-    <div class="p-next">
-      <a href="guitare-chicha.html"><span class="label">Précédent</span><span class="t">Guitare chicha</span></a>
-      <a href="rpi-case.html"><span class="label">Suivant</span><span class="t">Boîtier Raspberry Pi</span></a>
-    </div>
-  </main>
-  <footer class="site-foot">
+    <footer class="site-foot">
     <span>Impression 3D by Fize — Paris 18e</span>
     <a href="mentions-legales.html">Mentions légales</a>
     <a href="confidentialite.html">Confidentialité</a>
@@ -127,65 +168,10 @@
     <a href="3d.html#psyche" class="psy-link">PSY</a>
     <span>Médiation de la consommation : [MÉDIATEUR À CHOISIR]</span>
   </footer>
+  </main>
 
-<script>window.LOGO_CONFIG = { mode: 'fixed', frame: 0.62 };</script>
-<script>
-  // le titre est étiré à l'affichage (scaleX), ce qui ne change pas sa place dans la mise en page :
-  // on réserve l'espace en plus pour que « 01 / 09 — Décor » ne passe pas sous le titre
-  (() => {
-    const s = document.querySelector('.p-titlerow .stretch');
-    const fit = () => {
-      const m = new DOMMatrix(getComputedStyle(s).transform);
-      s.parentElement.style.marginRight = (s.offsetWidth * (m.a - 1)) + 'px';
-    };
-    if (s) { fit(); document.fonts.ready.then(fit); addEventListener('resize', fit); }
-  })();
-</script>
-<script>
-  // ── Titre « imprimé » ──────────────────────────────────────────────────────────────
-  // Le titre se dépose couche par couche, de bas en haut ; chaque couche se remplit de gauche à
-  // droite (85 % du temps), puis la tête revient à gauche sans déposer (15 %), comme une imprimante.
-  // Le masque est fait de deux dégradés CSS (les couches finies + la couche en cours), recalculés à
-  // chaque image : aucune image à décoder, donc pas de clignotement sur iPhone.
-  (() => {
-    const h1 = document.querySelector('h1.printed');
-    if (!h1) return;
-    const el = h1.querySelector('.stretch');
-
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;   // pas d'animation : titre affiché tel quel
-    // aperçu dans l'étoile pendant la transition, puis arrivée sur la vraie page : le titre est déjà
-    // affiché, on ne le réimprime pas (sinon il disparaîtrait d'un coup en entrant)
-    if (location.search.includes('apercu')) return;
-    try { if (sessionStorage.getItem('fize-warp') === '1' && !matchMedia('(pointer: coarse)').matches) return; } catch {}
-    const ROW_MS = 105, DEPOSIT = 0.85, DELAY = 400;
-    const ease = x => x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
-    const st = el.style, FILL = 'linear-gradient(#000, #000)';
-    const set = (k, v) => { st['webkit' + k[0].toUpperCase() + k.slice(1)] = v; st[k] = v; };
-    set('maskImage', `${FILL}, ${FILL}`);
-    set('maskRepeat', 'no-repeat');
-    const draw = (H, rowH, done, pct) => {             // done : couches finies ; pct : avancée de la couche en cours
-      set('maskSize', `100% ${done * rowH}px, ${pct}% ${rowH}px`);
-      set('maskPosition', `0 ${H - done * rowH}px, 0 ${H - (done + 1) * rowH}px`);
-    };
-    draw(1, 1, 0, 0);                                    // titre caché au départ
-    let t0 = null, H, rows, rowH;
-
-    function frame(now) {
-      t0 ??= now;
-      const p = Math.max(0, now - t0 - DELAY) / ROW_MS, row = Math.min(rows, Math.floor(p));
-      if (row >= rows) { set('maskImage', 'none'); return; }
-      draw(H, rowH, row, ease(Math.min(1, (p - row) / DEPOSIT)) * 100);
-      requestAnimationFrame(frame);
-    }
-    document.fonts.ready.then(() => {                    // attend la typo du projet pour mesurer le titre
-      const fs = parseFloat(getComputedStyle(h1).fontSize);
-      H = el.offsetHeight;
-      rows = Math.max(8, Math.round(H / (0.03 * fs)));   // 0,03 em = --layer dans site.css
-      rowH = H / rows;
-      requestAnimationFrame(frame);
-    });
-  })();
-</script>
+  <canvas class="fin-canvas" aria-hidden="true"></canvas>
+<script>window.LOGO_CONFIG = { mode: 'fixed' };</script>
 <script type="importmap">
 { "imports": {
   "three": "./vendor/three.module.min.js",
@@ -209,6 +195,8 @@
   }
 })();
 </script>
+<script src="models-v2.js?v=7b47a007"></script>
+<script type="module" src="finitions.js?v=53942665"></script>
 <script>
 // ── Transition vers un projet : le logo chrome se transforme ─────────────────────────────
 // Départ (n'importe quelle page) : le logo quitte sa place, pivote en 3D et grandit jusqu'à couvrir
