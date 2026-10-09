@@ -74,14 +74,25 @@ const s = 1 / Math.max(size.x, size.y);
 // Logo en chrome : métal poli, face bombée optiquement pour que les reflets glissent quand il pivote,
 // grain fin par-dessus. Un seul calcul simple par pixel, léger pour les téléphones.
 const material = new THREE.MeshPhysicalMaterial({ color: 0xf5f5f5, metalness: 1, roughness: 0.06, envMapIntensity: 1.2 });
+// V3 — apparition : le logo s'imprime couche par couche, de bas en haut (ligne chaude sur la couche en cours),
+// puis un reflet balaie le chrome. Repère du modèle en mm (le logo mesure 118 mm de haut).
+const PRINT_LOGO = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+const LOGO_IN = { uLvl: { value: PRINT_LOGO ? -1e4 : 1e4 }, uGlint: { value: -1e4 } };
 material.onBeforeCompile = sh => {
-  Object.assign(sh.uniforms, U, { uBend: { value: 0.25 / (0.5 / s) } });
+  Object.assign(sh.uniforms, U, LOGO_IN, { uBend: { value: 0.25 / (0.5 / s) } });
+  sh.vertexShader = 'varying vec3 vLp;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vLp = position;');
+  sh.fragmentShader = 'uniform float uLvl, uGlint; varying vec3 vLp;\n' + sh.fragmentShader
+    .replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\n if (vLp.y > uLvl) discard;');
   sh.vertexShader = 'uniform float uBend;\n' + sh.vertexShader.replace('#include <beginnormal_vertex>',
     `#include <beginnormal_vertex>
      if (abs(objectNormal.z) > 0.9) objectNormal = normalize(objectNormal + vec3(position.xy * uBend, 0.0));`);
   sh.fragmentShader = 'uniform float uTime;\n' + sh.fragmentShader.replace('#include <dithering_fragment>',
     `#include <dithering_fragment>
-     gl_FragColor.rgb += (fract(sin(dot(floor(gl_FragCoord.xy) + fract(uTime) * 91.7, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) * 0.035;`);
+     gl_FragColor.rgb += (fract(sin(dot(floor(gl_FragCoord.xy) + fract(uTime) * 91.7, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) * 0.035;
+     float hot = 1.0 - smoothstep(0.0, 5.0, uLvl - vLp.y);                    // couche qui vient d'être déposée
+     gl_FragColor.rgb += vec3(1.0, 0.55, 0.2) * hot * 0.9;
+     float gl = exp(-pow((vLp.x * 0.45 + vLp.y - uGlint) / 9.0, 2.0));          // reflet qui balaie le logo
+     gl_FragColor.rgb += vec3(gl * 0.85);`);
 };
 obj.traverse(m => { if (m.isMesh) {
   m.material = material;
@@ -650,9 +661,22 @@ window.logoWarpOut = () => {
 // arrivée : la nouvelle page s'affiche directement (aucun écran d'attente)
 
 const clock = new THREE.Clock();
+// apparition : seulement en arrivant sur l'accueil, en haut de page, sans transition en cours ni mouvement réduit
+let introT0 = (document.body.classList.contains('work') && scrollY < 10 && PRINT_LOGO
+  && !document.documentElement.classList.contains('warp-in')) ? -1 : null;
+if (introT0 === null) LOGO_IN.uLvl.value = 1e4;      // pas d'apparition : logo entier tout de suite
 function tick() {
   const dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
   U.uTime.value = t;
+  if (introT0 !== null) {
+    if (introT0 < 0) introT0 = t + 0.2;
+    const p = Math.min(1, Math.max(0, (t - introT0) / 2.2)), e = 1 - Math.pow(1 - p, 2);
+    const lvl = -60 + e * 122;
+    LOGO_IN.uLvl.value = p >= 1 ? 1e4 : Math.floor(lvl / 1.6) * 1.6 + 1.6;      // couches de 1,6 mm
+    const q = (t - introT0 - 2.2) / 0.9;
+    LOGO_IN.uGlint.value = q < 0 ? -1e4 : -230 + q * 460;
+    if (q > 1) { introT0 = null; LOGO_IN.uGlint.value = -1e4; }
+  }
   stageShown += (stageTarget - stageShown) * (1 - Math.exp(-dt * 5));
   const st = stageShown;
 
