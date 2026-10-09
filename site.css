@@ -122,6 +122,11 @@ body.work #stage {                                   /* plein écran au départ 
 @keyframes cue { 50% { transform: translate(-50%, 6px); } }
 .cue { transition: opacity .3s; }
 body.moved .cue { opacity: 0; }
+/* ce qu'on fait, dit dès l'arrivée : une ligne sous le logo, qui s'efface quand on descend */
+.baseline { position: absolute; left: 50%; top: calc(50% + min(11vh, 11vw) + 26px); transform: translateX(-50%); margin: 0; white-space: nowrap;
+  font: 500 12px/1 "Helvetica Neue", Arial, sans-serif; letter-spacing: .18em; text-transform: uppercase; color: var(--ink); z-index: 16; transition: opacity .3s; }
+body.moved .baseline { opacity: 0; }
+@media (max-width: 799px) { .baseline { top: calc(50% + min(20vh, 20vw) + 22px); font-size: 10px; letter-spacing: .14em; } }
 .to-top { position: fixed; right: 20px; bottom: 16px; width: 150px; height: 150px; z-index: 16; display: none; }
 body.scrolled .to-top { display: block; }
 .work-head { padding: 8vh 32px 8vh; display: flex; justify-content: space-between; align-items: end; gap: 32px; }
@@ -632,3 +637,8 @@ body.finitions main { padding: max(26vh, 190px) 32px 4vh; }
 .fin-canvas { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; }
 .fin-cta { margin-top: 12vh; }
 @media (max-width: 700px) { body.finitions main { padding: 150px 16px 4vh; } .fin-grid { gap: 48px; } }
+
+/* ═══ ESSAI logo « métal liquide » (accueil 3D) : posé à la place du logo 3D, qui reste dessous, masqué ═══ */
+canvas.logo-liquide { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+body.logo-liquide #scene { opacity: 0; }
+body:not(.logo-liquide) canvas.logo-liquide { display: none; }
