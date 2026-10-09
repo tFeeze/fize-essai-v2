@@ -641,11 +641,6 @@ function lensPass() {
   lens = { rt, mat, sc, cam: new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1) };
   return lens;
 }
-const wEase = x => x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
-const coverZ = () => {                              // distance où le logo carré couvre tout l'écran
-  const t = 2 * Math.tan(THREE.MathUtils.degToRad(BASE_FOV / 2));
-  return Math.min(0.97 / (t * camera.aspect), 0.95 / t) * 0.92;
-};
 const warpRun = (mode, dur) => new Promise(done => Object.assign(warp, { mode, dur, k: 0, t0: performance.now(), done }));
 window.logoWarpOut = () => {
   if (FLAT) return null;
@@ -749,14 +744,16 @@ function tick() {
   }
   if (warp.mode) {                                  // transition en cours
     if (warp.mode !== 'hold') warp.k = Math.min(1, (performance.now() - warp.t0) / warp.dur);
-    const cz = coverZ();
     // le logo reste de face, il ne suit plus la souris : la caméra vise l'étoile puis passe au travers
-    rig.rotation.set(0, 0, 0); target.x = target.y = 0;
-    const k1 = Math.min(1, warp.k / 0.6), k2 = Math.max(0, (warp.k - 0.6) / 0.4);
+    target.x = target.y = 0;                         // le logo revient de face en douceur (pas de saut)
+    rig.rotation.x *= Math.exp(-dt * 14); rig.rotation.y *= Math.exp(-dt * 14);
     warp.amt = Math.min(1, Math.pow(warp.k, 1.6) * 1.25);    // déformation qui monte en s'approchant
     camera.fov = BASE_FOV + 38 * warp.amt; camera.updateProjectionMatrix();   // grand angle
-    const e = wEase(k1);
-    camera.position.set(STAR.x * e, STAR.y * e, camZ + (cz - camZ) * e + (-0.35 - cz) * Math.pow(k2, 2));
+    // un seul mouvement continu, sans arrêt à mi-course (avant : approche, pause, puis plongée) :
+    // la caméra se centre sur l'étoile et plonge dedans ; vu de la caméra, le logo grossit de plus en plus
+    // vite jusqu'à la traversée (vers 60 % du temps), puis la page occupe l'écran
+    const ex = 1 - Math.pow(1 - Math.min(1, warp.k / 0.5), 3);
+    camera.position.set(STAR.x * ex, STAR.y * ex, -0.35 + (camZ + 0.35) * Math.pow(1 - warp.k, 2.6));
     // la page du projet (chargée derrière) ne doit se voir que par l'étoile :
     //  · une plaque blanche percée de l'étoile, dans la scène 3D juste derrière le logo, cache la page
     //    partout dans le carré du logo sauf dans l'étoile (même déformation que le logo : rien ne dépasse) ;
