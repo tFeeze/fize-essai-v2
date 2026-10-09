@@ -79,6 +79,7 @@ const box = new THREE.Box3().setFromObject(obj);
 const size = FLAT ? new THREE.Vector3(1, 1, 1) : box.getSize(new THREE.Vector3());
 const center = FLAT ? new THREE.Vector3() : box.getCenter(new THREE.Vector3());
 const s = 1 / Math.max(size.x, size.y);
+document.documentElement.style.setProperty('--logo-ratio', (size.y / size.x).toFixed(3));   // V3 : hauteur / largeur du logo choisi
 
 // Logo en chrome : métal poli, face bombée optiquement pour que les reflets glissent quand il pivote,
 // grain fin par-dessus. Un seul calcul simple par pixel, léger pour les téléphones.

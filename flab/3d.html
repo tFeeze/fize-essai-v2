@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fize — Atelier d'impression 3D, Paris</title>
-<link rel="stylesheet" href="site.css?v=beaa9412">
+<link rel="stylesheet" href="site.css?v=f16fee2c">
   <meta name="description" content="">
   <link rel="canonical" href="https://fize-lab.com/3d.html">
   <meta property="og:type" content="website">
@@ -92,6 +92,15 @@
   </nav>
 
   <a class="v2-switch" href="index.html" aria-label="Voir la version images">Images / <b>3D</b></a>
+  <div class="logo-switch" role="group" aria-label="Choix du logo (essai)">LOGO <button data-logo="1">1</button> / <button data-logo="2">2</button></div>
+  <script>
+    // V3 : essai de deux logos. Le choix est gardé pour tout le site ; la page se recharge avec le logo choisi.
+    (() => { let k = '1'; try { k = localStorage.getItem('fize-logo') || '1'; } catch (e) {}
+      document.querySelectorAll('.logo-switch button').forEach(b => {
+        if (b.dataset.logo === k) b.classList.add('on');
+        b.addEventListener('click', () => { try { localStorage.setItem('fize-logo', b.dataset.logo); } catch (e) {} location.reload(); });
+      }); })();
+  </script>
   <div class="hero" id="top"><p class="baseline">Atelier d'impression 3D — Paris 18e</p><span class="cue">Work ↓</span></div>
 
   <header class="work-head">
@@ -238,9 +247,9 @@
   {
     // pièces en orbite (accueil) et modèle du logo en parallèle, puis le moteur ;
     // chargés en arrière-plan : la page (liste des projets…) s'affiche sans les attendre
-    const need = [add('logo-data.js?v=486514b4')];
+    const need = [add('logo-data.js?v=6a429989')];
     if (C.orbit) need.push(add(C.models ? C.models + '?v=7b47a007' : 'models-home.js?v=8c2298e7'));
-    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=536fe3d5', true); });
+    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=c90246cb', true); });
   }
 })();
 </script>

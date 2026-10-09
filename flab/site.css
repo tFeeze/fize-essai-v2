@@ -123,10 +123,10 @@ body.work #stage {                                   /* plein écran au départ 
 .cue { transition: opacity .3s; }
 body.moved .cue { opacity: 0; }
 /* ce qu'on fait, dit dès l'arrivée : une ligne sous le logo, qui s'efface quand on descend */
-.baseline { position: absolute; left: 50%; top: calc(50% + min(8.6vh, 8.6vw) + 30px); transform: translateX(-50%); margin: 0; white-space: nowrap;
+.baseline { position: absolute; left: 50%; top: calc(50% + min(22vh, 22vw) * var(--logo-ratio, .39) + 30px); transform: translateX(-50%); margin: 0; white-space: nowrap;
   font: 500 12px/1 "Helvetica Neue", Arial, sans-serif; letter-spacing: .18em; text-transform: uppercase; color: var(--ink); z-index: 16; transition: opacity .3s; }
 body.moved .baseline { opacity: 0; }
-@media (max-width: 799px) { .baseline { top: calc(50% + min(15.5vh, 15.5vw) + 20px); font-size: 10px; letter-spacing: .14em; } }
+@media (max-width: 799px) { .baseline { top: calc(50% + min(39vh, 39vw) * var(--logo-ratio, .39) + 20px); font-size: 10px; letter-spacing: .14em; } }
 .to-top { position: fixed; right: 20px; bottom: 16px; width: 150px; height: 150px; z-index: 16; display: none; }
 body.scrolled .to-top { display: block; }
 .work-head { padding: 8vh 32px 8vh; display: flex; justify-content: space-between; align-items: end; gap: 32px; }
@@ -637,3 +637,10 @@ body.finitions main { padding: max(26vh, 190px) 32px 4vh; }
 .fin-canvas { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; }
 .fin-cta { margin-top: 12vh; }
 @media (max-width: 700px) { body.finitions main { padding: 150px 16px 4vh; } .fin-grid { gap: 48px; } }
+
+/* V3 : sélecteur du logo (essai), sous « Images / 3D » */
+.logo-switch { position: fixed; right: 32px; top: 52px; z-index: 30; font: 500 11px/1 Menlo, monospace; letter-spacing: .12em; color: var(--mute); }
+.logo-switch button { all: unset; cursor: pointer; padding: 2px 3px; color: var(--mute); }
+.logo-switch button.on { color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
+.logo-switch button:focus-visible { outline: 1px solid var(--ink); }
+@media (max-width: 800px) { .logo-switch { top: 86px; right: 16px; } }
