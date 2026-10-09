@@ -65,6 +65,15 @@ const U = { uTime: { value: 0 } };
 const pivot = new THREE.Group(); rig.add(pivot);
 // V3 (logo F-LAB) : centre de l'étoile mesuré sur le logo (logo-flab/etoile.py → star-outline.json)
 const STAR_C = window.LOGO_STAR?.centre || [0.0766, 0.0282];
+// V3 — apparition : un simple fondu du logo, en arrivant sur l'accueil (haut de page, sans transition en cours)
+if (document.body.classList.contains('work') && scrollY < 10 && !document.documentElement.classList.contains('warp-in')
+    && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  canvas.style.opacity = '0';
+  setTimeout(() => {
+    canvas.style.transition = 'opacity 1.2s ease'; canvas.style.opacity = '1';
+    setTimeout(() => { canvas.style.transition = canvas.style.opacity = ''; }, 1300);   // rend la main au CSS
+  }, 150);
+}
 const obj = FLAT ? new THREE.Group() : new OBJLoader().parse(window.LOGO_OBJ);   // modèle non chargé sur téléphone
 const box = new THREE.Box3().setFromObject(obj);
 const size = FLAT ? new THREE.Vector3(1, 1, 1) : box.getSize(new THREE.Vector3());
@@ -74,61 +83,19 @@ const s = 1 / Math.max(size.x, size.y);
 // Logo en chrome : métal poli, face bombée optiquement pour que les reflets glissent quand il pivote,
 // grain fin par-dessus. Un seul calcul simple par pixel, léger pour les téléphones.
 const material = new THREE.MeshPhysicalMaterial({ color: 0xf5f5f5, metalness: 1, roughness: 0.06, envMapIntensity: 1.2 });
-// V3 — apparition : l'étoile éclate (le carré jaillit de son centre en tournant, avec un éclair), le cadre
-// s'ouvre depuis l'étoile, puis L, A, B arrivent l'une après l'autre et se calent ; un reflet balaie enfin le
-// chrome. Chaque sommet porte sa partie (attribut « part », calculé au chargement). Repère du modèle en mm.
-const PRINT_LOGO = !matchMedia('(prefers-reduced-motion: reduce)').matches;
-const LOGO_IN = { uLvl: { value: 1e4 }, uGlint: { value: -1e4 }, uIn: { value: PRINT_LOGO ? 0 : 99 } };
 material.onBeforeCompile = sh => {
-  Object.assign(sh.uniforms, U, LOGO_IN, { uBend: { value: 0.25 / (0.5 / s) } });
-  sh.vertexShader = `varying vec3 vLp; varying float vFlash; attribute float part; uniform float uIn;
-    float eo(float p) { return 1.0 - pow(1.0 - p, 3.0); }
-    float back(float p) { float c = 1.9; return 1.0 + (c + 1.0) * pow(p - 1.0, 3.0) + c * pow(p - 1.0, 2.0); }   // dépasse puis revient
-    ` + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
-    vLp = position; vFlash = 0.0;
-    vec2 C = vec2(${(STAR_C[0] / s).toFixed(2)}, ${(STAR_C[1] / s).toFixed(2)});     // centre de l'étoile (mm)
-    if (uIn < 50.0) {
-      if (part < 0.5) {                                   // cadre : s'ouvre depuis l'étoile
-        float p = clamp((uIn - 0.45) / 0.7, 0.0, 1.0);
-        transformed.xy = C + (transformed.xy - C) * eo(p); transformed.z *= p;
-        if (p <= 0.0) transformed = vec3(0.0);
-      } else if (part < 1.5) {                            // carré de l'étoile : éclate en tournant
-        float p = clamp(uIn / 0.75, 0.0, 1.0), k = back(p), a = (1.0 - eo(p)) * -2.4;
-        vec2 d = (transformed.xy - C) * k;
-        transformed.xy = C + mat2(cos(a), sin(a), -sin(a), cos(a)) * d;
-        vFlash = 1.0 - smoothstep(0.0, 0.55, p);
-        if (p <= 0.0) transformed = vec3(0.0);
-      } else {                                            // L, A, B : arrivent de la droite, l'une après l'autre
-        float p = clamp((uIn - 0.75 - (part - 2.0) * 0.17) / 0.55, 0.0, 1.0), k = back(p);
-        transformed.x += (1.0 - k) * 190.0; transformed.z += (1.0 - eo(p)) * 70.0;
-        if (p <= 0.0) transformed = vec3(0.0);
-      }
-    }`);
-  sh.fragmentShader = 'uniform float uLvl, uGlint; varying vec3 vLp; varying float vFlash;\n' + sh.fragmentShader
-    .replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\n if (vLp.y > uLvl) discard;');
+  Object.assign(sh.uniforms, U, { uBend: { value: 0.25 / (0.5 / s) } });
   sh.vertexShader = 'uniform float uBend;\n' + sh.vertexShader.replace('#include <beginnormal_vertex>',
     `#include <beginnormal_vertex>
      if (abs(objectNormal.z) > 0.9) objectNormal = normalize(objectNormal + vec3(position.xy * uBend, 0.0));`);
   sh.fragmentShader = 'uniform float uTime;\n' + sh.fragmentShader.replace('#include <dithering_fragment>',
     `#include <dithering_fragment>
-     gl_FragColor.rgb += (fract(sin(dot(floor(gl_FragCoord.xy) + fract(uTime) * 91.7, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) * 0.035;
-     gl_FragColor.rgb += vec3(vFlash * 1.4);                                     // éclair de l'étoile qui éclate
-     float gl = exp(-pow((vLp.x * 0.45 + vLp.y - uGlint) / 9.0, 2.0));          // reflet qui balaie le logo
-     gl_FragColor.rgb += vec3(gl * 0.85);`);
+     gl_FragColor.rgb += (fract(sin(dot(floor(gl_FragCoord.xy) + fract(uTime) * 91.7, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) * 0.035;`);
 };
 obj.traverse(m => { if (m.isMesh) {
   m.material = material;
   m.geometry.translate(-center.x, -center.y, -center.z);
   m.geometry.computeVertexNormals();
-  // V3 : parties du logo F-LAB (mesurées sur logo-flab/flab.png ; l'italique de LAB penche de 0,213)
-  const P = m.geometry.attributes.position, part = new Float32Array(P.count), hx = size.x / 2, hy = size.y / 2;
-  for (let i = 0; i < P.count; i += 3) {
-    const x = (P.getX(i) + P.getX(i + 1) + P.getX(i + 2)) / 3, y = (P.getY(i) + P.getY(i + 1) + P.getY(i + 2)) / 3;
-    const u = x - 0.213 * y;
-    const v = (Math.abs(x) > hx - 7 || Math.abs(y) > hy - 8) ? 0 : x < -43.3 ? 1 : u < 17.3 ? 2 : u < 63.3 ? 3 : 4;
-    part[i] = part[i + 1] = part[i + 2] = v;
-  }
-  m.geometry.setAttribute('part', new THREE.BufferAttribute(part, 1));
 } });
 pivot.scale.setScalar(s);
 pivot.add(obj);
@@ -692,21 +659,9 @@ window.logoWarpOut = () => {
 // arrivée : la nouvelle page s'affiche directement (aucun écran d'attente)
 
 const clock = new THREE.Clock();
-// apparition : seulement en arrivant sur l'accueil, en haut de page, sans transition en cours ni mouvement réduit
-let introT0 = (document.body.classList.contains('work') && scrollY < 10 && PRINT_LOGO
-  && !document.documentElement.classList.contains('warp-in')) ? -1 : null;
-if (introT0 === null) LOGO_IN.uIn.value = 99;        // pas d'apparition : logo entier tout de suite
-window.logoIntro = () => { if (PRINT_LOGO) { introT0 = -1; LOGO_IN.uIn.value = 0; } };   // rejouer l'apparition (réglages)
 function tick() {
   const dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
   U.uTime.value = t;
-  if (introT0 !== null) {
-    if (introT0 < 0) introT0 = t + 0.2;
-    LOGO_IN.uIn.value = Math.max(0, t - introT0);
-    const q = (t - introT0 - 1.8) / 0.9;                  // reflet, une fois LAB en place
-    LOGO_IN.uGlint.value = q < 0 ? -1e4 : -230 + q * 460;
-    if (q > 1) { introT0 = null; LOGO_IN.uGlint.value = -1e4; LOGO_IN.uIn.value = 99; }
-  }
   stageShown += (stageTarget - stageShown) * (1 - Math.exp(-dt * 5));
   const st = stageShown;
 
