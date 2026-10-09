@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta name="robots" content="noindex, nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Micro serti — Fize</title>
+<meta name="description" content="Accessoire de scène — Serti de strass. Un habillage de micro pour la scène : lettrage gothique et cœur, sertis de strass.">
+<link rel="stylesheet" href="site.css?v=beaa9412">
+  <link rel="canonical" href="https://fize-lab.com/micro.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Impression 3D by Fize">
+  <meta property="og:title" content="Micro serti — Impression 3D by Fize">
+  <meta property="og:description" content="Un habillage de micro pour la scène : lettrage gothique et cœur, sertis de strass.">
+  <meta property="og:url" content="https://fize-lab.com/micro.html">
+  <meta property="og:image" content="https://fize-lab.com/img/micro-cover.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="og:locale" content="fr_FR">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "CreativeWork", "name": "Micro serti", "description": "Un habillage de micro pour la scène : lettrage gothique et cœur, sertis de strass.", "genre": "Accessoire de scène", "creator": {"@type": "Organization", "name": "Impression 3D by Fize", "url": "https://fize-lab.com/"}, "image": "https://fize-lab.com/img/micro-cover.webp"}</script>
+<script>try{if(0)document.documentElement.classList.add('warp-in')}catch(e){}</script>
+</head>
+<!-- Gabarit d'une page projet : build.py le remplit pour chaque entrée de projects.json -->
+<body class="projet">
+  <a class="skip" href="#contenu">Aller au contenu</a>
+  <div id="stage"><a class="home" href="index.html" aria-label="Accueil"><canvas id="scene"></canvas></a></div>
+  <!-- Écran de chargement : une bobine en volume (CSS 3D, sans attendre le moteur 3D) dont le fil
+     s'enroule au rythme du chargement. Injecté par build.py.
+     Étapes : page lue → modèle du logo chargé → moteur 3D prêt → première image affichée.
+     Entre deux étapes, le fil avance doucement ; window.loadStep(p) fixe le minimum atteint (0 à 1). -->
+<div id="loading" aria-label="Chargement" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+  <div class="ld-3d">
+    <div class="ld-rig" id="ld-rig">
+      <div class="ld-flange" style="--z:-26px"></div>
+      <div id="ld-drum"></div>
+      <div class="ld-flange" style="--z:26px"></div>
+    </div>
+  </div>
+  <span id="ld-pc">000 %</span>
+</div>
+<script>
+  (() => {
+    // La bobine n'apparaît que si le chargement traîne (plus de SHOW_AFTER ms). Sur un appareil rapide
+    // ou une page en cache, on ne la voit jamais et rien ne tourne pour rien.
+    const SHOW_AFTER = 600;
+    const el = document.getElementById('loading'), drum = document.getElementById('ld-drum');
+    const rig = document.getElementById('ld-rig'), pc = document.getElementById('ld-pc');
+    const HUB = 17, MAX = 50, SLICES = 11;                // rayons en px ; tranches du tambour de fil
+    let floor = 0.08, shown = 0, visible = false, done = false, spin = 0, last = 0;
+    el.classList.add('quiet');
+    const finish = () => {                                // on retire l'écran, en fondu court si la bobine n'a pas été vue
+      done = true;
+      el.classList.add(visible ? 'done' : 'done-fast');
+      setTimeout(() => el.remove(), visible ? 900 : 300);
+    };
+    window.loadStep = p => {
+      floor = Math.max(floor, p);
+      if (floor >= 1 && !visible && !done) finish();      // chargé avant le délai : pas d'animation du tout
+    };
+    addEventListener('DOMContentLoaded', () => loadStep(0.2));
+    setTimeout(() => loadStep(1), 9000);                  // filet de sécurité : jamais bloqué sur l'écran de chargement
+    setTimeout(() => {
+      if (done) return;
+      visible = true; el.classList.remove('quiet');
+      drum.innerHTML = Array.from({ length: SLICES }, (_, i) =>
+        `<i style="--z:${(-22 + 44 * i / (SLICES - 1)).toFixed(1)}px"></i>`).join('');
+      last = performance.now(); requestAnimationFrame(frame);
+    }, SHOW_AFTER);
+    function frame(now) {
+      const dt = Math.min(0.05, (now - last) / 1000); last = now;
+      // on avance vers l'étape atteinte, et on grignote un peu au-delà tant qu'on attend la suivante
+      const goal = floor >= 1 ? 1 : Math.min(floor + 0.12, 0.97);
+      shown += (goal - shown) * (1 - Math.exp(-dt * (floor >= 1 ? 7 : 1.4)));
+      spin += dt * 160;
+      rig.style.setProperty('--spin', (spin % 360) + 'deg');
+      drum.style.setProperty('--r', (HUB + (MAX - HUB) * shown).toFixed(1) + 'px');   // le fil s'épaissit
+      const v = Math.round(shown * 100);
+      pc.textContent = String(v).padStart(3, '0') + ' %';
+      el.setAttribute('aria-valuenow', v);
+      if (floor >= 1 && shown > 0.995 && !done) { pc.textContent = '100 %'; setTimeout(finish, 200); done = true; return; }
+      requestAnimationFrame(frame);
+    }
+  })();
+</script>
+
+
+  <nav>
+    <a href="index.html" aria-current="page">Work</a>
+    <a href="finitions.html">Finitions</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="faq.html">FAQ</a>
+  </nav>
+  <a class="back" href="index.html#liste">← Tous les projets</a>
+
+  <header class="p-head">
+    <!-- numéro, catégorie et infos (finition, client…) sur la ligne du titre, à sa suite -->
+    <div class="p-titlerow">
+      <h1 class="printed long"><span class="stretch">Micro serti</span></h1>
+      <span class="label p-num">02 / 10 — Accessoire de scène</span>
+      <dl class="p-meta"><div><dt>Finition</dt><dd>Serti de strass</dd></div></dl>
+    </div>
+  </header>
+
+  <main id="contenu">
+    <!-- photo d'ouverture et texte côte à côte -->
+    <section class="p-top">
+      <img class="p-hero" src="img/micro-cover.webp" alt="Micro serti" fetchpriority="high">
+      <div class="p-side">
+        <p class="p-intro">Un habillage de micro pour la scène : lettrage gothique et cœur, sertis de strass.</p>
+        <div class="p-cols"><div><h2>La finition</h2><p>Base noire, pièces serties de strass.</p></div></div>
+      </div>
+    </section>
+
+    <div class="p-gallery"><figure class="wide"><img src="img/micro-conception.webp" alt="La conception 3D, avant impression" loading="lazy" decoding="async"><figcaption>La conception 3D, avant impression</figcaption></figure></div>
+
+    <div class="p-next">
+      <a href="justice.html"><span class="label">Précédent</span><span class="t">Justice</span></a>
+      <a href="bijoux.html"><span class="label">Suivant</span><span class="t">Bijoux</span></a>
+    </div>
+  </main>
+  <footer class="site-foot">
+    <span>Impression 3D by Fize — Paris 18e</span>
+    <a href="mentions-legales.html">Mentions légales</a>
+    <a href="confidentialite.html">Confidentialité</a>
+    <a href="faq.html">FAQ</a>
+    <a href="cgv.html">CGV</a>
+    <a href="3d.html#psyche" class="psy-link">PSY</a>
+    <span>Médiation de la consommation : [MÉDIATEUR À CHOISIR]</span>
+  </footer>
+
+<script>window.LOGO_CONFIG = { mode: 'fixed', frame: 0.62 };</script>
+<script>
+  // le titre est étiré à l'affichage (scaleX), ce qui ne change pas sa place dans la mise en page :
+  // on réserve l'espace en plus pour que « 01 / 09 — Décor » ne passe pas sous le titre
+  (() => {
+    const s = document.querySelector('.p-titlerow .stretch');
+    const fit = () => {
+      const m = new DOMMatrix(getComputedStyle(s).transform);
+      s.parentElement.style.marginRight = (s.offsetWidth * (m.a - 1)) + 'px';
+    };
+    if (s) { fit(); document.fonts.ready.then(fit); addEventListener('resize', fit); }
+  })();
+</script>
+<script>
+  // ── Titre « imprimé » ──────────────────────────────────────────────────────────────
+  // Le titre se dépose couche par couche, de bas en haut ; chaque couche se remplit de gauche à
+  // droite (85 % du temps), puis la tête revient à gauche sans déposer (15 %), comme une imprimante.
+  // Le masque est fait de deux dégradés CSS (les couches finies + la couche en cours), recalculés à
+  // chaque image : aucune image à décoder, donc pas de clignotement sur iPhone.
+  (() => {
+    const h1 = document.querySelector('h1.printed');
+    if (!h1) return;
+    const el = h1.querySelector('.stretch');
+
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;   // pas d'animation : titre affiché tel quel
+    // aperçu dans l'étoile pendant la transition, puis arrivée sur la vraie page : le titre est déjà
+    // affiché, on ne le réimprime pas (sinon il disparaîtrait d'un coup en entrant)
+    if (location.search.includes('apercu')) return;
+    try { if (sessionStorage.getItem('fize-warp') === '1' && !matchMedia('(pointer: coarse)').matches) return; } catch {}
+    const ROW_MS = 105, DEPOSIT = 0.85, DELAY = 400;
+    const ease = x => x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+    const st = el.style, FILL = 'linear-gradient(#000, #000)';
+    const set = (k, v) => { st['webkit' + k[0].toUpperCase() + k.slice(1)] = v; st[k] = v; };
+    set('maskImage', `${FILL}, ${FILL}`);
+    set('maskRepeat', 'no-repeat');
+    const draw = (H, rowH, done, pct) => {             // done : couches finies ; pct : avancée de la couche en cours
+      set('maskSize', `100% ${done * rowH}px, ${pct}% ${rowH}px`);
+      set('maskPosition', `0 ${H - done * rowH}px, 0 ${H - (done + 1) * rowH}px`);
+    };
+    draw(1, 1, 0, 0);                                    // titre caché au départ
+    let t0 = null, H, rows, rowH;
+
+    function frame(now) {
+      t0 ??= now;
+      const p = Math.max(0, now - t0 - DELAY) / ROW_MS, row = Math.min(rows, Math.floor(p));
+      if (row >= rows) { set('maskImage', 'none'); return; }
+      draw(H, rowH, row, ease(Math.min(1, (p - row) / DEPOSIT)) * 100);
+      requestAnimationFrame(frame);
+    }
+    document.fonts.ready.then(() => {                    // attend la typo du projet pour mesurer le titre
+      const fs = parseFloat(getComputedStyle(h1).fontSize);
+      H = el.offsetHeight;
+      rows = Math.max(8, Math.round(H / (0.03 * fs)));   // 0,03 em = --layer dans site.css
+      rowH = H / rows;
+      requestAnimationFrame(frame);
+    });
+  })();
+</script>
+<script type="importmap">
+{ "imports": {
+  "three": "./vendor/three.module.min.js",
+  "three/addons/loaders/OBJLoader.js": "./vendor/OBJLoader.js"
+} }
+</script>
+<script>
+(() => {
+  const C = window.LOGO_CONFIG || {}, touch = matchMedia('(pointer: coarse)').matches;
+  // aperçu dans l'étoile pendant une transition : page seule, sans moteur 3D (rien ne la ralentit)
+  if (location.search.includes('apercu')) { window.loadStep?.(1); return; }
+  const add = (src, mod) => new Promise(ok => {
+    const s = document.createElement('script'); if (mod) s.type = 'module'; s.src = src; s.onload = ok; document.body.appendChild(s);
+  });
+  {
+    // pièces en orbite (accueil) et modèle du logo en parallèle, puis le moteur ;
+    // chargés en arrière-plan : la page (liste des projets…) s'affiche sans les attendre
+    const need = [add('logo-data.js?v=486514b4')];
+    if (C.orbit) need.push(add(C.models ? C.models + '?v=7b47a007' : 'models-home.js?v=8c2298e7'));
+    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=7bf68143', true); });
+  }
+})();
+</script>
+<script>
+// ── Transition vers un projet : le logo chrome se transforme ─────────────────────────────
+// Départ (n'importe quelle page) : le logo quitte sa place, pivote en 3D et grandit jusqu'à couvrir
+// l'écran de chrome ; on change de page. Arrivée (page projet) : le chrome recouvre l'écran puis se
+// replie en pivotant jusqu'au médaillon, et la page apparaît derrière.
+// Une image du logo (img/logo-chrome.webp) fait le travail : identique sur ordinateur et téléphone,
+// et indépendante du moteur 3D (qui recharge à chaque page). Injecté en ligne par build.py.
+(() => {
+  const SLUGS = ["justice", "micro", "bijoux", "plaque-logo", "kit-rose", "lance-flammes", "scooter", "guitare-chicha", "tabourets", "rpi-case"];
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const KEY = 'fize-warp';
+  // pivot : le centre de l'étoile (mesuré sur l'image du logo) ; SR = rayon du disque inscrit dans l'étoile
+  const OX = 0.5766, OY = 0.4714, SR = 0.0968, RATIO = 733 / 744;
+
+  // où est le logo à l'écran (centre et largeur) : l'image sur téléphone, sinon le cadre du logo 3D
+  function logoBox() {
+    const flat = document.querySelector('.logo-flat');
+    if (flat && flat.offsetWidth) { const r = flat.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, w: r.width }; }
+    const st = document.getElementById('stage');
+    if (!st) return { x: innerWidth / 2, y: innerHeight / 2, w: 120 };
+    const r = st.getBoundingClientRect(), f = (window.LOGO_CONFIG || {}).frame ?? 0.42;
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2, w: Math.min(f, f * r.width / r.height) * r.height };
+  }
+  function layer() {
+    const wrap = document.createElement('div'); wrap.className = 'warp';
+    const im = new Image(); im.src = 'img/logo-chrome.webp'; im.alt = '';
+    wrap.appendChild(im); document.body.appendChild(wrap);
+    return { wrap, im };
+  }
+  // position : le pivot du logo posé sur (x, y), largeur w, rotation a (degrés)
+  const pose = (w, x, y, a, base) => {
+    const s = w / base;
+    return `translate(${x - OX * base}px, ${y - OY * base * RATIO}px) rotateY(${a}deg) rotateZ(${a / 8}deg) scale(${s})`;
+  };
+  // largeur où le logo, centré sur son étoile, couvre tout l'écran ; puis largeur où l'étoile seule le couvre
+  const coverW = () => Math.max(innerWidth / Math.min(OX, 1 - OX), innerHeight / Math.min(OY, 1 - OY) / RATIO) * 0.52;
+  const throughW = () => Math.hypot(innerWidth, innerHeight) / 2 / SR * 1.15;
+
+  const touch = matchMedia('(pointer: coarse)').matches;
+  // aperçu de la page projet : une page chargée d'avance (au survol), invisible, réutilisée au clic
+  let peekEl = null;
+  function preview(url) {
+    const src = url + (url.includes('?') ? '&' : '?') + 'apercu';
+    if (peekEl && peekEl.dataset.src === src) return peekEl;
+    peekEl?.remove();
+    const peek = document.createElement('iframe');
+    peek.className = 'warp-peek'; peek.setAttribute('aria-hidden', 'true'); peek.tabIndex = -1;
+    peek.dataset.src = src; peek.src = src; peek.style.visibility = 'hidden';   // visible seulement pendant la transition (logo3d.js)
+    peek.onload = () => {
+      try {                                         // dans l'aperçu : ni logo, ni écran de chargement
+        const st = peek.contentDocument.createElement('style');
+        st.textContent = '#stage,#loading,.warp,.warp-peek{display:none!important}';
+        peek.contentDocument.head.appendChild(st);
+      } catch {}
+      peek.classList.add('on');
+    };
+    document.body.appendChild(peek);
+    return (peekEl = peek);
+  }
+  function warpTo(url) {
+    const go = () => { try { sessionStorage.setItem(KEY, '1'); } catch {} location.href = url; };
+    if (!window.logoWarpOut) return go();
+    // la page du projet doit être prête avant de lancer l'animation (la charger pendant figerait le logo) :
+    // ordinateur → préparée au survol ; téléphone → préparée dès que le doigt touche le lien. Si elle
+    // n'est pas encore là, on l'attend un court instant (0,8 s au plus), puis on part quoi qu'il arrive.
+    const ready = () => peekEl && peekEl.dataset.src.startsWith(url) && peekEl.classList.contains('on');
+    if (!peekEl || !peekEl.dataset.src.startsWith(url)) preview(url);
+    const start = () => {
+      if (started) return; started = true;
+      const run3d = window.logoWarpOut();
+      if (!run3d) return go();
+      if (ready()) peekEl.classList.add('go'); else { peekEl?.remove(); peekEl = null; }
+      run3d.then(go); setTimeout(go, 1600);
+    };
+    let started = false;
+    if (ready()) return start();
+    peekEl.addEventListener('load', () => requestAnimationFrame(() => requestAnimationFrame(start)), { once: true });
+    setTimeout(start, 800);
+    return;
+  }
+  function warpImage(url) {
+    const go = () => { try { sessionStorage.setItem(KEY, '1'); } catch {} location.href = url; };
+    const b = logoBox(), { wrap, im } = layer(), base = 400;
+    im.style.width = base + 'px'; im.style.transformOrigin = `${OX * 100}% ${OY * 100}%`;
+    // le pivot part de sa vraie place sur le logo affiché
+    const sx = b.x + (OX - 0.5) * b.w, sy = b.y + (OY - 0.5) * b.w * RATIO;
+    // aberration chromatique : franges rouge / cyan qui s'écartent en approchant
+    im.animate([
+      { filter: 'none' },
+      { filter: 'drop-shadow(0.6px 0 0 rgba(255,0,70,.75)) drop-shadow(-0.6px 0 0 rgba(0,210,255,.75))', offset: 0.7 },
+      { filter: 'drop-shadow(1.2px 0 0 rgba(255,0,70,.8)) drop-shadow(-1.2px 0 0 rgba(0,210,255,.8))' },
+    ], { duration: 820, easing: 'ease-in', fill: 'forwards' });
+    const anim = im.animate([
+      { transform: pose(b.w, sx, sy, 0, base) },
+      { transform: pose(b.w * 1.5, innerWidth / 2, innerHeight / 2, 0, base), offset: 0.45 },
+      { transform: pose(coverW(), innerWidth / 2, innerHeight / 2, 360, base) },
+    ], { duration: 820, easing: 'cubic-bezier(.6,0,.35,1)', fill: 'forwards' });
+    document.documentElement.classList.add('warping');            // la page s'efface sous le chrome
+    anim.onfinish = go;
+    setTimeout(go, 1200);                                           // filet de sécurité
+  }
+  window.warpTo = warpTo;
+
+  // survol d'un lien de projet : la page est préchargée, l'aperçu dans l'étoile s'affiche aussitôt au clic
+  const pre = new Set();
+  document.addEventListener('pointerover', e => {
+    const a = e.target.closest?.('a[href]'); if (!a) return;
+    const slug = new URL(a.href, location.href).pathname.split('/').pop().replace(/\.html$/, '');
+    if (!SLUGS.includes(slug) || pre.has(slug)) return;
+    pre.add(slug); const l = document.createElement('link'); l.rel = 'prefetch'; l.href = slug + '.html'; document.head.appendChild(l);
+  }, { passive: true });
+  document.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse') return;
+    const a = e.target.closest?.('a[href]'); if (!a) return;
+    const u = new URL(a.href, location.href), slug = u.pathname.split('/').pop().replace(/\.html$/, '');
+    if (u.origin === location.origin && SLUGS.includes(slug)) preview(u.href);
+  }, { passive: true });
+  let dwell;
+  document.addEventListener('pointerover', e => {
+    if (touch || e.pointerType !== 'mouse') return;
+    const a = e.target.closest?.('a[href]'); clearTimeout(dwell); if (!a) return;
+    const u = new URL(a.href, location.href), slug = u.pathname.split('/').pop().replace(/\.html$/, '');
+    if (u.origin !== location.origin || !SLUGS.includes(slug)) return;
+    dwell = setTimeout(() => preview(u.href), 150);   // la page est déjà prête quand on clique
+  }, { passive: true });
+
+  // clics vers une page projet (liste, bande de photos, « projet suivant »…)
+  document.addEventListener('click', e => {
+    if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const a = e.target.closest('a[href]');
+    if (!a || a.target === '_blank') return;
+    const u = new URL(a.href, location.href);
+    const slug = u.pathname.split('/').pop().replace(/\.html$/, '');
+    if (u.origin !== location.origin || !SLUGS.includes(slug) || u.hash) return;
+    e.preventDefault(); warpTo(u.href);
+  });
+
+  // arrivée sur une page projet après une transition : le chrome se replie jusqu'au médaillon
+  let arrived = false;
+  try { arrived = sessionStorage.getItem(KEY) === '1'; sessionStorage.removeItem(KEY); } catch {}
+  const root = document.documentElement;
+  if (false) {   // ancienne arrivée par image (téléphone), remplacée par le logo 3D   // ordinateur : la page s'affiche directement
+    const { wrap, im } = layer(), base = 400;
+    im.style.width = base + 'px'; im.style.transformOrigin = `${OX * 100}% ${OY * 100}%`;
+    im.style.transform = pose(coverW(), innerWidth / 2, innerHeight / 2, 0, base);
+    root.classList.add('warp-in');
+    let started = false;
+    const start = () => { if (started) return; started = true; requestAnimationFrame(() => {
+      root.classList.remove('warp-cover', 'warp-in');              // la nouvelle page apparaît… dans l'étoile
+      im.animate([
+        { transform: pose(coverW(), innerWidth / 2, innerHeight / 2, 0, base) },
+        { transform: pose(throughW(), innerWidth / 2, innerHeight / 2, 0, base) },
+      ], { duration: 800, easing: 'cubic-bezier(.55,0,.85,.35)', fill: 'forwards' }).onfinish = () => wrap.remove();
+    }); };
+    im.decode().then(start, start);                                 // l'image doit être prête avant de découvrir l'écran
+    setTimeout(start, 900);                                         // jamais bloqué sous le chrome si l'image tarde
+    setTimeout(() => { wrap.remove(); root.classList.remove('warp-in', 'warp-cover'); }, 3500);   // filet de sécurité
+  } else root.classList.remove('warp-in', 'warp-cover');
+  // retour arrière : la page revient du cache telle qu'on l'a quittée (chrome plein écran) → on nettoie
+  addEventListener('pageshow', e => {
+    if (!e.persisted) return;
+    document.querySelectorAll('.warp, .warp-peek').forEach(w => w.remove()); peekEl = null;
+    const st = document.getElementById('stage'); if (st) { st.style.visibility = ''; st.style.transform = ''; }
+    root.classList.remove('warping', 'warp-in', 'warp-cover');
+  });
+})();
+</script>
+</body>
+</html>

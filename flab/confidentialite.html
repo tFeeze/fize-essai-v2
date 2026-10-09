@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta name="robots" content="noindex, nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Confidentialité — Fize</title>
+<meta name="description" content="Politique de confidentialité du site Impression 3D by Fize.">
+<link rel="stylesheet" href="site.css?v=beaa9412">
+  <link rel="canonical" href="https://fize-lab.com/confidentialite.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Impression 3D by Fize">
+  <meta property="og:title" content="Politique de confidentialité — Impression 3D by Fize">
+  <meta property="og:description" content="Données collectées, finalités, durées et droits.">
+  <meta property="og:url" content="https://fize-lab.com/confidentialite.html">
+  <meta property="og:image" content="https://fize-lab.com/img/justice-cover.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="og:locale" content="fr_FR">
+<script>try{if(0)document.documentElement.classList.add('warp-in')}catch(e){}</script>
+</head>
+<body class="legal">
+  <a class="skip" href="#contenu">Aller au contenu</a>
+  <nav aria-label="Menu principal">
+    <a href="index.html">Work</a>
+    <a href="finitions.html">Finitions</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="faq.html">FAQ</a>
+  </nav>
+  <main id="contenu">
+    <h1>Politique de confidentialité</h1>
+    <p>Responsable du traitement : Tom Fize (EI), 63 bis rue Ramey, 75018 Paris — <a href="mailto:contact@fize-lab.com">contact@fize-lab.com</a>.</p>
+    <h2>1. Vos demandes de projet (formulaire de contact)</h2>
+    <p><strong>Données :</strong> nom, e-mail, société (facultatif), téléphone (facultatif), description du projet, lien de fichiers et fichiers que vous choisissez de joindre.<br>
+      <strong>Fonctionnement :</strong> le formulaire n'envoie rien à un serveur ; il ouvre votre messagerie avec un message pré-rempli, que vous envoyez vous-même.<br>
+      <strong>But :</strong> répondre à votre demande et établir un devis.<br>
+      <strong>Base légale :</strong> mesures précontractuelles prises à votre demande (art. 6.1.b RGPD).<br>
+      <strong>Durée :</strong> 3 ans après le dernier échange sans suite ; si un contrat est conclu, les pièces comptables sont gardées 10 ans (obligation légale).<br>
+      <strong>Accès :</strong> Tom Fize uniquement, et le fournisseur de la messagerie professionnelle [FOURNISSEUR E-MAIL À COMPLÉTER].</p>
+    <h2>2. Visite du site</h2>
+    <p>L'hébergeur [HÉBERGEUR À COMPLÉTER] enregistre des journaux techniques (adresse IP, date, page demandée) pour la sécurité du service, sur la base de l'intérêt légitime, pendant [DURÉE À COMPLÉTER, 12 mois maximum].<br>
+      Tout le site, y compris sa bibliothèque 3D, est servi depuis cet hébergeur : aucune ressource n'est chargée depuis un autre service.</p>
+    <h2>3. Cookies</h2>
+    <p>Ce site ne dépose aucun cookie et n'utilise aucun traceur, outil de mesure d'audience ou publicité. Aucun bandeau n'est donc nécessaire.</p>
+    <h2>4. Vos droits</h2>
+    <p>Vous pouvez demander l'accès, la rectification, l'effacement, la limitation, la portabilité de vos données ou vous opposer à leur traitement en écrivant à <a href="mailto:contact@fize-lab.com">contact@fize-lab.com</a>. Réponse sous un mois.
+      Vous pouvez aussi saisir la CNIL : <a href="https://www.cnil.fr/fr/plaintes">cnil.fr/fr/plaintes</a>.</p>
+  </main>
+  <footer class="site-foot">
+    <span>Impression 3D by Fize — Paris 18e</span>
+    <a href="mentions-legales.html">Mentions légales</a>
+    <a href="confidentialite.html">Confidentialité</a>
+    <a href="faq.html">FAQ</a>
+    <a href="cgv.html">CGV</a>
+    <a href="3d.html#psyche" class="psy-link">PSY</a>
+    <span>Médiation de la consommation : [MÉDIATEUR À CHOISIR]</span>
+  </footer>
+<script>
+// ── Transition vers un projet : le logo chrome se transforme ─────────────────────────────
+// Départ (n'importe quelle page) : le logo quitte sa place, pivote en 3D et grandit jusqu'à couvrir
+// l'écran de chrome ; on change de page. Arrivée (page projet) : le chrome recouvre l'écran puis se
+// replie en pivotant jusqu'au médaillon, et la page apparaît derrière.
+// Une image du logo (img/logo-chrome.webp) fait le travail : identique sur ordinateur et téléphone,
+// et indépendante du moteur 3D (qui recharge à chaque page). Injecté en ligne par build.py.
+(() => {
+  const SLUGS = ["justice", "micro", "bijoux", "plaque-logo", "kit-rose", "lance-flammes", "scooter", "guitare-chicha", "tabourets", "rpi-case"];
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const KEY = 'fize-warp';
+  // pivot : le centre de l'étoile (mesuré sur l'image du logo) ; SR = rayon du disque inscrit dans l'étoile
+  const OX = 0.5766, OY = 0.4714, SR = 0.0968, RATIO = 733 / 744;
+
+  // où est le logo à l'écran (centre et largeur) : l'image sur téléphone, sinon le cadre du logo 3D
+  function logoBox() {
+    const flat = document.querySelector('.logo-flat');
+    if (flat && flat.offsetWidth) { const r = flat.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, w: r.width }; }
+    const st = document.getElementById('stage');
+    if (!st) return { x: innerWidth / 2, y: innerHeight / 2, w: 120 };
+    const r = st.getBoundingClientRect(), f = (window.LOGO_CONFIG || {}).frame ?? 0.42;
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2, w: Math.min(f, f * r.width / r.height) * r.height };
+  }
+  function layer() {
+    const wrap = document.createElement('div'); wrap.className = 'warp';
+    const im = new Image(); im.src = 'img/logo-chrome.webp'; im.alt = '';
+    wrap.appendChild(im); document.body.appendChild(wrap);
+    return { wrap, im };
+  }
+  // position : le pivot du logo posé sur (x, y), largeur w, rotation a (degrés)
+  const pose = (w, x, y, a, base) => {
+    const s = w / base;
+    return `translate(${x - OX * base}px, ${y - OY * base * RATIO}px) rotateY(${a}deg) rotateZ(${a / 8}deg) scale(${s})`;
+  };
+  // largeur où le logo, centré sur son étoile, couvre tout l'écran ; puis largeur où l'étoile seule le couvre
+  const coverW = () => Math.max(innerWidth / Math.min(OX, 1 - OX), innerHeight / Math.min(OY, 1 - OY) / RATIO) * 0.52;
+  const throughW = () => Math.hypot(innerWidth, innerHeight) / 2 / SR * 1.15;
+
+  const touch = matchMedia('(pointer: coarse)').matches;
+  // aperçu de la page projet : une page chargée d'avance (au survol), invisible, réutilisée au clic
+  let peekEl = null;
+  function preview(url) {
+    const src = url + (url.includes('?') ? '&' : '?') + 'apercu';
+    if (peekEl && peekEl.dataset.src === src) return peekEl;
+    peekEl?.remove();
+    const peek = document.createElement('iframe');
+    peek.className = 'warp-peek'; peek.setAttribute('aria-hidden', 'true'); peek.tabIndex = -1;
+    peek.dataset.src = src; peek.src = src; peek.style.visibility = 'hidden';   // visible seulement pendant la transition (logo3d.js)
+    peek.onload = () => {
+      try {                                         // dans l'aperçu : ni logo, ni écran de chargement
+        const st = peek.contentDocument.createElement('style');
+        st.textContent = '#stage,#loading,.warp,.warp-peek{display:none!important}';
+        peek.contentDocument.head.appendChild(st);
+      } catch {}
+      peek.classList.add('on');
+    };
+    document.body.appendChild(peek);
+    return (peekEl = peek);
+  }
+  function warpTo(url) {
+    const go = () => { try { sessionStorage.setItem(KEY, '1'); } catch {} location.href = url; };
+    if (!window.logoWarpOut) return go();
+    // la page du projet doit être prête avant de lancer l'animation (la charger pendant figerait le logo) :
+    // ordinateur → préparée au survol ; téléphone → préparée dès que le doigt touche le lien. Si elle
+    // n'est pas encore là, on l'attend un court instant (0,8 s au plus), puis on part quoi qu'il arrive.
+    const ready = () => peekEl && peekEl.dataset.src.startsWith(url) && peekEl.classList.contains('on');
+    if (!peekEl || !peekEl.dataset.src.startsWith(url)) preview(url);
+    const start = () => {
+      if (started) return; started = true;
+      const run3d = window.logoWarpOut();
+      if (!run3d) return go();
+      if (ready()) peekEl.classList.add('go'); else { peekEl?.remove(); peekEl = null; }
+      run3d.then(go); setTimeout(go, 1600);
+    };
+    let started = false;
+    if (ready()) return start();
+    peekEl.addEventListener('load', () => requestAnimationFrame(() => requestAnimationFrame(start)), { once: true });
+    setTimeout(start, 800);
+    return;
+  }
+  function warpImage(url) {
+    const go = () => { try { sessionStorage.setItem(KEY, '1'); } catch {} location.href = url; };
+    const b = logoBox(), { wrap, im } = layer(), base = 400;
+    im.style.width = base + 'px'; im.style.transformOrigin = `${OX * 100}% ${OY * 100}%`;
+    // le pivot part de sa vraie place sur le logo affiché
+    const sx = b.x + (OX - 0.5) * b.w, sy = b.y + (OY - 0.5) * b.w * RATIO;
+    // aberration chromatique : franges rouge / cyan qui s'écartent en approchant
+    im.animate([
+      { filter: 'none' },
+      { filter: 'drop-shadow(0.6px 0 0 rgba(255,0,70,.75)) drop-shadow(-0.6px 0 0 rgba(0,210,255,.75))', offset: 0.7 },
+      { filter: 'drop-shadow(1.2px 0 0 rgba(255,0,70,.8)) drop-shadow(-1.2px 0 0 rgba(0,210,255,.8))' },
+    ], { duration: 820, easing: 'ease-in', fill: 'forwards' });
+    const anim = im.animate([
+      { transform: pose(b.w, sx, sy, 0, base) },
+      { transform: pose(b.w * 1.5, innerWidth / 2, innerHeight / 2, 0, base), offset: 0.45 },
+      { transform: pose(coverW(), innerWidth / 2, innerHeight / 2, 360, base) },
+    ], { duration: 820, easing: 'cubic-bezier(.6,0,.35,1)', fill: 'forwards' });
+    document.documentElement.classList.add('warping');            // la page s'efface sous le chrome
+    anim.onfinish = go;
+    setTimeout(go, 1200);                                           // filet de sécurité
+  }
+  window.warpTo = warpTo;
+
+  // survol d'un lien de projet : la page est préchargée, l'aperçu dans l'étoile s'affiche aussitôt au clic
+  const pre = new Set();
+  document.addEventListener('pointerover', e => {
+    const a = e.target.closest?.('a[href]'); if (!a) return;
+    const slug = new URL(a.href, location.href).pathname.split('/').pop().replace(/\.html$/, '');
+    if (!SLUGS.includes(slug) || pre.has(slug)) return;
+    pre.add(slug); const l = document.createElement('link'); l.rel = 'prefetch'; l.href = slug + '.html'; document.head.appendChild(l);
+  }, { passive: true });
+  document.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse') return;
+    const a = e.target.closest?.('a[href]'); if (!a) return;
+    const u = new URL(a.href, location.href), slug = u.pathname.split('/').pop().replace(/\.html$/, '');
+    if (u.origin === location.origin && SLUGS.includes(slug)) preview(u.href);
+  }, { passive: true });
+  let dwell;
+  document.addEventListener('pointerover', e => {
+    if (touch || e.pointerType !== 'mouse') return;
+    const a = e.target.closest?.('a[href]'); clearTimeout(dwell); if (!a) return;
+    const u = new URL(a.href, location.href), slug = u.pathname.split('/').pop().replace(/\.html$/, '');
+    if (u.origin !== location.origin || !SLUGS.includes(slug)) return;
+    dwell = setTimeout(() => preview(u.href), 150);   // la page est déjà prête quand on clique
+  }, { passive: true });
+
+  // clics vers une page projet (liste, bande de photos, « projet suivant »…)
+  document.addEventListener('click', e => {
+    if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const a = e.target.closest('a[href]');
+    if (!a || a.target === '_blank') return;
+    const u = new URL(a.href, location.href);
+    const slug = u.pathname.split('/').pop().replace(/\.html$/, '');
+    if (u.origin !== location.origin || !SLUGS.includes(slug) || u.hash) return;
+    e.preventDefault(); warpTo(u.href);
+  });
+
+  // arrivée sur une page projet après une transition : le chrome se replie jusqu'au médaillon
+  let arrived = false;
+  try { arrived = sessionStorage.getItem(KEY) === '1'; sessionStorage.removeItem(KEY); } catch {}
+  const root = document.documentElement;
+  if (false) {   // ancienne arrivée par image (téléphone), remplacée par le logo 3D   // ordinateur : la page s'affiche directement
+    const { wrap, im } = layer(), base = 400;
+    im.style.width = base + 'px'; im.style.transformOrigin = `${OX * 100}% ${OY * 100}%`;
+    im.style.transform = pose(coverW(), innerWidth / 2, innerHeight / 2, 0, base);
+    root.classList.add('warp-in');
+    let started = false;
+    const start = () => { if (started) return; started = true; requestAnimationFrame(() => {
+      root.classList.remove('warp-cover', 'warp-in');              // la nouvelle page apparaît… dans l'étoile
+      im.animate([
+        { transform: pose(coverW(), innerWidth / 2, innerHeight / 2, 0, base) },
+        { transform: pose(throughW(), innerWidth / 2, innerHeight / 2, 0, base) },
+      ], { duration: 800, easing: 'cubic-bezier(.55,0,.85,.35)', fill: 'forwards' }).onfinish = () => wrap.remove();
+    }); };
+    im.decode().then(start, start);                                 // l'image doit être prête avant de découvrir l'écran
+    setTimeout(start, 900);                                         // jamais bloqué sous le chrome si l'image tarde
+    setTimeout(() => { wrap.remove(); root.classList.remove('warp-in', 'warp-cover'); }, 3500);   // filet de sécurité
+  } else root.classList.remove('warp-in', 'warp-cover');
+  // retour arrière : la page revient du cache telle qu'on l'a quittée (chrome plein écran) → on nettoie
+  addEventListener('pageshow', e => {
+    if (!e.persisted) return;
+    document.querySelectorAll('.warp, .warp-peek').forEach(w => w.remove()); peekEl = null;
+    const st = document.getElementById('stage'); if (st) { st.style.visibility = ''; st.style.transform = ''; }
+    root.classList.remove('warping', 'warp-in', 'warp-cover');
+  });
+})();
+</script>
+</body>
+</html>
