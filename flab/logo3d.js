@@ -514,8 +514,8 @@ if (CFG.orbit && window.LOGO_MODELS) {
     const hit = new THREE.Mesh(new THREE.SphereGeometry(geo.boundingSphere.radius * 1.05, 16, 12),
       new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false }));
     holder.add(hit);
-    mesh.rotation.set(0, flatPic ? 0 : Math.random() * 6, 0);   // debout, dans son bon sens : seul le cap de départ change
-    pieces.push({ pu, dots, build: 0, holder, mesh, hit, slug: m.slug, grey, card, tilt: m.incline || 0, phase: i * 1.7, spin: (i % 2 ? -1 : 1) * (0.25 + 0.1 * i), grow: 1, lx: 0, ly: 0, mat, flat: flatPic, finish: !!m.matiere, rest: flatPic ? new THREE.Color('#ffffff') : STUDIO === 'gomme' ? gum(COLORS[i % COLORS.length]) : STUDIO ? bright(COLORS[i % COLORS.length]) : NEUTRAL,
+    mesh.rotation.set(0, flatPic ? 0 : (m.cap || 0), 0);   // V3 : face importante vers nous (rendus.json « cap »)
+    pieces.push({ pu, dots, build: 0, holder, mesh, hit, slug: m.slug, grey, card, cap: m.cap || 0, tilt: m.incline || 0, phase: i * 1.7, spin: (i % 2 ? -1 : 1) * (0.25 + 0.1 * i), grow: 1, lx: 0, ly: 0, mat, flat: flatPic, finish: !!m.matiere, rest: flatPic ? new THREE.Color('#ffffff') : STUDIO === 'gomme' ? gum(COLORS[i % COLORS.length]) : STUDIO ? bright(COLORS[i % COLORS.length]) : NEUTRAL,
       tint: (STUDIO === 'gomme' ? gum : STUDIO ? bright : muted)(COLORS[i % COLORS.length]),
       // rayon réel de la pièce (sphère qui la contient quelle que soit sa rotation), pour la garder à l'écran
       radius: geo.boundingSphere.radius + geo.boundingSphere.center.length() });
@@ -531,8 +531,9 @@ function pick(cx, cy, target) {
   const r = IN_STAGE ? stageEl.getBoundingClientRect() : { left: 0, top: 0, width: innerWidth, height: innerHeight };
   ndc.set(...unwide(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1, r.width / r.height));
   ray.setFromCamera(ndc, orbitCam);
-  const h = ray.intersectObjects(pieces.map(p => p.hit))[0];
-  return h ? pieces.find(p => p.hit === h.object) : null;
+  // V3 : la vignette photo compte aussi (survoler l'image = survoler la pièce)
+  const h = ray.intersectObjects(pieces.flatMap(p => p.card ? [p.hit, p.card.children[0]] : [p.hit]))[0];
+  return h ? pieces.find(p => p.hit === h.object || p.card?.children[0] === h.object) : null;
 }
 // affiche (ou masque) la fiche du projet ; place(w, h) renvoie sa position une fois sa taille connue
 // V3, mode Photos : pas de fiche au survol (la vignette montre déjà la photo) ; une étiquette — nom du projet
@@ -831,7 +832,9 @@ function tick() {
       // elles restent debout : elles tournent lentement sur elles-mêmes et se balancent un peu en lévitant ;
       // au scroll, elles basculent en s'envolant
       if (p.flat) p.mesh.rotation.y = Math.sin(t * 0.5 + p.phase) * 0.25;   // image : se balance sans montrer sa tranche
-      else p.mesh.rotation.y += dt * p.spin * 0.6 * (p === hovered ? 2.5 : 1);
+      // V3 : pas de tour complet — la pièce se balance doucement autour de sa face (± 25°), et se met de face au survol
+      else { p.sway = (p.sway ?? 1) + ((p === hovered ? 0.25 : 1) - (p.sway ?? 1)) * (1 - Math.exp(-dt * 4));
+        p.mesh.rotation.y = p.cap + Math.sin(t * 0.45 + p.phase) * 0.44 * p.sway; }
       p.mesh.rotation.x = p.tilt + Math.sin(t * 0.7 + p.phase) * 0.08 + gone * gone * 1.2 * Math.sign(p.spin);
       p.mesh.rotation.z = Math.sin(t * 0.55 + p.phase * 1.3) * 0.1 + gone * gone * 0.8 * p.spin;
     });
