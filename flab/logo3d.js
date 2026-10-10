@@ -535,7 +535,37 @@ function pick(cx, cy, target) {
   return h ? pieces.find(p => p.hit === h.object) : null;
 }
 // affiche (ou masque) la fiche du projet ; place(w, h) renvoie sa position une fois sa taille connue
+// V3, mode Photos : pas de fiche au survol (la vignette montre déjà la photo) ; une étiquette — nom du projet
+// et « Voir le projet » — se déroule, collée sous la vignette, et la suit pendant qu'elle lévite
+const cardLabel = document.createElement('a'); cardLabel.className = 'card-label'; document.body.appendChild(cardLabel);
+cardLabel.addEventListener('click', e => { e.preventDefault(); (window.warpTo || (u => { location.href = u; }))(cardLabel.getAttribute('href')); });
+let labelPiece = null;
+function cardFor(pr, p) {
+  if (!pr || !p) { cardLabel.classList.remove('on'); labelPiece = null; return; }
+  if (labelPiece === p) return;
+  labelPiece = p;
+  cardLabel.href = pr.slug + '.html';
+  cardLabel.innerHTML = `<b>${pr.title}</b><span>Voir le projet →</span>`;
+  cardLabel.classList.remove('on'); void cardLabel.offsetWidth; cardLabel.classList.add('on');   // relance l'animation
+}
+const _lab = new THREE.Vector3();
+function placeLabel() {
+  if (!labelPiece) return;
+  const ph = labelPiece.card.children[0];
+  _lab.set(-0.5, -0.5, 0); ph.localToWorld(_lab); _lab.project(orbitCam);              // coin bas gauche de la photo
+  let cx = _lab.x / 2, cy = _lab.y / 2;
+  if (wideOn()) {                                     // grand angle (téléphone) : même déformation que l'image
+    const K = wide.mat.uniforms.uK.value + psy * 0.75, qx = cx, qy = cy;
+    for (let it = 0; it < 6; it++) { const g = 1 - K * (cx * cx + cy * cy); if (g < 0.2) break; cx = qx / g; cy = qy / g; }
+  }
+  const rot = -(labelPiece.card.rotation.z + labelPiece.holder.rotation.z) * 180 / Math.PI;
+  cardLabel.style.transform = `translate(${((cx + 0.5) * innerWidth).toFixed(1)}px, ${((0.5 - cy) * innerHeight).toFixed(1)}px) rotate(${rot.toFixed(2)}deg)`;
+}
 function showTip(pr, place) {
+  if (FOND_PHOTOS) {
+    const p = pr && pieces.find(q => q.slug === pr.slug && q.card);
+    if (p || !pr) { tip.classList.remove('on'); cardFor(pr, p); return; }
+  }
   tip.classList.toggle('on', !!pr);
   if (!pr) return;
   if (tip.dataset.slug !== pr.slug) {             // on ne reconstruit l'étiquette qu'en changeant de pièce
@@ -574,6 +604,7 @@ addEventListener('pointerup', e => {
   const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y) > 10 || performance.now() - down.t > 600;
   down = null;
   if (moved) return;                                         // c'était un défilement, pas un toucher
+  if (e.target.closest?.('.card-label')) return;             // V3 : l'étiquette est un lien, elle ouvre le projet
   const tr = tip.getBoundingClientRect();                    // toucher dans la fiche ouverte → le projet
   if (hovered && tip.classList.contains('on') && e.clientX >= tr.left && e.clientX <= tr.right && e.clientY >= tr.top && e.clientY <= tr.bottom) {
     (window.warpTo || (u => { location.href = u; }))(hovered.slug + '.html'); return;
@@ -843,6 +874,7 @@ function tick() {
     }
 
   }
+  if (labelPiece) { if (labelPiece !== hovered || orbitShown < 0.6) cardFor(null); else placeLabel(); }
   if (warp.mode) {                                  // transition en cours
     if (warp.mode !== 'hold') warp.k = Math.min(1, (performance.now() - warp.t0) / warp.dur);
     // le logo reste de face, il ne suit plus la souris : la caméra vise l'étoile puis passe au travers

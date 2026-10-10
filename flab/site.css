@@ -669,3 +669,14 @@ body.finitions main { padding: max(26vh, 190px) 32px 4vh; }
 .fond-switch button.on { color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
 .fond-switch button:focus-visible { outline: 1px solid var(--ink); }
 @media (max-width: 800px) { .fond-switch { top: 64px; right: 16px; } }
+
+/* V3, mode Photos : étiquette collée sous la vignette survolée (nom + lien), qui se déroule de gauche à droite */
+.card-label { position: fixed; left: 0; top: 0; z-index: 16; transform-origin: 0 0; display: flex; flex-direction: column; gap: 3px;
+  padding: 7px 10px 8px; background: #000; color: #fff; text-decoration: none; pointer-events: none; opacity: 0;
+  clip-path: inset(0 100% 0 0); transition: opacity .2s, clip-path .35s cubic-bezier(.2,.8,.2,1); will-change: transform; }
+.card-label.on { opacity: 1; clip-path: inset(0 0 0 0); pointer-events: auto; }
+.card-label b { font: 400 15px/1.05 "VG5000", "Helvetica Neue", Arial, sans-serif; text-transform: uppercase; letter-spacing: .02em; white-space: nowrap; }
+.card-label span { font: 500 10px/1 "Helvetica Neue", Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: #bdbdbd;
+  transform: translateY(4px); opacity: 0; transition: transform .3s .15s, opacity .3s .15s; }
+.card-label.on span { transform: none; opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .card-label, .card-label span { transition: opacity .2s; clip-path: none; transform: none; } }
