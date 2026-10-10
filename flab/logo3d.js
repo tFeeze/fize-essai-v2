@@ -546,7 +546,10 @@ function cardFor(pr, p) {
   if (labelPiece === p) return;
   labelPiece = p;
   cardLabel.href = pr.slug + '.html';
-  cardLabel.innerHTML = `<b>${pr.title}</b><span>Voir le projet →</span>`;
+  // logo du client (projects.json « client_logo », fichier dans src/img/) : affiché seulement s'il existe,
+  // et seulement avec l'accord écrit du client (règle 9 de CLAUDE.md)
+  const cl = pr.client_logo ? `<img class="cl" src="img/${pr.client_logo}" alt="${pr.client_nom || ''}" onerror="this.remove()">` : '';
+  cardLabel.innerHTML = `<div class="cl-row"><b>${pr.title}</b>${cl}</div><span>Voir le projet →</span>`;
   cardLabel.classList.remove('on'); void cardLabel.offsetWidth; cardLabel.classList.add('on');   // relance l'animation
 }
 const _lab = new THREE.Vector3();

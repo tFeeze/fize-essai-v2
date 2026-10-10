@@ -680,3 +680,5 @@ body.finitions main { padding: max(26vh, 190px) 32px 4vh; }
   transform: translateY(4px); opacity: 0; transition: transform .3s .15s, opacity .3s .15s; }
 .card-label.on span { transform: none; opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .card-label, .card-label span { transition: opacity .2s; clip-path: none; transform: none; } }
+.card-label .cl-row { display: flex; align-items: center; gap: 10px; }
+.card-label img.cl { height: 16px; width: auto; max-width: 90px; object-fit: contain; filter: brightness(0) invert(1); opacity: .9; }   /* logo client en blanc */
