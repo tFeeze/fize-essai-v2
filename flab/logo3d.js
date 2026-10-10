@@ -307,6 +307,20 @@ function printable(mat, hot) {
   };
   return u;
 }
+// V3 : pièces grisées au repos (même relief, mêmes reflets, sans la couleur) ; leur vraie couleur revient
+// en fondu au survol (ordinateur) ou au premier toucher (téléphone). u.value : 1 = gris, 0 = couleur.
+function greyable(mat, u) {
+  const prev = mat.onBeforeCompile;
+  mat.onBeforeCompile = (sh, r) => {
+    prev?.call(mat, sh, r);
+    sh.uniforms.uGrey = u;
+    sh.fragmentShader = 'uniform float uGrey;\n' + sh.fragmentShader.replace('#include <dithering_fragment>', `#include <dithering_fragment>
+      float lumG = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114));
+      gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(lumG * 0.92 + 0.04), uGrey);`);
+  };
+  const key = mat.customProgramCacheKey?.bind(mat);
+  mat.customProgramCacheKey = () => (key ? key() : '') + ':gris';
+}
 function filament(geo, color, u) {
   const src = geo.attributes.position, n = Math.min(1600, src.count), step = src.count / n;
   const target = new Float32Array(n * 3), dir = new Float32Array(n * 3), seed = new Float32Array(n);
@@ -434,8 +448,20 @@ if (CFG.orbit && window.LOGO_MODELS) {
     let pu = null, dots = null;
     if (!flatPic) {
       pu = printable(mat, new THREE.Color('#fff4e0'));
-      dots = filament(geo, mat.color, pu); dots.visible = PRINT; mesh.add(dots);
+      // V3 : les grains qui « impriment » la pièce sont en couleur (celle de la pièce ; pour l'argent, le blanc
+      // veiné, le multicolore ou la résine claire, la couleur du projet)
+      let dotCol = mat.color;
+      if (m.matiere) {
+        const neutre = ['argent', 'blanc-or', 'multi', 'cristal'].includes(m.matiere) || !vivid(m.couleur);   // pièce noire, grise…
+        const vive = [...(prj?.tint_light || []), ...(prj?.colors || [])].find(vivid);
+        dotCol = new THREE.Color(neutre ? (vive || COLORS[i % COLORS.length]) : m.couleur);
+        const hsl = {}; dotCol.getHSL(hsl);                  // franchement colorés, même si la teinte du projet est sourde
+        dotCol.setHSL(hsl.h, Math.max(hsl.s, 0.8), Math.min(0.6, Math.max(0.45, hsl.l)));
+      }
+      dots = filament(geo, dotCol, pu); dots.visible = PRINT; mesh.add(dots);
     }
+    const grey = { value: 1 };
+    if (m.matiere) greyable(mat, grey);
     if (m.interieur) {                    // ce qu'on voit à travers la pièce (ex. la carte dans le boîtier transparent)
       const d = m.interieur, ig = new THREE.BufferGeometry();
       ig.setAttribute('position', new THREE.Float32BufferAttribute(Float32Array.from(new Int16Array(bytes(d.pos)), v => v / 32767 * m.scale), 3));
@@ -444,6 +470,7 @@ if (CFG.orbit && window.LOGO_MODELS) {
       ig.setIndex(new THREE.BufferAttribute(d.wide ? new Uint32Array(bytes(d.idx)) : new Uint16Array(bytes(d.idx)), 1));
       const im = new THREE.MeshPhysicalMaterial({ color: 0xffffff, vertexColors: true, roughness: 0.35, metalness: 0.15, clearcoat: 0.4 });
       if (pu) { const iu = printable(im, new THREE.Color('#fff4e0')); iu.uLevel = pu.uLevel; }   // s'imprime en même temps que le boîtier
+      greyable(im, grey);
       const inner = new THREE.Mesh(ig, im); inner.renderOrder = -1; mesh.add(inner);
       mesh.renderOrder = 1;
     }
@@ -454,7 +481,7 @@ if (CFG.orbit && window.LOGO_MODELS) {
       new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false }));
     holder.add(hit);
     mesh.rotation.set(0, flatPic ? 0 : Math.random() * 6, 0);   // debout, dans son bon sens : seul le cap de départ change
-    pieces.push({ pu, dots, build: 0, holder, mesh, hit, slug: m.slug, tilt: m.incline || 0, phase: i * 1.7, spin: (i % 2 ? -1 : 1) * (0.25 + 0.1 * i), grow: 1, lx: 0, ly: 0, mat, flat: flatPic, finish: !!m.matiere, rest: flatPic ? new THREE.Color('#ffffff') : STUDIO === 'gomme' ? gum(COLORS[i % COLORS.length]) : STUDIO ? bright(COLORS[i % COLORS.length]) : NEUTRAL,
+    pieces.push({ pu, dots, build: 0, holder, mesh, hit, slug: m.slug, grey, tilt: m.incline || 0, phase: i * 1.7, spin: (i % 2 ? -1 : 1) * (0.25 + 0.1 * i), grow: 1, lx: 0, ly: 0, mat, flat: flatPic, finish: !!m.matiere, rest: flatPic ? new THREE.Color('#ffffff') : STUDIO === 'gomme' ? gum(COLORS[i % COLORS.length]) : STUDIO ? bright(COLORS[i % COLORS.length]) : NEUTRAL,
       tint: (STUDIO === 'gomme' ? gum : STUDIO ? bright : muted)(COLORS[i % COLORS.length]),
       // rayon réel de la pièce (sphère qui la contient quelle que soit sa rotation), pour la garder à l'écran
       radius: geo.boundingSphere.radius + geo.boundingSphere.center.length() });
@@ -714,6 +741,7 @@ function tick() {
       p.holder.position.set(x, y + fly, z);                        // l'envol au scroll, lui, peut sortir par le haut
       p.holder.rotation.set(p.ly * 0.5, p.lx * 0.5, 0);
       p.grow += ((p === hovered ? 1.3 : 1) - p.grow) * (1 - Math.exp(-dt * 10));
+      p.grey.value += ((p === hovered ? 0 : 1) - p.grey.value) * (1 - Math.exp(-dt * 7));   // V3 : la couleur revient au survol
       // couleur du projet : la première vraiment colorée de sa photo (argent, gris, blanc écartés) ;
       // sinon on garde la couleur de filament de la pièce
       if (p.flat) p.tinted = true;                   // rendu photo : ses couleurs sont dans l'image

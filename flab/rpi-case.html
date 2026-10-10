@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Boîtier Raspberry Pi — Fize</title>
 <meta name="description" content="Projet perso — Résine transparente. Un boîtier pour Raspberry Pi 3 B+, imprimé en résine transparente : la carte reste visible à travers.">
-<link rel="stylesheet" href="site.css?v=b4bcfbd8">
+<link rel="stylesheet" href="site.css?v=528cad0a">
   <link rel="canonical" href="https://fize-lab.com/rpi-case.html">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Impression 3D by Fize">
@@ -205,7 +205,7 @@
     // chargés en arrière-plan : la page (liste des projets…) s'affiche sans les attendre
     const need = [add('logo-data.js?v=486514b4')];
     if (C.orbit) need.push(add(C.models ? C.models + '?v=7b47a007' : 'models-home.js?v=8c2298e7'));
-    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=63924bfb', true); });
+    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=206b8fef', true); });
   }
 })();
 </script>

@@ -123,10 +123,10 @@ body.work #stage {                                   /* plein écran au départ 
 .cue { transition: opacity .3s; }
 body.moved .cue { opacity: 0; }
 /* ce qu'on fait, dit dès l'arrivée : une ligne sous le logo, qui s'efface quand on descend */
-.baseline { position: absolute; left: 50%; top: calc(50% + min(22vh, 22vw) * var(--logo-ratio, .39) + 30px); transform: translateX(-50%); margin: 0; white-space: nowrap;
-  font: 500 12px/1 "Helvetica Neue", Arial, sans-serif; letter-spacing: .18em; text-transform: uppercase; color: var(--ink); z-index: 16; transition: opacity .3s; }
+.baseline { position: absolute; left: 50%; top: calc(50% + min(22vh, 22vw) * var(--logo-ratio, .39) + 30px); transform: translateX(-50%); margin: 0; white-space: nowrap;   /* V3 : en VG5000, la typo de la marque */
+  font: 400 17px/1 "VG5000", "Helvetica Neue", Arial, sans-serif; letter-spacing: .04em; text-transform: uppercase; color: var(--ink); z-index: 16; transition: opacity .3s; }
 body.moved .baseline { opacity: 0; }
-@media (max-width: 799px) { .baseline { top: calc(50% + min(39vh, 39vw) * var(--logo-ratio, .39) + 20px); font-size: 10px; letter-spacing: .14em; } }
+@media (max-width: 799px) { .baseline { top: calc(50% + min(39vh, 39vw) * var(--logo-ratio, .39) + 20px); font-size: 13px; letter-spacing: .03em; } }
 .to-top { position: fixed; right: 20px; bottom: 16px; width: 150px; height: 150px; z-index: 16; display: none; }
 body.scrolled .to-top { display: block; }
 .work-head { padding: 8vh 32px 8vh; display: flex; justify-content: space-between; align-items: end; gap: 32px; }
@@ -618,18 +618,47 @@ html.psy nav a, html.psy h1, html.psy h2 { animation: psy-txt .5s steps(2) infin
 @keyframes psy-toast { 0% { opacity: 0; translate: -50% 10px; } 15%, 75% { opacity: 1; translate: -50% 0; } 100% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { html.psy, html.psy #stage { animation: none; } }
 
-/* ═══ Finitions : une carte par finition, la pièce en 3D dans son cadre (un seul canvas fixe dessine tout) ═══ */
+/* ═══ Finitions (V3) : vraies photos. En tête « du brut au fini » (3 niveaux), puis une grande section par
+   finition : photo (ou curseur avant / après) d'un côté, texte de l'autre, en alternance ═══ */
 body.finitions main { padding: max(26vh, 190px) 32px 4vh; }
-.fin-head { display: flex; flex-direction: column; gap: 12px; margin-bottom: 7vh; max-width: 1100px; }
+.fin-head { display: flex; flex-direction: column; gap: 12px; margin-bottom: 9vh; max-width: 1100px; }
 .fin-head h1 { font-size: clamp(30px, 3.4vw, 52px); line-height: 1.05; }
-.fin-head p { max-width: 46ch; font-size: 14px; line-height: 1.55; color: var(--text); }
-.fin-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 56px 32px; }
-.fin { display: flex; flex-direction: column; gap: 10px; }
-.fin-view { aspect-ratio: 1; background: var(--ph); border-radius: 2px; cursor: grab; touch-action: pan-y; position: relative; z-index: 1; }
-.fin-view:active { cursor: grabbing; }
-.fin h2 { font-size: 22px; line-height: 1.1; margin-top: 6px; }
-.fin p:not(.label) { font-size: 14px; line-height: 1.55; color: var(--text); max-width: 42ch; }
-.fin-ex { font-size: 13px; color: var(--ink); margin-top: 2px; }
-.fin-canvas { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; }
-.fin-cta { margin-top: 12vh; }
-@media (max-width: 700px) { body.finitions main { padding: 150px 16px 4vh; } .fin-grid { gap: 48px; } }
+.fin-head p { max-width: 46ch; font-size: 15px; line-height: 1.55; color: var(--text); }
+.fin-ph { aspect-ratio: 4 / 3; background: var(--ph); color: var(--ph-ink); display: flex !important; align-items: center; justify-content: center;
+  font: 500 10px/1 "Helvetica Neue", Arial, sans-serif; letter-spacing: .16em; text-transform: uppercase; }
+.fin-levels { margin-bottom: 14vh; }
+.fin-levels ol { list-style: none; margin: 18px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; counter-reset: niv; }
+.fin-levels li { counter-increment: niv; }
+.fin-levels figure { margin: 0; }
+.fin-levels img, .fin-levels .fin-ph { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; }
+.fin-levels figcaption { display: flex; flex-direction: column; gap: 4px; padding-top: 12px; font-size: 13px; color: var(--text); }
+.fin-levels figcaption b { font-weight: 400; font-size: 18px; color: var(--ink); }
+.fin-levels figcaption b::before { content: counter(niv) " → "; color: var(--mute); }
+.fin-list { display: flex; flex-direction: column; gap: 14vh; }
+.fin { display: grid; grid-template-columns: 1.5fr 1fr; gap: 56px; align-items: center; scroll-margin-top: 120px; }
+.fin:nth-child(even) .fin-visuel { order: 2; }
+.fin-visuel img, .fin-visuel .fin-ph { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; }
+.fin-txt { display: flex; flex-direction: column; gap: 14px; max-width: 44ch; }
+.fin-txt h2 { font-size: clamp(28px, 2.6vw, 44px); line-height: 1.05; }
+.fin-acc { font-size: 17px; line-height: 1.5; color: var(--ink); }
+.fin-txt dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 18px; margin: 4px 0 0; font-size: 14px; line-height: 1.5; }
+.fin-txt dt { color: var(--mute); font: 500 10px/2 "Helvetica Neue", Arial, sans-serif; letter-spacing: .16em; text-transform: uppercase; }
+.fin-txt dd { margin: 0; color: var(--text); }
+.fin-ex { font-size: 14px; color: var(--ink); }
+/* curseur avant / après : la photo brute recouvre la finie jusqu'au curseur */
+.ba { position: relative; aspect-ratio: 4 / 3; overflow: hidden; --ba: 50%; }
+.ba img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ba .ba-avant { clip-path: inset(0 calc(100% - var(--ba)) 0 0); }
+.ba::after { content: ""; position: absolute; top: 0; bottom: 0; left: var(--ba); width: 2px; margin-left: -1px; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.15); pointer-events: none; }
+.ba input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; }
+.ba-l, .ba-r { position: absolute; bottom: 12px; padding: 5px 8px; background: rgba(0,0,0,.55); color: #fff; pointer-events: none;
+  font: 500 10px/1 "Helvetica Neue", Arial, sans-serif; letter-spacing: .14em; text-transform: uppercase; }
+.ba-l { left: 12px; } .ba-r { right: 12px; }
+.fin-cta { margin-top: 14vh; }
+@media (max-width: 800px) {
+  body.finitions main { padding: 150px 16px 4vh; }
+  .fin-levels ol { grid-template-columns: 1fr; gap: 28px; }
+  .fin { grid-template-columns: 1fr; gap: 20px; }
+  .fin:nth-child(even) .fin-visuel { order: 0; }
+  .fin-list { gap: 10vh; }
+}

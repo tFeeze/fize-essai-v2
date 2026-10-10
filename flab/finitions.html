@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Finitions — Fize</title>
-<link rel="stylesheet" href="site.css?v=b4bcfbd8">
+<link rel="stylesheet" href="site.css?v=528cad0a">
   <meta name="description" content="Brut d&#x27;impression, lissé, peint verni, résine transparente, aspect métal, multicolore : les finitions de l&#x27;atelier, en 3D.">
   <link rel="canonical" href="https://fize-lab.com/finitions.html">
   <meta property="og:type" content="website">
@@ -18,11 +18,9 @@
   <meta property="og:locale" content="fr_FR">
 <script>try{if(0)document.documentElement.classList.add('warp-in')}catch(e){}</script>
 </head>
-<!-- Finitions : ce que l'atelier sait faire après l'impression, chaque finition montrée en 3D sur une vraie pièce.
-     Contenu tiré de data/capacites.md et des skills finition-lissage, finition-transparente-resine, finition-metal.
-     Pas de galvanoplastie : capacité non installée (data/galvanoplastie.md). Aucun prix : renvoyé au devis.
-     Les pièces 3D viennent de models-v2.js (rendus.json) ; « matiere »/« couleur » remplacent celles du projet
-     quand la finition montrée n'est pas celle de la pièce livrée. -->
+<!-- Finitions (V3) : de vraies photos de pièces finies, pas de 3D. Contenu dans src/finitions.json,
+     sections générées au build (marqueurs FIN-NIVEAUX et FIN-LISTE). Photos : src/img/fin-SLUG.jpg
+     (+ fin-SLUG-avant.jpg pour le curseur avant/après). -->
 <body class="finitions">
   <a class="skip" href="#contenu">Aller au contenu</a>
   <div id="stage"><a class="home" href="index.html" aria-label="Accueil"><canvas id="scene"></canvas></a></div>
@@ -96,65 +94,15 @@
   <main id="contenu">
     <header class="fin-head">
       <h1>Finitions</h1>
-      <p>L'impression n'est que la moitié du travail. Ce qui fait qu'une pièce passe pour du verre, du métal ou un objet moulé, c'est la finition — faite à la main, à l'atelier. Faites tourner les pièces.</p>
+      <p>L'impression n'est que la moitié du travail. Ce qui fait qu'une pièce passe pour du verre, du métal ou un objet moulé, c'est la finition — faite à la main, à l'atelier.</p>
     </header>
 
-    <ol class="fin-grid">
-      <li class="fin" data-piece="kit-rose">
-        <div class="fin-view" aria-hidden="true"></div>
-        <p class="label">01 · FDM</p>
-        <h2>Brut d'impression</h2>
-        <p>Les couches restent visibles&nbsp;: c'est la signature de l'impression 3D, assumée. Le plus rapide et le plus économique, idéal pour un prototype ou une pièce technique.</p>
-        <a class="fin-ex" href="kit-rose.html">Exemple&nbsp;: Kit rose →</a>
-      </li>
-      <li class="fin" data-piece="scooter" data-matiere="resine" data-couleur="#a7a8a4">
-        <div class="fin-view" aria-hidden="true"></div>
-        <p class="label">02 · Lissage · +2 jours</p>
-        <h2>Lissé apprêté</h2>
-        <p>Mastic, ponçages successifs et apprêt, comme en carrosserie&nbsp;: une surface lisse et uniforme, sans aucune strie. La pièce est prête à peindre.</p>
-      </li>
-      <li class="fin" data-piece="bijoux" data-matiere="laque" data-couleur="#d4231b">
-        <div class="fin-view" aria-hidden="true"></div>
-        <p class="label">03 · Lissage + peinture · +3 jours</p>
-        <h2>Lissé peint verni</h2>
-        <p>Peinture et vernis sur une base lissée&nbsp;: un fini de pièce injectée, protégé, dans la teinte de votre choix.</p>
-      </li>
-      <li class="fin" data-piece="rpi-case">
-        <div class="fin-view" aria-hidden="true"></div>
-        <p class="label">04 · Résine</p>
-        <h2>Résine transparente</h2>
-        <p>Imprimée en résine claire, puis affinée, polie ou vernie&nbsp;: on voit à travers. Du satiné fin jusqu'à la clarté optique du poli miroir.</p>
-        <a class="fin-ex" href="rpi-case.html">Exemple&nbsp;: Boîtier Raspberry Pi →</a>
-      </li>
-      <li class="fin" data-piece="tabourets">
-        <div class="fin-view" aria-hidden="true"></div>
-        <p class="label">05 · Résine</p>
-        <h2>Résine détaillée</h2>
-        <p>La résine haute définition garde les plus petits détails, sur une surface mate et régulière&nbsp;: maquettes, miniatures, pièces fines.</p>
-        <a class="fin-ex" href="tabourets.html">Exemple&nbsp;: Tabourets 1:20 →</a>
-      </li>
-      <li class="fin" data-piece="micro">
-        <div class="fin-view" aria-hidden="true"></div>
-        <p class="label">06 · Peinture & lestage</p>
-        <h2>Aspect métal</h2>
-        <p>Graphite lustré, cires métalliques, chrome sur noir poli — et du lest pour la masse. Fonte, acier, bronze ou aluminium&nbsp;: la pièce se lit comme du métal, à l'œil comme en main.</p>
-        <a class="fin-ex" href="micro.html">Exemple&nbsp;: Micro serti →</a>
-      </li>
-      <li class="fin" data-piece="plaque-logo" data-cap="3.14">
-        <div class="fin-view" aria-hidden="true"></div>
-        <p class="label">07 · FDM multi-filaments</p>
-        <h2>Multicolore</h2>
-        <p>Plusieurs couleurs en une seule impression, sans peinture&nbsp;: logos, lettrages, signalétique, objets de marque.</p>
-        <a class="fin-ex" href="plaque-logo.html">Exemple&nbsp;: Plaque logo →</a>
-      </li>
-      <li class="fin" data-piece="justice">
-        <div class="fin-view" aria-hidden="true"></div>
-        <p class="label">08 · Peinture à la main</p>
-        <h2>Peinture décorative</h2>
-        <p>Patines, veines, vieillissement, effets de matière&nbsp;: la pièce prend un caractère qu'aucune impression ne donne seule.</p>
-        <a class="fin-ex" href="justice.html">Exemple&nbsp;: Justice →</a>
-      </li>
-    </ol>
+    <section class="fin-levels" aria-labelledby="niveaux">
+      <h2 id="niveaux" class="label">Du brut au fini</h2>
+      <ol><li><figure><div class="fin-ph">Photo à venir</div><figcaption><b>Brut</b><span>Couches visibles, signature de l&#x27;impression.</span></figcaption></figure></li><li><figure><div class="fin-ph">Photo à venir</div><figcaption><b>Lissé apprêté</b><span>Lisse et uniforme, prêt à peindre.</span></figcaption></figure></li><li><figure><div class="fin-ph">Photo à venir</div><figcaption><b>Peint verni</b><span>Fini de pièce injectée, protégé.</span></figcaption></figure></li></ol>
+    </section>
+
+    <div class="fin-list"><article class="fin" id="brut"><div class="fin-visuel"><div class="fin-ph">Photo à venir</div></div><div class="fin-txt"><p class="label">01 · FDM</p><h2>Brut d&#x27;impression</h2><p class="fin-acc">Les couches restent visibles : la signature de l&#x27;impression 3D, assumée.</p><dl><dt>Pour</dt><dd>Prototypes, pièces techniques, essais de forme.</dd><dt>Délai</dt><dd>Aucun délai en plus</dd></dl><a class="fin-ex" href="kit-rose.html">Voir le projet : Kit rose →</a></div></article><article class="fin" id="lisse-apprete"><div class="fin-visuel"><div class="fin-ph">Photo à venir</div></div><div class="fin-txt"><p class="label">02 · Lissage carrosserie</p><h2>Lissé apprêté</h2><p class="fin-acc">Mastic, ponçages successifs et apprêt : une surface lisse et uniforme, sans aucune strie.</p><dl><dt>Pour</dt><dd>Pièces à peindre soi-même, maquettes, présentations.</dd><dt>Délai</dt><dd>+ 2 jours (séchages)</dd></dl></div></article><article class="fin" id="lisse-peint"><div class="fin-visuel"><div class="fin-ph">Photo à venir</div></div><div class="fin-txt"><p class="label">03 · Lissage + peinture</p><h2>Lissé peint verni</h2><p class="fin-acc">Peinture et vernis sur une base lissée : un fini de pièce injectée, dans la teinte de votre choix.</p><dl><dt>Pour</dt><dd>Objets de marque, accessoires vus de près, PLV.</dd><dt>Délai</dt><dd>+ 3 jours (séchages)</dd></dl></div></article><article class="fin" id="resine-transparente"><div class="fin-visuel"><div class="fin-ph">Photo à venir</div></div><div class="fin-txt"><p class="label">04 · Résine</p><h2>Résine transparente</h2><p class="fin-acc">Imprimée en résine claire, puis affinée, polie ou vernie : du satiné fin jusqu&#x27;à la clarté optique.</p><dl><dt>Pour</dt><dd>Boîtiers, hublots, pièces qu&#x27;on regarde à travers.</dd><dt>Délai</dt><dd>Selon le niveau de poli</dd></dl><a class="fin-ex" href="rpi-case.html">Voir le projet : Boîtier Raspberry Pi →</a></div></article><article class="fin" id="resine-detaillee"><div class="fin-visuel"><div class="fin-ph">Photo à venir</div></div><div class="fin-txt"><p class="label">05 · Résine haute définition</p><h2>Résine détaillée</h2><p class="fin-acc">La résine garde les plus petits détails, sur une surface mate et régulière.</p><dl><dt>Pour</dt><dd>Maquettes, miniatures, bijoux, pièces fines.</dd><dt>Délai</dt><dd>Aucun délai en plus</dd></dl><a class="fin-ex" href="tabourets.html">Voir le projet : Tabourets 1:20 →</a></div></article><article class="fin" id="aspect-metal"><div class="fin-visuel"><div class="fin-ph">Photo à venir</div></div><div class="fin-txt"><p class="label">06 · Peinture et lestage</p><h2>Aspect métal</h2><p class="fin-acc">Graphite lustré, cires métalliques, chrome sur noir poli — et du lest pour la masse. La pièce se lit comme du métal, à l&#x27;œil comme en main.</p><dl><dt>Pour</dt><dd>Trophées, accessoires de scène, props, objets de marque.</dd><dt>Délai</dt><dd>Selon le rendu (le chrome demande le plus de préparation)</dd></dl><a class="fin-ex" href="micro.html">Voir le projet : Micro serti →</a></div></article><article class="fin" id="multicolore"><div class="fin-visuel"><div class="fin-ph">Photo à venir</div></div><div class="fin-txt"><p class="label">07 · FDM multi-filaments</p><h2>Multicolore</h2><p class="fin-acc">Plusieurs couleurs en une seule impression, sans peinture.</p><dl><dt>Pour</dt><dd>Logos, lettrages, signalétique, objets de marque.</dd><dt>Délai</dt><dd>Aucun délai en plus</dd></dl><a class="fin-ex" href="plaque-logo.html">Voir le projet : Plaque logo →</a></div></article><article class="fin" id="peinture-deco"><div class="fin-visuel"><div class="fin-ph">Photo à venir</div></div><div class="fin-txt"><p class="label">08 · Peinture à la main</p><h2>Peinture décorative</h2><p class="fin-acc">Patines, veines, vieillissement, effets de matière : un caractère qu&#x27;aucune impression ne donne seule.</p><dl><dt>Pour</dt><dd>Décors, accessoires de spectacle et de tournage.</dd><dt>Délai</dt><dd>Selon la pièce</dd></dl><a class="fin-ex" href="justice.html">Voir le projet : Justice →</a></div></article></div>
 
     <section class="fin-cta">
       <p class="lead">Un rendu en tête&nbsp;? <a href="contact.html">Décrivez-le nous →</a></p>
@@ -170,7 +118,13 @@
   </footer>
   </main>
 
-  <canvas class="fin-canvas" aria-hidden="true"></canvas>
+<script>
+  // curseur avant / après : on glisse pour découvrir la pièce brute sous la pièce finie
+  document.querySelectorAll('.ba input').forEach(r => {
+    const set = () => r.parentElement.style.setProperty('--ba', r.value + '%');
+    r.addEventListener('input', set); set();
+  });
+</script>
 <script>window.LOGO_CONFIG = { mode: 'fixed' };</script>
 <script type="importmap">
 { "imports": {
@@ -191,12 +145,10 @@
     // chargés en arrière-plan : la page (liste des projets…) s'affiche sans les attendre
     const need = [add('logo-data.js?v=486514b4')];
     if (C.orbit) need.push(add(C.models ? C.models + '?v=7b47a007' : 'models-home.js?v=8c2298e7'));
-    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=63924bfb', true); });
+    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=206b8fef', true); });
   }
 })();
 </script>
-<script src="models-v2.js?v=7b47a007"></script>
-<script type="module" src="finitions.js?v=53942665"></script>
 <script>
 // ── Transition vers un projet : le logo chrome se transforme ─────────────────────────────
 // Départ (n'importe quelle page) : le logo quitte sa place, pivote en 3D et grandit jusqu'à couvrir
