@@ -84,6 +84,7 @@ const box = new THREE.Box3().setFromObject(obj);
 const size = FLAT ? new THREE.Vector3(1, 1, 1) : box.getSize(new THREE.Vector3());
 const center = FLAT ? new THREE.Vector3() : box.getCenter(new THREE.Vector3());
 const s = 1 / Math.max(size.x, size.y);
+const LOGO_AR = size.y / size.x;                     // hauteur / largeur du logo
 document.documentElement.style.setProperty('--logo-ratio', (size.y / size.x).toFixed(3));   // V3 : hauteur / largeur du logo choisi
 
 // Logo en chrome : métal poli, face bombée optiquement pour que les reflets glissent quand il pivote,
@@ -140,6 +141,8 @@ if (FLAT) {
 // sans les emporter. Même éclairage que le logo, même cadrage que l'ouverture.
 // orbit: 'stage' → les pièces restent dans le cadre du logo (page Contact, où le cadre ne bouge pas)
 const IN_STAGE = CFG.orbit === 'stage';
+// ESSAI V3 : vignettes photos derrière les pièces de l'accueil (sélecteur « Photos » ; choix gardé dans le navigateur)
+let FOND_PHOTOS = false; try { FOND_PHOTOS = document.body.classList.contains('work') && localStorage.getItem('fize-fond') === 'photos'; } catch (e) {}
 // ESSAI « studio » (inspiration Wide Angle Studio) : pièces en couleur franche, matière laiteuse, contre-jour
 // qui fait briller les bords, forte exposition et grand angle. false → retour aux pièces grises.
 const STUDIO = false;     // 'gomme' (matière mate type Crocs) · 'contre-jour' (rendu photo du micro) · false
@@ -482,20 +485,26 @@ if (CFG.orbit && window.LOGO_MODELS) {
     const holder = new THREE.Group(); holder.add(mesh); orbit.add(holder);
     // ESSAI (V3, sélecteur « Photos » de l'accueil) : vignette photo du projet derrière la pièce, accrochée à
     // elle (elle lévite et suit la souris avec elle, sans tourner sur elle-même) ; grisée avec la pièce au repos
-    let fondPhotos = false; try { fondPhotos = localStorage.getItem('fize-fond') === 'photos'; } catch (e) {}
-    if (fondPhotos && document.body.classList.contains('work') && prj?.cover && !flatPic) {
-      const card = new THREE.Group();
+    let card = null;
+    if (FOND_PHOTOS && prj?.cover && !flatPic) {
+      card = new THREE.Group();
       const tex = new THREE.TextureLoader().load('img/' + prj.cover.replace(/\.(jpe?g|png)$/i, '-800.webp'), t => {
         const r = t.image.width / t.image.height, w = 1.9, h = w / r;   // vignette de 1,9 de large (la pièce mesure ~2)
-        photo.scale.set(w, h, 1); cadre.scale.set(w + 0.08, h + 0.08, 1);
+        photo.scale.set(w, h, 1);
       });
       tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
       const pm = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false });
       if (m.matiere) greyable(pm, grey);
+      // lignes de balayage (écran cathodique) au repos ; elles s'effacent avec le gris au survol
+      const prevS = pm.onBeforeCompile;
+      pm.onBeforeCompile = (sh, r) => { prevS?.call(pm, sh, r);
+        sh.fragmentShader = sh.fragmentShader.replace('#include <dithering_fragment>', `#include <dithering_fragment>
+          float scan = 0.5 + 0.5 * sin(gl_FragCoord.y * 1.5708);                  // une ligne sur 4 pixels
+          gl_FragColor.rgb *= mix(1.0, 0.68 + 0.32 * scan, uGrey);`); };
+      const kS = pm.customProgramCacheKey.bind(pm); pm.customProgramCacheKey = () => kS() + ':scan';
       const photo = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), pm);
-      const cadre = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false }));
-      cadre.position.z = -0.002; photo.scale.set(1.9, 1.4, 1); cadre.scale.set(1.98, 1.48, 1);
-      card.add(cadre, photo);
+      photo.scale.set(1.9, 1.4, 1);
+      card.add(photo);
       card.position.set(i % 2 ? -0.45 : 0.45, 0.3, -1.25);       // derrière la pièce, un peu décalée
       card.rotation.z = (i % 2 ? 1 : -1) * 0.07;
       holder.add(card);
@@ -506,7 +515,7 @@ if (CFG.orbit && window.LOGO_MODELS) {
       new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false }));
     holder.add(hit);
     mesh.rotation.set(0, flatPic ? 0 : Math.random() * 6, 0);   // debout, dans son bon sens : seul le cap de départ change
-    pieces.push({ pu, dots, build: 0, holder, mesh, hit, slug: m.slug, grey, tilt: m.incline || 0, phase: i * 1.7, spin: (i % 2 ? -1 : 1) * (0.25 + 0.1 * i), grow: 1, lx: 0, ly: 0, mat, flat: flatPic, finish: !!m.matiere, rest: flatPic ? new THREE.Color('#ffffff') : STUDIO === 'gomme' ? gum(COLORS[i % COLORS.length]) : STUDIO ? bright(COLORS[i % COLORS.length]) : NEUTRAL,
+    pieces.push({ pu, dots, build: 0, holder, mesh, hit, slug: m.slug, grey, card, tilt: m.incline || 0, phase: i * 1.7, spin: (i % 2 ? -1 : 1) * (0.25 + 0.1 * i), grow: 1, lx: 0, ly: 0, mat, flat: flatPic, finish: !!m.matiere, rest: flatPic ? new THREE.Color('#ffffff') : STUDIO === 'gomme' ? gum(COLORS[i % COLORS.length]) : STUDIO ? bright(COLORS[i % COLORS.length]) : NEUTRAL,
       tint: (STUDIO === 'gomme' ? gum : STUDIO ? bright : muted)(COLORS[i % COLORS.length]),
       // rayon réel de la pièce (sphère qui la contient quelle que soit sa rotation), pour la garder à l'écran
       radius: geo.boundingSphere.radius + geo.boundingSphere.center.length() });
@@ -751,7 +760,9 @@ function tick() {
       const persp = (orbitCam.position.z - z) / orbitCam.position.z;
       const pr = projectOf(p.slug);
       const s = size * (star ? 1.5 : 1) * (pr?.orbit_scale || 1) * (CFG.orbitScale || 1);   // orbit_scale : projects.json
-      const reach = s * p.radius * Math.max(p.grow, 1.3);        // rayon à l'écran, y compris agrandie au survol
+      const eff = FOND_PHOTOS && p.card ? 1.5 : p.radius;              // avec sa vignette, la pièce prend plus de place
+      const reach = s * eff * Math.max(p.grow, FOND_PHOTOS ? 1.12 : 1.3);   // rayon à l'écran, y compris agrandie au survol
+      p.reachS = s * eff * p.grow;
       const hw = w / 2 * persp, hh = h / 2 * persp;               // demi-largeur / demi-hauteur visibles à cette profondeur
       // position voulue (emplacement + flottement + suivi de la souris)…
       let x = sx * hw - p.lx * z * 0.6 + p.lx * 0.25;
@@ -765,7 +776,7 @@ function tick() {
       y = Math.min(top, Math.max(-bottom, y));
       p.holder.position.set(x, y + fly, z);                        // l'envol au scroll, lui, peut sortir par le haut
       p.holder.rotation.set(p.ly * 0.5, p.lx * 0.5, 0);
-      p.grow += ((p === hovered ? 1.3 : 1) - p.grow) * (1 - Math.exp(-dt * 10));
+      p.grow += ((p === hovered ? (FOND_PHOTOS ? 1.12 : 1.3) : 1) - p.grow) * (1 - Math.exp(-dt * 10));
       p.grey.value += ((p === hovered ? 0 : 1) - p.grey.value) * (1 - Math.exp(-dt * 7));   // V3 : la couleur revient au survol
       // couleur du projet : la première vraiment colorée de sa photo (argent, gris, blanc écartés) ;
       // sinon on garde la couleur de filament de la pièce
@@ -793,6 +804,43 @@ function tick() {
       p.mesh.rotation.x = p.tilt + Math.sin(t * 0.7 + p.phase) * 0.08 + gone * gone * 1.2 * Math.sign(p.spin);
       p.mesh.rotation.z = Math.sin(t * 0.55 + p.phase * 1.3) * 0.1 + gone * gone * 0.8 * p.spin;
     });
+    // V3 : séparation — aucune pièce (vignette comprise) ne chevauche une autre ni le logo. On calcule à
+    // l'écran (plan de la caméra), on écarte les paires qui se touchent, on sort celles qui mordent sur le logo,
+    // puis le décalage est appliqué en douceur (pas de saccade quand une pièce grossit au survol)
+    if (!IN_STAGE && gone < 0.05) {
+      const camz = orbitCam.position.z, vis = pieces.filter((p, i) => p.holder.visible && i < slots.length);
+      const F = p => camz / (camz - p.holder.position.z);
+      const R = p => (p.reachS || 0) * F(p) * 1.04;
+      const fr = CFG.frame || 0.42, lw = fr * Math.min(innerWidth, innerHeight) / innerHeight * h;   // largeur du logo (plan z = 0)
+      const LHW = lw / 2, LHH = lw * LOGO_AR / 2 + h * 0.05;                              // + la ligne d'accroche
+      vis.forEach(p => { p.px = 0; p.py = 0; });
+      for (let it = 0; it < 4; it++) {
+        for (let a = 0; a < vis.length; a++) for (let b = a + 1; b < vis.length; b++) {
+          const A = vis[a], B = vis[b];
+          const dx = (B.holder.position.x * F(B) + B.px) - (A.holder.position.x * F(A) + A.px);
+          const dy = (B.holder.position.y * F(B) + B.py) - (A.holder.position.y * F(A) + A.py);
+          const d = Math.hypot(dx, dy) || 1e-3, m = R(A) + R(B) - d;
+          if (m > 0) { const ux = dx / d, uy = dy / d; A.px -= ux * m / 2; A.py -= uy * m / 2; B.px += ux * m / 2; B.py += uy * m / 2; }
+        }
+        vis.forEach(p => {
+          const x = p.holder.position.x * F(p) + p.px, y = p.holder.position.y * F(p) + p.py, r = R(p);
+          const lx = LHW + r, ly = LHH + r;
+          if (Math.abs(x) < lx && Math.abs(y) < ly) {
+            const ex = lx - Math.abs(x), ey = ly - Math.abs(y);
+            if (ex / lx < ey / ly && !tall) p.px += Math.sign(x || 1) * ex; else p.py += Math.sign(y || 1) * ey;   // téléphone : au-dessus / en dessous
+          }
+          // et toujours dans l'écran
+          const mx = w / 2 * 0.97 - r, my = h / 2 * (tall ? 0.8 : 0.97) - r;
+          const nx = Math.max(-mx, Math.min(mx, p.holder.position.x * F(p) + p.px)), ny = Math.max(-my, Math.min(my, p.holder.position.y * F(p) + p.py));
+          p.px = nx - p.holder.position.x * F(p); p.py = ny - p.holder.position.y * F(p);
+        });
+      }
+      const k = 1 - Math.exp(-dt * 3);
+      vis.forEach(p => {
+        p.ox = (p.ox || 0) + (p.px / F(p) - (p.ox || 0)) * k; p.oy = (p.oy || 0) + (p.py / F(p) - (p.oy || 0)) * k;
+        p.holder.position.x += p.ox; p.holder.position.y += p.oy;
+      });
+    }
 
   }
   if (warp.mode) {                                  // transition en cours
