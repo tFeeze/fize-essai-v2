@@ -480,6 +480,26 @@ if (CFG.orbit && window.LOGO_MODELS) {
       mesh.renderOrder = 1;
     }
     const holder = new THREE.Group(); holder.add(mesh); orbit.add(holder);
+    // ESSAI (V3, sélecteur « Photos » de l'accueil) : vignette photo du projet derrière la pièce, accrochée à
+    // elle (elle lévite et suit la souris avec elle, sans tourner sur elle-même) ; grisée avec la pièce au repos
+    let fondPhotos = false; try { fondPhotos = localStorage.getItem('fize-fond') === 'photos'; } catch (e) {}
+    if (fondPhotos && document.body.classList.contains('work') && prj?.cover && !flatPic) {
+      const card = new THREE.Group();
+      const tex = new THREE.TextureLoader().load('img/' + prj.cover.replace(/\.(jpe?g|png)$/i, '-800.webp'), t => {
+        const r = t.image.width / t.image.height, w = 1.9, h = w / r;   // vignette de 1,9 de large (la pièce mesure ~2)
+        photo.scale.set(w, h, 1); cadre.scale.set(w + 0.08, h + 0.08, 1);
+      });
+      tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+      const pm = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false });
+      if (m.matiere) greyable(pm, grey);
+      const photo = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), pm);
+      const cadre = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false }));
+      cadre.position.z = -0.002; photo.scale.set(1.9, 1.4, 1); cadre.scale.set(1.98, 1.48, 1);
+      card.add(cadre, photo);
+      card.position.set(i % 2 ? -0.45 : 0.45, 0.3, -1.25);       // derrière la pièce, un peu décalée
+      card.rotation.z = (i % 2 ? 1 : -1) * 0.07;
+      holder.add(card);
+    }
     // zone de survol invisible, une sphère un peu plus large que la pièce : pas de « trou » où le survol décroche
     geo.computeBoundingSphere();
     const hit = new THREE.Mesh(new THREE.SphereGeometry(geo.boundingSphere.radius * 1.05, 16, 12),

@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fize — Atelier d'impression 3D, Paris</title>
-<link rel="stylesheet" href="site.css?v=71f1fe80">
+<link rel="stylesheet" href="site.css?v=04e71330">
   <meta name="description" content="Accessoires et décors, objets de marque, prototypes et pièces techniques : conception, impression 3D et finition à la main, à Paris 18e.">
   <link rel="canonical" href="https://fize-lab.com/">
   <meta property="og:type" content="website">
@@ -92,7 +92,7 @@
     <a href="faq.html">FAQ</a>
   </nav>
 
-  <div class="fond-switch" role="group" aria-label="Fond de l'accueil (essai)">FOND <button data-fond="blanc">BLANC</button> / <button data-fond="photos">PHOTOS</button></div>
+  <div class="fond-switch" role="group" aria-label="Photos des projets derrière les pièces (essai)">PHOTOS <button data-fond="blanc">NON</button> / <button data-fond="photos">OUI</button></div>
   <div class="hero" id="top"><p class="baseline">Atelier d'impression 3D — Paris 18e</p><span class="cue">Work ↓</span></div>
 
   <header class="work-head">
@@ -152,22 +152,14 @@
   const num = i => String(i + 1).padStart(2, '0');
   window.PROJECTS = PROJECTS;
 
-  // ── ESSAI (V3) : fond de l'accueil en photos de projets, les pièces 3D flottent par-dessus.
-  // Sélecteur « Fond : blanc / photos » en haut à droite ; le choix est gardé dans le navigateur.
+  // ── ESSAI (V3) : une vignette photo du projet derrière chaque pièce 3D, qui lévite avec elle (logo3d.js).
+  // Sélecteur « Photos : non / oui » en haut à droite ; le choix est gardé dans le navigateur (« fize-fond »).
   (() => {
     let fond = 'blanc'; try { fond = localStorage.getItem('fize-fond') || 'blanc'; } catch (e) {}
     document.querySelectorAll('.fond-switch button').forEach(b => {
       b.classList.toggle('on', b.dataset.fond === fond);
       b.addEventListener('click', () => { try { localStorage.setItem('fize-fond', b.dataset.fond); } catch (e) {} location.reload(); });
     });
-    if (fond !== 'photos') return;
-    const covers = PROJECTS.filter(p => p.cover).map(p => 'img/' + p.cover.replace(/\.(jpe?g|png)$/i, '.webp'));
-    if (!covers.length) return;
-    const layer = document.createElement('div'); layer.className = 'hero-photos'; layer.setAttribute('aria-hidden', 'true');
-    const imgs = covers.map((src, i) => { const im = new Image(); im.src = src; im.alt = ''; im.decoding = 'async'; if (i) im.loading = 'lazy'; layer.appendChild(im); return im; });
-    document.getElementById('top').prepend(layer); document.body.classList.add('fond-photos');
-    let k = 0; imgs[0].classList.add('on');
-    setInterval(() => { if (document.hidden) return; imgs[k].classList.remove('on'); k = (k + 1) % imgs.length; imgs[k].classList.add('on'); }, 5000);
   })();
 
   // couleurs du projet (tirées de sa photo au build) → dégradé du titre au survol, clair et sombre
@@ -259,7 +251,7 @@
     // chargés en arrière-plan : la page (liste des projets…) s'affiche sans les attendre
     const need = [add('logo-data.js?v=486514b4')];
     if (C.orbit) need.push(add(C.models ? C.models + '?v=7b47a007' : 'models-home.js?v=8c2298e7'));
-    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=5708893b', true); });
+    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=813e279d', true); });
   }
 })();
 </script>

@@ -663,19 +663,9 @@ body.finitions main { padding: max(26vh, 190px) 32px 4vh; }
   .fin-list { gap: 10vh; }
 }
 
-/* ═══ ESSAI (V3) : fond photos sur l'accueil (sélecteur « Fond » en haut à droite) ═══ */
+/* ═══ ESSAI (V3) : vignettes photos derrière les pièces de l'accueil (sélecteur « Photos » en haut à droite) ═══ */
 .fond-switch { position: fixed; right: 32px; top: 30px; z-index: 30; font: 500 11px/1 Menlo, monospace; letter-spacing: .12em; color: var(--mute); }
 .fond-switch button { all: unset; cursor: pointer; padding: 2px 3px; color: var(--mute); }
 .fond-switch button.on { color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
 .fond-switch button:focus-visible { outline: 1px solid var(--ink); }
-body.fond-photos .fond-switch { background: rgba(255,255,255,.85); padding: 6px 8px; }
 @media (max-width: 800px) { .fond-switch { top: 64px; right: 16px; } }
-.hero-photos { position: absolute; inset: 0; overflow: hidden; z-index: 0; background: #111; }
-.hero-photos img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transform: scale(1.02);
-  transition: opacity 1.6s ease, transform 7s linear; }
-.hero-photos img.on { opacity: 1; transform: scale(1.1); }
-/* halo blanc derrière le logo et la ligne d'accroche : le chrome foncé reste lisible sur la photo */
-.hero-photos::after { content: ""; position: absolute; inset: 0;
-  background: radial-gradient(ellipse 34% 30% at 50% 50%, rgba(255,255,255,.82), rgba(255,255,255,.35) 60%, rgba(255,255,255,0) 100%); }
-body.fond-photos .cue { color: #fff; z-index: 1; text-shadow: 0 1px 6px rgba(0,0,0,.5); }
-@media (prefers-reduced-motion: reduce) { .hero-photos img, .hero-photos img.on { transform: none; transition: opacity .3s; } }
