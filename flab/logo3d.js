@@ -27,14 +27,17 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 
 const scene = new THREE.Scene();
 const pmrem = new THREE.PMREMGenerator(renderer);
-// Studio : bandes lumineuses sur fond sombre → reflets contrastés pour le chrome et le vernis
-function studio() {
+// Studio : bandes lumineuses sur fond sombre → reflets contrastés pour le chrome et le vernis.
+// clair = true (page sur fond noir, ex. Contact) : studio clair → chrome argenté, lisible sur le noir
+function studio(clair = false) {
   const env = new THREE.Scene();
   const c = document.createElement('canvas'); c.width = 2048; c.height = 1024;
   const g = c.getContext('2d');
   const grad = g.createLinearGradient(0, 0, 0, 1024);
-  grad.addColorStop(0, '#9a9a9a'); grad.addColorStop(0.45, '#444');
-  grad.addColorStop(0.52, '#080808'); grad.addColorStop(0.7, '#2a2a2a'); grad.addColorStop(1, '#777');
+  if (clair) { grad.addColorStop(0, '#ffffff'); grad.addColorStop(0.45, '#c9c9c9');
+    grad.addColorStop(0.52, '#5a5a5a'); grad.addColorStop(0.7, '#b8b8b8'); grad.addColorStop(1, '#f2f2f2'); }
+  else { grad.addColorStop(0, '#9a9a9a'); grad.addColorStop(0.45, '#444');
+    grad.addColorStop(0.52, '#080808'); grad.addColorStop(0.7, '#2a2a2a'); grad.addColorStop(1, '#777'); }
   g.fillStyle = grad; g.fillRect(0, 0, 2048, 1024);
   g.save(); g.translate(1024, 512); g.rotate(-0.5);
   for (let x = -1600; x < 1600; x += 320) {
@@ -49,7 +52,9 @@ function studio() {
   env.add(new THREE.Mesh(new THREE.SphereGeometry(10, 64, 32), new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide })));
   return env;
 }
-scene.environment = pmrem.fromScene(studio(), 0.02).texture;
+// V3 : page à fond sombre (Contact) → logo en chrome clair
+const PAGE_SOMBRE = (() => { const c = getComputedStyle(document.body).backgroundColor.match(/\d+/g); return !!c && +c[0] + +c[1] + +c[2] < 150; })();
+scene.environment = pmrem.fromScene(studio(PAGE_SOMBRE), 0.02).texture;
 
 const BASE_FOV = 30;
 const camera = new THREE.PerspectiveCamera(BASE_FOV, 1, 0.01, 100);   // plan proche très court : la caméra traverse l'étoile sans couper le logo

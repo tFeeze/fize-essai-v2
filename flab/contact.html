@@ -149,7 +149,7 @@
   </footer>
 
 <script>
-  window.LOGO_CONFIG = { mode: 'fixed', frame: 0.38 };
+  window.LOGO_CONFIG = { mode: 'fixed', frame: 0.72 };   // V3 : logo F-LAB, large → plus de place
 
   // ── Où partent les demandes ───────────────────────────────────────────────────────
   // En ligne sur Netlify : envoi à Netlify Forms (POST sur « / »), qui transmet la demande par e-mail.
@@ -264,7 +264,7 @@
     // chargés en arrière-plan : la page (liste des projets…) s'affiche sans les attendre
     const need = [add('logo-data.js?v=486514b4')];
     if (C.orbit) need.push(add(C.models ? C.models + '?v=7b47a007' : 'models-home.js?v=8c2298e7'));
-    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=206b8fef', true); });
+    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=5708893b', true); });
   }
 })();
 </script>
