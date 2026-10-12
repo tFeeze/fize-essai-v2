@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fize — Atelier d'impression 3D, Paris</title>
-<link rel="stylesheet" href="site.css?v=b6349626">
+<link rel="stylesheet" href="site.css?v=c74632ab">
   <meta name="description" content="Accessoires et décors, objets de marque, prototypes et pièces techniques : conception, impression 3D et finition à la main, à Paris 18e.">
   <link rel="canonical" href="https://fize-lab.com/">
   <meta property="og:type" content="website">
@@ -192,7 +192,7 @@
     const el = document.createElement('img');
     el.className = 'flyer'; el.src = 'img/' + pic; el.alt = '';
     // taille et position aussi en ligne : même avec une feuille de style périmée, jamais une photo géante
-    Object.assign(el.style, { position: 'absolute', top: '50%', left: '0px', width: 'clamp(170px, 17vw, 300px)', zIndex: 0 });
+    Object.assign(el.style, { position: 'absolute', top: '50%', left: '0px', width: 'clamp(210px, 21vw, 380px)', zIndex: 0 });
     li.appendChild(el);
     // la ligne survolée passe devant les autres : sa photo couvre les projets voisins, mais reste sous son propre titre
     li.style.zIndex = ++zTop;

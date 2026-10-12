@@ -137,7 +137,7 @@ body.scrolled .to-top { display: block; }
 .rows { list-style: none; border-top: 1px solid var(--ink); margin: 0 32px 20vh; }
 .rows li { border-bottom: 1px solid var(--ink); position: relative; }
 .flyer {                                               /* petite photo qui glisse le long de la ligne du titre */
-  position: absolute; z-index: 0; top: 50%; left: 0; width: clamp(170px, 17vw, 300px); aspect-ratio: 4 / 3;
+  position: absolute; z-index: 0; top: 50%; left: 0; width: clamp(210px, 21vw, 380px); aspect-ratio: 4 / 3;
   object-fit: cover; pointer-events: none; transform: translate(-30%, -50%) rotate(var(--rot, 0deg));
   box-shadow: 0 12px 30px rgba(0,0,0,.25); will-change: translate, opacity;
 }
