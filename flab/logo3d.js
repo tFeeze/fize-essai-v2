@@ -880,6 +880,12 @@ function tick() {
     }
 
   }
+  // V3 : les vignettes se tournent légèrement vers le logo (au centre) : à droite elles regardent vers la
+  // gauche, en haut vers le bas… ; inclinaison douce, pour garder la photo lisible
+  if (FOND_PHOTOS) pieces.forEach(p => { if (!p.card) return;
+    const ry = -0.38 * Math.max(-1, Math.min(1, p.holder.position.x / (orbitCam.position.z * 0.9)));
+    const rx = 0.3 * Math.max(-1, Math.min(1, p.holder.position.y / (orbitCam.position.z * 0.6)));
+    p.card.rotation.y += (ry - p.card.rotation.y) * 0.1; p.card.rotation.x += (rx - p.card.rotation.x) * 0.1; });
   if (labelPiece) { if (labelPiece !== hovered || orbitShown < 0.6) cardFor(null); else placeLabel(); }
   if (warp.mode) {                                  // transition en cours
     if (warp.mode !== 'hold') warp.k = Math.min(1, (performance.now() - warp.t0) / warp.dur);
