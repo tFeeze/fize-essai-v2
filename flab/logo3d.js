@@ -550,8 +550,8 @@ if (CFG.orbit && window.LOGO_MODELS) {
             for (int o = 0; o < 4; o++) { n += a * VN(q + vec2(t * 0.7, -t * 0.5)); q *= 2.03; a *= 0.5; }
             float dr = min(min(vMapUv.x, 1.0 - vMapUv.x), min(vMapUv.y, 1.0 - vMapUv.y));  // distance au bord (rectangle)
             float de = 0.5 * (1.0 - length((vMapUv - 0.5) * 2.0) * 0.82);                  // … et à une ellipse
-            float d = max(0.0, min(dr, mix(dr, de, 0.85)));                                 // silhouette arrondie, organique
-            float edge = d * (1.0 + 0.05 * hov) - 0.42 * (n - 0.38) + 0.008 * hov;   // au survol : la photo s'ouvre un peu
+            float d = max(0.0, min(dr, mix(dr, de, 0.85 - 0.5 * hov)));                     // silhouette arrondie ; un peu plus droite au survol
+            float edge = d * (1.0 + 0.05 * hov) - 0.42 * (1.0 - 0.55 * hov) * (n - 0.38) + 0.008 * hov;   // au survol : s'ouvre un peu, bord moins irrégulier
             diffuseColor.a *= smoothstep(0.03, 0.2, edge) * smoothstep(0.0, 0.07, dr);  // toujours nul au bord du plan
           }
           #include <opaque_fragment>`);
