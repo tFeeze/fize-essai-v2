@@ -541,9 +541,9 @@ function pick(cx, cy, target) {
 // et « Voir le projet » — se déroule, collée sous la vignette, et la suit pendant qu'elle lévite
 const cardLabel = document.createElement('a'); cardLabel.className = 'card-label'; document.body.appendChild(cardLabel);
 cardLabel.addEventListener('click', e => { e.preventDefault(); (window.warpTo || (u => { location.href = u; }))(cardLabel.getAttribute('href')); });
-let labelPiece = null;
+let labelPiece = null, labelW = 0, labelH = 0, labelOver = false;   // taille de l'étiquette (mesurée une fois), survolée ?
 function cardFor(pr, p) {
-  if (!pr || !p) { cardLabel.classList.remove('on'); labelPiece = null; return; }
+  if (!pr || !p) { cardLabel.classList.remove('on', 'over'); labelPiece = null; labelOver = false; return; }
   if (labelPiece === p) return;
   labelPiece = p;
   cardLabel.href = pr.slug + '.html';
@@ -552,6 +552,8 @@ function cardFor(pr, p) {
   const cl = pr.client_logo ? `<img class="cl" src="img/${pr.client_logo}" alt="${pr.client_nom || ''}" onerror="this.remove()">` : '';
   cardLabel.innerHTML = `<div class="cl-row"><b>${pr.title}</b>${cl}</div><span>Voir le projet →</span>`;
   cardLabel.classList.remove('on'); void cardLabel.offsetWidth; cardLabel.classList.add('on');   // relance l'animation
+  labelW = cardLabel.offsetWidth; labelH = cardLabel.offsetHeight;   // taille hors transformations
+  labelOver = false; cardLabel.classList.remove('over');
 }
 const _lab = new THREE.Vector3();
 const souris = { x: -1, y: -1 };                     // dernière position de la souris (étiquette survolée ?)
@@ -567,9 +569,14 @@ function placeLabel() {
   }
   const rot = -(labelPiece.card.rotation.z + labelPiece.holder.rotation.z) * 180 / Math.PI;
   cardLabel.style.transform = `translate(${((cx + 0.5) * innerWidth).toFixed(1)}px, ${((0.5 - cy) * innerHeight).toFixed(1)}px) rotate(${rot.toFixed(2)}deg)`;
-  // la souris précisément sur l'étiquette (elle lévite : on teste à chaque image) → elle grossit un peu
-  const lr = cardLabel.getBoundingClientRect();
-  cardLabel.classList.toggle('over', souris.x >= lr.left && souris.x <= lr.right && souris.y >= lr.top && souris.y <= lr.bottom);
+  // la souris précisément sur l'étiquette (elle lévite : on teste à chaque image) → elle grossit un peu.
+  // Calcul sans relire la page (pas de recalcul de mise en page à chaque image) : on ramène la souris dans le
+  // repère de l'étiquette (coin haut gauche, inclinaison) ; une fois survolée, on teste sa taille agrandie
+  // (sinon, sur le bord, elle alternerait grande / petite à chaque image)
+  const tx = (cx + 0.5) * innerWidth, ty = (0.5 - cy) * innerHeight, a = -rot * Math.PI / 180;
+  const dx = souris.x - tx, dy = souris.y - ty, lx = dx * Math.cos(a) - dy * Math.sin(a), ly = dx * Math.sin(a) + dy * Math.cos(a);
+  const k = labelOver ? 1.08 : 1, over = lx >= 0 && ly >= 0 && lx <= labelW * k && ly <= labelH * k;
+  if (over !== labelOver) { labelOver = over; cardLabel.classList.toggle('over', over); }
 }
 function showTip(pr, place) {
   if (FOND_PHOTOS) {
