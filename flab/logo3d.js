@@ -499,19 +499,25 @@ if (CFG.orbit && window.LOGO_MODELS) {
       });
       tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
       const pm = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false, transparent: true, depthWrite: false });
-      // bords « en nuage » : la photo se fond dans la page par un bord irrégulier (bruit), différent pour chaque vignette
+      // bords « en nuage » : la photo se fond dans la page par un bord très irrégulier (bruit fractal déformé),
+      // différent pour chaque vignette ; il dérive lentement, et bouillonne au survol (la photo s'ouvre un peu)
       const graine = (i * 7.31) % 10;
       pm.onBeforeCompile = sh => {
-        sh.fragmentShader = sh.fragmentShader.replace('#include <opaque_fragment>', `
+        sh.uniforms.uTime = U.uTime;
+        sh.fragmentShader = 'uniform float uTime;\n' + sh.fragmentShader.replace('#include <opaque_fragment>', `
           {
-            vec2 q = vMapUv * 3.5 + ${graine.toFixed(2)};
-            vec2 i0 = floor(q), f = fract(q); f = f * f * (3.0 - 2.0 * f);
             #define H2(p) fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453)
-            float n = mix(mix(H2(i0), H2(i0 + vec2(1, 0)), f.x), mix(H2(i0 + vec2(0, 1)), H2(i0 + vec2(1, 1)), f.x), f.y);
-            vec2 q2 = q * 2.3; vec2 j0 = floor(q2), g = fract(q2); g = g * g * (3.0 - 2.0 * g);
-            n = n * 0.65 + 0.35 * mix(mix(H2(j0), H2(j0 + vec2(1, 0)), g.x), mix(H2(j0 + vec2(0, 1)), H2(j0 + vec2(1, 1)), g.x), g.y);
+            #define VN(p) mix(mix(H2(floor(p)), H2(floor(p) + vec2(1, 0)), smoothstep(0., 1., fract(p).x)), mix(H2(floor(p) + vec2(0, 1)), H2(floor(p) + vec2(1, 1)), smoothstep(0., 1., fract(p).x)), smoothstep(0., 1., fract(p).y))
+            float hov = 1.0 - uGrey;                                   // 0 au repos, 1 au survol
+            float t = uTime * (0.12 + 0.55 * hov);
+            vec2 q = vMapUv * 1.8 + ${graine.toFixed(2)};
+            vec2 w = vec2(VN(q + vec2(t, 0.0)), VN(q + vec2(5.2, 1.3 - t))) - 0.5;   // déformation : volutes
+            q += w * 1.6;
+            float n = 0.0, a = 0.5;
+            for (int o = 0; o < 4; o++) { n += a * VN(q + vec2(t * 0.7, -t * 0.5)); q *= 2.03; a *= 0.5; }
             float d = min(min(vMapUv.x, 1.0 - vMapUv.x), min(vMapUv.y, 1.0 - vMapUv.y));   // distance au bord
-            diffuseColor.a *= smoothstep(0.0, 0.16 + 0.12 * n, d - 0.05 * n);
+            float edge = d * (1.0 + 0.3 * hov) - 0.42 * (n - 0.38) + 0.05 * hov;
+            diffuseColor.a *= smoothstep(0.02, 0.16, edge);
           }
           #include <opaque_fragment>`);
       };
