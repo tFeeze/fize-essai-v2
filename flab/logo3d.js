@@ -542,7 +542,7 @@ if (CFG.orbit && window.LOGO_MODELS) {
             #define H2(p) fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453)
             #define VN(p) mix(mix(H2(floor(p)), H2(floor(p) + vec2(1, 0)), smoothstep(0., 1., fract(p).x)), mix(H2(floor(p) + vec2(0, 1)), H2(floor(p) + vec2(1, 1)), smoothstep(0., 1., fract(p).x)), smoothstep(0., 1., fract(p).y))
             float hov = 1.0 - uGrey;                                   // 0 au repos, 1 au survol
-            float t = uTime * 0.06;                                    // dérive très lente, identique au survol
+            float t = uTime * (0.06 + 0.05 * hov);                     // dérive très lente ; un peu plus vive au survol
             vec2 q = vMapUv * 1.8 + ${graine.toFixed(2)};
             vec2 w = vec2(VN(q + vec2(t, 0.0)), VN(q + vec2(5.2, 1.3 - t))) - 0.5;   // déformation : volutes
             q += w * 1.6;
@@ -551,7 +551,7 @@ if (CFG.orbit && window.LOGO_MODELS) {
             float dr = min(min(vMapUv.x, 1.0 - vMapUv.x), min(vMapUv.y, 1.0 - vMapUv.y));  // distance au bord (rectangle)
             float de = 0.5 * (1.0 - length((vMapUv - 0.5) * 2.0) * 0.82);                  // … et à une ellipse
             float d = max(0.0, min(dr, mix(dr, de, 0.85)));                                 // silhouette arrondie, organique
-            float edge = d * (1.0 + 0.02 * hov) - 0.42 * (n - 0.38);   // au survol : la photo s'ouvre à peine
+            float edge = d * (1.0 + 0.05 * hov) - 0.42 * (n - 0.38) + 0.008 * hov;   // au survol : la photo s'ouvre un peu
             diffuseColor.a *= smoothstep(0.03, 0.2, edge) * smoothstep(0.0, 0.07, dr);  // toujours nul au bord du plan
           }
           #include <opaque_fragment>`);
