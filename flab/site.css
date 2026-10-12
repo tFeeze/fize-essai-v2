@@ -123,10 +123,10 @@ body.work #stage {                                   /* plein écran au départ 
 .cue { transition: opacity .3s; }
 body.moved .cue { opacity: 0; }
 /* ce qu'on fait, dit dès l'arrivée : une ligne sous le logo, qui s'efface quand on descend */
-.baseline { position: absolute; left: 50%; top: calc(50% + min(22vh, 22vw) * var(--logo-ratio, .39) + 30px); transform: translateX(-50%); margin: 0; white-space: nowrap;   /* V3 : en VG5000, la typo de la marque */
+.baseline { position: absolute; left: 50%; top: calc(50% + min(100vh, 100vw) * var(--hero-frame, .44) * var(--logo-ratio, .39) / 2 + 24px); transform: translateX(-50%); margin: 0; white-space: nowrap;   /* V3 : en VG5000, la typo de la marque */
   font: 400 17px/1 "VG5000", "Helvetica Neue", Arial, sans-serif; letter-spacing: .04em; text-transform: uppercase; color: var(--ink); z-index: 16; transition: opacity .3s; }
 body.moved .baseline { opacity: 0; }
-@media (max-width: 799px) { .baseline { top: calc(50% + min(39vh, 39vw) * var(--logo-ratio, .39) + 20px); font-size: 13px; letter-spacing: .03em; } }
+@media (max-width: 799px) { .baseline { font-size: 13px; letter-spacing: .03em; } }
 .to-top { position: fixed; right: 20px; bottom: 16px; width: 150px; height: 150px; z-index: 16; display: none; }
 body.scrolled .to-top { display: block; }
 .work-head { padding: 8vh 32px 8vh; display: flex; justify-content: space-between; align-items: end; gap: 32px; }

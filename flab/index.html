@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fize — Atelier d'impression 3D, Paris</title>
-<link rel="stylesheet" href="site.css?v=1bf70ec7">
+<link rel="stylesheet" href="site.css?v=290965ce">
   <meta name="description" content="Accessoires et décors, objets de marque, prototypes et pièces techniques : conception, impression 3D et finition à la main, à Paris 18e.">
   <link rel="canonical" href="https://fize-lab.com/">
   <meta property="og:type" content="website">
@@ -124,6 +124,7 @@
   const stageEl = document.getElementById('stage');
   let head;                                        // grand titre WORK, cherché une seule fois
   function place() {
+    document.documentElement.style.setProperty('--hero-frame', HERO_FRAME);   // V3 : la ligne d'accroche suit la taille réelle du logo
     const W = innerWidth, H = stageEl.offsetHeight || innerHeight, small = W < 800;
     const box = small ? 96 : 150, margin = small ? 8 : 20;
     const p = Math.min(1, Math.max(0, scrollY / (H * 0.8))), e = p * p * (3 - 2 * p);
