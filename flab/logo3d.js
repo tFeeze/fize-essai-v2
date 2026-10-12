@@ -485,13 +485,14 @@ if (CFG.orbit && window.LOGO_MODELS) {
     const holder = new THREE.Group(); holder.add(mesh); orbit.add(holder);
     // ESSAI (V3, sélecteur « Photos » de l'accueil) : vignette photo du projet derrière la pièce, accrochée à
     // elle (elle lévite et suit la souris avec elle, sans tourner sur elle-même) ; grisée avec la pièce au repos
-    let card = null;
+    let card = null, cardR = 0;
     const vImg = prj?.vignette_image || prj?.cover;            // projects.json « vignette_image » : photo dédiée à l'accueil
     if (FOND_PHOTOS && vImg && !flatPic) {
       card = new THREE.Group();
       const tex = new THREE.TextureLoader().load('img/' + vImg.replace(/\.(jpe?g|png)$/i, '-800.webp'), t => {
         const r = t.image.width / t.image.height, w = 1.9 * (prj.vignette || 1), h = w / r;   // 1,9 de large (la pièce mesure ~2) ; « vignette » : agrandie
         photo.scale.set(w, h, 1);
+        cardR = Math.hypot(w / 2 + 0.45, h / 2 + 0.3) * 0.8;    // rayon réel (vignette décalée comprise), pour l'écartement
       });
       tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
       const pm = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false });
@@ -516,7 +517,7 @@ if (CFG.orbit && window.LOGO_MODELS) {
       new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false }));
     holder.add(hit);
     mesh.rotation.set(0, flatPic ? 0 : (m.cap || 0), 0);   // V3 : face importante vers nous (rendus.json « cap »)
-    pieces.push({ pu, dots, build: 0, holder, mesh, hit, slug: m.slug, grey, card, cap: m.cap || 0, tilt: m.incline || 0, phase: i * 1.7, spin: (i % 2 ? -1 : 1) * (0.25 + 0.1 * i), grow: 1, lx: 0, ly: 0, mat, flat: flatPic, finish: !!m.matiere, rest: flatPic ? new THREE.Color('#ffffff') : STUDIO === 'gomme' ? gum(COLORS[i % COLORS.length]) : STUDIO ? bright(COLORS[i % COLORS.length]) : NEUTRAL,
+    pieces.push({ pu, dots, build: 0, holder, mesh, hit, slug: m.slug, grey, card, get cardR() { return cardR; }, cap: m.cap || 0, tilt: m.incline || 0, phase: i * 1.7, spin: (i % 2 ? -1 : 1) * (0.25 + 0.1 * i), grow: 1, lx: 0, ly: 0, mat, flat: flatPic, finish: !!m.matiere, rest: flatPic ? new THREE.Color('#ffffff') : STUDIO === 'gomme' ? gum(COLORS[i % COLORS.length]) : STUDIO ? bright(COLORS[i % COLORS.length]) : NEUTRAL,
       tint: (STUDIO === 'gomme' ? gum : STUDIO ? bright : muted)(COLORS[i % COLORS.length]),
       // rayon réel de la pièce (sphère qui la contient quelle que soit sa rotation), pour la garder à l'écran
       radius: geo.boundingSphere.radius + geo.boundingSphere.center.length() });
@@ -640,7 +641,7 @@ addEventListener('scroll', () => {
 // profondeur de chaque pièce (unités du logo, qui mesure 1) : devant / derrière le logo, pour étager la scène
 const DEPTHS = [0.55, -0.9, 0.25, -0.45, 0.8, -1.3, -0.2, 0.4];
 const SLOTS_WIDE = [[-0.58, 0.36], [0.6, 0.44], [-0.66, -0.4], [0.56, -0.46], [-0.08, -0.78], [0.04, 0.78], [-0.38, -0.74], [0.34, -0.76]];   // V3 : 6e (kit rose) recentré
-const SLOTS_TALL = [[-0.48, 0.62], [0.5, 0.6], [-0.78, 0.02], [0.78, -0.02], [-0.48, -0.62], [0.32, -0.64]];   // téléphone : 6 pièces (2 au-dessus, 2 de côté, 2 en dessous)
+const SLOTS_TALL = [[-0.5, 0.66], [0.5, 0.64], [-0.52, 0.36], [0.55, -0.4], [-0.48, -0.68], [0.32, -0.7]];   // V3 : logo large → rien sur ses côtés   // téléphone : 6 pièces (2 au-dessus, 2 de côté, 2 en dessous)
 
 // ── Cadrage (dans la colonne gauche) ───────────────────
 let rw = 0, rh = 0, camZ = 5;
@@ -803,7 +804,7 @@ function tick() {
       const persp = (orbitCam.position.z - z) / orbitCam.position.z;
       const pr = projectOf(p.slug);
       const s = size * (star ? 1.5 : 1) * (pr?.orbit_scale || 1) * (CFG.orbitScale || 1);   // orbit_scale : projects.json
-      const eff = FOND_PHOTOS && p.card ? 1.5 * Math.sqrt(pr?.vignette || 1) : p.radius;   // avec sa vignette, la pièce prend plus de place
+      const eff = FOND_PHOTOS && p.card ? Math.max(tall ? 1.1 : 1.5, (p.cardR || 1.5 * Math.sqrt(pr?.vignette || 1)) * (tall ? 0.68 : 1)) : p.radius;   // avec sa vignette (taille réelle)
       const reach = s * eff * Math.max(p.grow, FOND_PHOTOS ? 1.12 : 1.3);   // rayon à l'écran, y compris agrandie au survol
       p.reachS = s * eff * p.grow;
       const hw = w / 2 * persp, hh = h / 2 * persp;               // demi-largeur / demi-hauteur visibles à cette profondeur
@@ -857,7 +858,7 @@ function tick() {
       const F = p => camz / (camz - p.holder.position.z);
       const R = p => (p.reachS || 0) * F(p) * 1.04;
       const fr = CFG.frame || 0.42, lw = fr * Math.min(innerWidth, innerHeight) / innerHeight * h;   // largeur du logo (plan z = 0)
-      const LHW = lw / 2, LHH = lw * LOGO_AR / 2 + h * 0.05;                              // + la ligne d'accroche
+      const LHW = lw / 2, LHH = lw * LOGO_AR / 2 + h * 0.09;   // + la ligne d'accroche, avec de l'air                              // + la ligne d'accroche
       vis.forEach(p => { p.px = 0; p.py = 0; });
       for (let it = 0; it < 4; it++) {
         for (let a = 0; a < vis.length; a++) for (let b = a + 1; b < vis.length; b++) {
@@ -893,7 +894,13 @@ function tick() {
   if (FOND_PHOTOS) pieces.forEach(p => { if (!p.card) return;
     const ry = -0.38 * Math.max(-1, Math.min(1, p.holder.position.x / (orbitCam.position.z * 0.9)));
     const rx = 0.3 * Math.max(-1, Math.min(1, p.holder.position.y / (orbitCam.position.z * 0.6)));
-    p.card.rotation.y += (ry - p.card.rotation.y) * 0.1; p.card.rotation.x += (rx - p.card.rotation.x) * 0.1; });
+    p.card.rotation.y += (ry - p.card.rotation.y) * 0.1; p.card.rotation.x += (rx - p.card.rotation.x) * 0.1;
+    // la vignette se décale du côté opposé au logo (jamais vers lui) : à gauche pour les pièces de gauche,
+    // en bas pour celles du bas…
+    const sx = Math.sign(p.holder.position.x) || 1, sy = Math.sign(p.holder.position.y) || 1;
+    const o = orbitCam.aspect < 1 ? 0.25 : 1;          // téléphone : la vignette reste collée à sa pièce (sinon elle sort de l'écran)
+    p.card.scale.setScalar(orbitCam.aspect < 1 ? 0.68 : 1);   // téléphone : vignettes plus petites (6 pièces sur un écran étroit)
+    p.card.position.x += (sx * 0.45 * o - p.card.position.x) * 0.1; p.card.position.y += (sy * 0.3 * o - p.card.position.y) * 0.1; });
   if (labelPiece) { if (labelPiece !== hovered || orbitShown < 0.6) cardFor(null); else placeLabel(); }
   if (warp.mode) {                                  // transition en cours
     if (warp.mode !== 'hold') warp.k = Math.min(1, (performance.now() - warp.t0) / warp.dur);
