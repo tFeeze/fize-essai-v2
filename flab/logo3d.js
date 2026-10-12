@@ -508,17 +508,23 @@ if (CFG.orbit && window.LOGO_MODELS) {
         eg.drawImage(img, 0, ih - 1, 1, 1, 0, py + ih, px, py); eg.drawImage(img, iw - 1, ih - 1, 1, 1, px + iw, py + ih, px, py);
         eg.drawImage(img, px, py);
         // 2) tout est flouté d'un coup (flou « maison » compatible partout : réduit très petit puis ré-agrandi)
-        const sm = cv(); sm.width = Math.max(4, Math.round(W / 24)); sm.height = Math.max(4, Math.round(H / 24));
-        const sg = sm.getContext('2d'); sg.imageSmoothingQuality = 'high'; sg.drawImage(e, 0, 0, sm.width, sm.height);
+        const flou = k => { const sm = cv(); sm.width = Math.max(4, Math.round(W / k)); sm.height = Math.max(4, Math.round(H / k));
+          const sg = sm.getContext('2d'); sg.imageSmoothingQuality = 'high'; sg.drawImage(e, 0, 0, sm.width, sm.height); return sm; };
         const c = cv(); c.width = W; c.height = H; const g = c.getContext('2d');
-        g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(sm, 0, 0, W, H);
-        // 3) la photo nette par-dessus, qui se fond doucement dans son propre flou (fondu large, ~14 % du bord)
-        const m = cv(); m.width = iw; m.height = ih; const mg = m.getContext('2d');
-        const mk = cv(); mk.width = 14; mk.height = Math.max(6, Math.round(14 * ih / iw)); const kg = mk.getContext('2d');
-        kg.fillStyle = '#000'; kg.fillRect(2, 2, mk.width - 4, mk.height - 4);
-        mg.imageSmoothingEnabled = true; mg.imageSmoothingQuality = 'high'; mg.drawImage(mk, 0, 0, iw, ih);
-        mg.globalCompositeOperation = 'source-in'; mg.drawImage(img, 0, 0);
-        g.drawImage(m, px, py);
+        g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(flou(28), 0, 0, W, H);
+        // 3) fondus très larges, en trois paliers (très flou → moyennement flou → net) : aucune frontière de netteté
+        //    masque doux = petit dessin (ellipse arrondie) ré-agrandi : le bord est un dégradé, jamais un trait
+        const masque = (src, x, y, w2, h2, rentre) => {
+          const m = cv(); m.width = W; m.height = H; const mg = m.getContext('2d');
+          const mk = cv(); mk.width = 24; mk.height = Math.max(8, Math.round(24 * h2 / w2)); const kg = mk.getContext('2d');
+          const gr = kg.createRadialGradient(mk.width / 2, mk.height / 2, 0, mk.width / 2, mk.height / 2, mk.width / 2);
+          gr.addColorStop(0, '#000'); gr.addColorStop(rentre, '#000'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+          kg.setTransform(1, 0, 0, mk.height / mk.width, 0, 0); kg.fillStyle = gr; kg.fillRect(0, 0, mk.width, mk.width);
+          mg.imageSmoothingEnabled = true; mg.imageSmoothingQuality = 'high'; mg.drawImage(mk, x, y, w2, h2);
+          mg.globalCompositeOperation = 'source-in'; mg.drawImage(src, 0, 0, W, H); return m;
+        };
+        g.drawImage(masque(flou(9), px * 0.4, py * 0.4, W - px * 0.8, H - py * 0.8, 0.55), 0, 0);   // moyennement flou
+        g.drawImage(masque(e, px * 0.85, py * 0.85, W - px * 1.7, H - py * 1.7, 0.5), 0, 0);         // net, au centre
         t.image = c; t.needsUpdate = true;
         const r = iw / ih, w = 1.9 * (prj.vignette || 1), h = w / r;   // taille de la photo : 1,9 de large (la pièce ~2) ; « vignette » : agrandie
         photo.scale.set(w * (1 + 2 * PAD), h * (1 + 2 * PAD), 1);      // le plan porte aussi la marge floutée
