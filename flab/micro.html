@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Micro serti — Fize</title>
 <meta name="description" content="Accessoire de scène — Serti de strass. Un habillage de micro pour la scène : lettrage gothique et cœur, sertis de strass.">
-<link rel="stylesheet" href="site.css?v=290965ce">
+<link rel="stylesheet" href="site.css?v=9eb3989b">
   <link rel="canonical" href="https://fize-lab.com/micro.html">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Impression 3D by Fize">
@@ -208,6 +208,16 @@
     Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=52967341', true); });
   }
 })();
+</script>
+<script>
+  // lecteur YouTube au clic seulement (mode sans cookie) : la vignette est remplacée par le lecteur
+  document.querySelectorAll('a.yt').forEach(a => a.addEventListener('click', e => {
+    e.preventDefault();
+    const f = document.createElement('iframe');
+    f.src = `https://www.youtube-nocookie.com/embed/${a.dataset.yt}?autoplay=1&start=${a.dataset.t || 0}&rel=0`;
+    f.title = a.getAttribute('aria-label'); f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen'; f.allowFullscreen = true;
+    a.replaceWith(f);
+  }));
 </script>
 <script>
 // ── Transition vers un projet : le logo chrome se transforme ─────────────────────────────

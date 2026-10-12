@@ -682,3 +682,10 @@ body.finitions main { padding: max(26vh, 190px) 32px 4vh; }
 @media (prefers-reduced-motion: reduce) { .card-label, .card-label span { transition: opacity .2s; clip-path: none; transform: none; } }
 .card-label .cl-row { display: flex; align-items: center; gap: 10px; }
 .card-label img.cl { height: 16px; width: auto; max-width: 90px; object-fit: contain; filter: brightness(0) invert(1); opacity: .9; }   /* logo client en blanc */
+
+/* vidéo YouTube d'un projet : vignette + bouton, remplacée par le lecteur au clic */
+.p-video a.yt, .p-video iframe { position: relative; display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; background: #000; }
+.p-video a.yt img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.yt-play { position: absolute; left: 50%; top: 50%; width: 76px; height: 54px; margin: -27px 0 0 -38px; border-radius: 14px; background: rgba(0,0,0,.72); transition: background .2s, transform .2s; }
+.yt-play::after { content: ""; position: absolute; left: 31px; top: 16px; border-style: solid; border-width: 11px 0 11px 19px; border-color: transparent transparent transparent #fff; }
+.p-video a.yt:hover .yt-play, .p-video a.yt:focus-visible .yt-play { background: #e21836; transform: scale(1.06); }
