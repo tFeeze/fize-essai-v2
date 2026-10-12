@@ -497,18 +497,26 @@ if (CFG.orbit && window.LOGO_MODELS) {
         // la photo est prolongée sur ses quatre côtés par une version floutée d'elle-même (remplissage sans IA) :
         // l'effet nuage se fond dans ce flou, on ne voit jamais le bord droit de l'image, et on ne la recadre pas
         const img = t.image, iw = img.width, ih = img.height, px = Math.round(iw * PAD), py = Math.round(ih * PAD);
-        const c = document.createElement('canvas'); c.width = iw + 2 * px; c.height = ih + 2 * py;
-        const g = c.getContext('2d'); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
-        // flou « maison », compatible avec tous les navigateurs : image réduite très petite puis ré-agrandie
-        const petit = (src, sw, sh, k) => { const p = document.createElement('canvas'); p.width = Math.max(2, Math.round(sw * k)); p.height = Math.max(2, Math.round(sh * k));
-          const pg = p.getContext('2d'); pg.imageSmoothingQuality = 'high'; pg.drawImage(src, 0, 0, p.width, p.height); return p; };
-        g.drawImage(petit(img, iw, ih, 0.03), -px * 0.35, -py * 0.35, c.width + px * 0.7, c.height + py * 0.7);   // fond : la photo étirée, très floue
-        g.drawImage(petit(img, iw, ih, 0.06), px - iw * 0.05, py - ih * 0.05, iw * 1.1, ih * 1.1);              // raccord : floue, à sa place
-        // la photo nette, avec des bords adoucis (masque : rectangle rentré, flouté de la même façon)
-        const m = document.createElement('canvas'); m.width = iw; m.height = ih; const mg = m.getContext('2d');
-        const mk = document.createElement('canvas'); mk.width = 40; mk.height = Math.max(4, Math.round(40 * ih / iw));
-        const kg = mk.getContext('2d'); kg.fillStyle = '#000'; kg.fillRect(mk.width * 0.1, mk.height * 0.1, mk.width * 0.8, mk.height * 0.8);
-        mg.imageSmoothingQuality = 'high'; mg.drawImage(mk, 0, 0, iw, ih);
+        const W = iw + 2 * px, H = ih + 2 * py, cv = () => document.createElement('canvas');
+        // 1) prolongement : la photo au centre, ses bords étirés vers l'extérieur (aucun rectangle visible)
+        const e = cv(); e.width = W; e.height = H; const eg = e.getContext('2d');
+        eg.drawImage(img, 0, 0, iw, 1, px, 0, iw, py);                    // haut
+        eg.drawImage(img, 0, ih - 1, iw, 1, px, py + ih, iw, py);         // bas
+        eg.drawImage(img, 0, 0, 1, ih, 0, py, px, ih);                    // gauche
+        eg.drawImage(img, iw - 1, 0, 1, ih, px + iw, py, px, ih);         // droite
+        eg.drawImage(img, 0, 0, 1, 1, 0, 0, px, py); eg.drawImage(img, iw - 1, 0, 1, 1, px + iw, 0, px, py);   // coins
+        eg.drawImage(img, 0, ih - 1, 1, 1, 0, py + ih, px, py); eg.drawImage(img, iw - 1, ih - 1, 1, 1, px + iw, py + ih, px, py);
+        eg.drawImage(img, px, py);
+        // 2) tout est flouté d'un coup (flou « maison » compatible partout : réduit très petit puis ré-agrandi)
+        const sm = cv(); sm.width = Math.max(4, Math.round(W / 24)); sm.height = Math.max(4, Math.round(H / 24));
+        const sg = sm.getContext('2d'); sg.imageSmoothingQuality = 'high'; sg.drawImage(e, 0, 0, sm.width, sm.height);
+        const c = cv(); c.width = W; c.height = H; const g = c.getContext('2d');
+        g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(sm, 0, 0, W, H);
+        // 3) la photo nette par-dessus, qui se fond doucement dans son propre flou (fondu large, ~14 % du bord)
+        const m = cv(); m.width = iw; m.height = ih; const mg = m.getContext('2d');
+        const mk = cv(); mk.width = 14; mk.height = Math.max(6, Math.round(14 * ih / iw)); const kg = mk.getContext('2d');
+        kg.fillStyle = '#000'; kg.fillRect(2, 2, mk.width - 4, mk.height - 4);
+        mg.imageSmoothingEnabled = true; mg.imageSmoothingQuality = 'high'; mg.drawImage(mk, 0, 0, iw, ih);
         mg.globalCompositeOperation = 'source-in'; mg.drawImage(img, 0, 0);
         g.drawImage(m, px, py);
         t.image = c; t.needsUpdate = true;
@@ -534,9 +542,11 @@ if (CFG.orbit && window.LOGO_MODELS) {
             q += w * 1.6;
             float n = 0.0, a = 0.5;
             for (int o = 0; o < 4; o++) { n += a * VN(q + vec2(t * 0.7, -t * 0.5)); q *= 2.03; a *= 0.5; }
-            float d = min(min(vMapUv.x, 1.0 - vMapUv.x), min(vMapUv.y, 1.0 - vMapUv.y));   // distance au bord
+            float dr = min(min(vMapUv.x, 1.0 - vMapUv.x), min(vMapUv.y, 1.0 - vMapUv.y));  // distance au bord (rectangle)
+            float de = 0.5 * (1.0 - length((vMapUv - 0.5) * 2.0) * 0.82);                  // … et à une ellipse
+            float d = max(0.0, min(dr, mix(dr, de, 0.85)));                                 // silhouette arrondie, organique
             float edge = d * (1.0 + 0.08 * hov) - 0.42 * (n - 0.38) + 0.015 * hov;
-            diffuseColor.a *= smoothstep(0.03, 0.2, edge);
+            diffuseColor.a *= smoothstep(0.03, 0.2, edge) * smoothstep(0.0, 0.07, dr);  // toujours nul au bord du plan
           }
           #include <opaque_fragment>`);
       };
@@ -547,7 +557,7 @@ if (CFG.orbit && window.LOGO_MODELS) {
       pm.onBeforeCompile = (sh, r) => { prevS?.call(pm, sh, r);
         sh.fragmentShader = sh.fragmentShader.replace('#include <dithering_fragment>', `#include <dithering_fragment>
           float scan = 0.5 + 0.5 * sin(gl_FragCoord.y * 1.5708);                  // une ligne sur 4 pixels
-          gl_FragColor.rgb *= mix(1.0, 0.68 + 0.32 * scan, uGrey);`); };
+          gl_FragColor.rgb *= mix(1.0, 0.68 + 0.32 * scan, uGrey * gl_FragColor.a * gl_FragColor.a);`); };   // les lignes s'effacent avec le nuage
       const kS = pm.customProgramCacheKey.bind(pm); pm.customProgramCacheKey = () => kS() + ':scan';
       const photo = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), pm);
       photo.scale.set(1.9 * (prj.vignette || 1), 1.4 * (prj.vignette || 1), 1);
