@@ -526,7 +526,7 @@ if (CFG.orbit && window.LOGO_MODELS) {
         g.drawImage(masque(flou(9), px * 0.4, py * 0.4, W - px * 0.8, H - py * 0.8, 0.55), 0, 0);   // moyennement flou
         g.drawImage(masque(e, px * 0.85, py * 0.85, W - px * 1.7, H - py * 1.7, 0.5), 0, 0);         // net, au centre
         t.image = c; t.needsUpdate = true;
-        const r = iw / ih, w = 1.9 * (prj.vignette || 1), h = w / r;   // taille de la photo : 1,9 de large (la pièce ~2) ; « vignette » : agrandie
+        const r = iw / ih, w = 2.3 * (prj.vignette || 1), h = w / r;   // taille de la photo : 2,3 de large (la pièce ~2) ; « vignette » : agrandie
         photo.scale.set(w * (1 + 2 * PAD), h * (1 + 2 * PAD), 1);      // le plan porte aussi la marge floutée
         card.userData.w = w; card.userData.h = h;                     // taille de la photo (pour placer la pièce dans son coin)
         cardR = (Math.hypot(0.36 * w, 0.34 * h) + 0.5 * Math.hypot(w, h)) * 0.72;   // rayon réel (vignette décalée comprise), pour l'écartement
