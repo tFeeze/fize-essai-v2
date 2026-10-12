@@ -700,3 +700,9 @@ body.finitions main { padding: max(26vh, 190px) 32px 4vh; }
   .p-gallery { grid-template-columns: 1fr 1fr; }
   .p-gallery figure.wide { grid-column: 1 / -1; }
 }
+
+/* V3 : logo du client sur la page projet, monochrome (noir sur fond clair, blanc sur fond sombre) */
+.p-meta .p-logo dd { display: flex; align-items: center; }
+.p-meta .p-logo img { height: 18px; width: auto; max-width: 120px; object-fit: contain; filter: brightness(0); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .p-meta .p-logo img { filter: brightness(0) invert(1); } }
+:root[data-theme="dark"] .p-meta .p-logo img { filter: brightness(0) invert(1); }

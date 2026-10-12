@@ -11,6 +11,9 @@ import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 window.loadStep?.(0.8);   // le moteur 3D est chargé
 // V2 interactive : pièces fines (rendus.json → models-v2.js), chacune avec sa vraie matière
 if (window.PIECES_V2) window.LOGO_MODELS = window.PIECES_V2;
+// V3 : sur téléphone, 4 pièces seulement (le boîtier Raspberry Pi et la plaque Eiffage restent sur ordinateur)
+if (window.LOGO_MODELS && matchMedia('(pointer: coarse)').matches && Math.min(innerWidth, innerHeight) < 700)
+  window.LOGO_MODELS = window.LOGO_MODELS.filter(m => !['rpi-case', 'plaque-logo'].includes(m.slug));
 const CFG = Object.assign({ mode: 'fixed', stage: 0, frame: 0.42 }, window.LOGO_CONFIG);
 // Téléphone et tablette : le logo ne suit pas de souris et ne tourne pas, donc une image du logo
 // en chrome (fond et étoile transparents) remplace le rendu 3D : rien à calculer à chaque image.
@@ -185,7 +188,7 @@ const pieces = [];
 // Les pièces passent par un dernier calcul qui étire l'image vers les bords du cadre, comme un objectif
 // grand angle : plus une pièce s'approche du bord, plus elle s'allonge vers l'extérieur ; le centre ne
 // bouge presque pas. Léger dédoublement rouge/bleu tout au bord. Le survol tient compte de la déformation.
-const WIDE = TOUCH && !!orbitRenderer, WIDE_K = 0.55, WIDE_CA = 0.0012;   // grand angle : téléphone seulement (retiré sur ordinateur)
+const WIDE = false, WIDE_K = 0.55, WIDE_CA = 0.0012;   // V3 : plus de grand angle (ni ordinateur ni téléphone) ; reste pour le mode PSY
 // ── Easter egg « psyché » : taper F-I-Z-E au clavier, ou toucher 5 fois de suite le logo.
 // Grand angle et aberration chromatique à fond, qui ondulent ; tourbillon ; couleurs qui dérivent.
 let psy = 0, psyOn = false;                       // psy : intensité affichée (0 → 1, en fondu)
@@ -604,8 +607,12 @@ addEventListener('pointermove', e => {
     e.clientX + 18 + tw > innerWidth - 8 ? e.clientX - 18 - tw : e.clientX + 18,
     e.clientY + 14 + th > innerHeight - 8 ? e.clientY - 14 - th : e.clientY + 14]);
 });
+// type du dernier pointeur : après un toucher, le téléphone envoie aussi un « click » (parfois sans pointerType) —
+// il ne doit pas ouvrir le projet : au doigt, 1er toucher = étiquette, 2e toucher = projet (géré plus bas)
+let dernierPointeur = 'mouse';
+addEventListener('pointerdown', e => { dernierPointeur = e.pointerType || 'mouse'; }, { capture: true, passive: true });
 addEventListener('click', e => {
-  if (e.pointerType && e.pointerType !== 'mouse') return;   // le doigt est géré plus bas
+  if ((e.pointerType && e.pointerType !== 'mouse') || dernierPointeur !== 'mouse') return;   // le doigt est géré plus bas
   if (hovered && !e.target.closest?.('a, button') && projectOf(hovered.slug)) (window.warpTo || (u => { location.href = u; }))(hovered.slug + '.html');
 });
 // doigt : un premier toucher sur une pièce la sélectionne et montre sa fiche ;
@@ -641,7 +648,7 @@ addEventListener('scroll', () => {
 // profondeur de chaque pièce (unités du logo, qui mesure 1) : devant / derrière le logo, pour étager la scène
 const DEPTHS = [0.55, -0.9, 0.25, -0.45, 0.8, -1.3, -0.2, 0.4];
 const SLOTS_WIDE = [[-0.58, 0.36], [0.6, 0.44], [-0.66, -0.4], [0.56, -0.46], [-0.08, -0.78], [0.04, 0.78], [-0.38, -0.74], [0.34, -0.76]];   // V3 : 6e (kit rose) recentré
-const SLOTS_TALL = [[-0.5, 0.66], [0.5, 0.64], [-0.52, 0.36], [0.55, -0.4], [-0.48, -0.68], [0.32, -0.7]];   // V3 : logo large → rien sur ses côtés   // téléphone : 6 pièces (2 au-dessus, 2 de côté, 2 en dessous)
+const SLOTS_TALL = [[-0.48, 0.6], [0.5, 0.58], [-0.46, -0.62], [0.46, -0.64]];   // V3 : téléphone, 4 pièces (2 au-dessus, 2 en dessous du logo)   // téléphone : 6 pièces (2 au-dessus, 2 de côté, 2 en dessous)
 
 // ── Cadrage (dans la colonne gauche) ───────────────────
 let rw = 0, rh = 0, camZ = 5;
