@@ -109,6 +109,57 @@ obj.traverse(m => { if (m.isMesh) {
 } });
 pivot.scale.setScalar(s);
 pivot.add(obj);
+// V3 — page About : le logo en nuage de points, comme vu par une Kinect (caméra de profondeur) : seules les faces
+// tournées vers la caméra sont relevées, les points tremblent légèrement, une ligne de balayage les parcourt,
+// et leur teinte dit la profondeur. Il suit la souris comme le logo chrome.
+const KINECT = document.body.classList.contains('about') && !FLAT;
+const KU = { uT: { value: 0 }, uPx: { value: Math.min(devicePixelRatio, 2) } };
+if (KINECT) {
+  const pts = [];
+  obj.traverse(m => { if (!m.isMesh) return;
+    const P = m.geometry.attributes.position, A = new THREE.Vector3(), B = new THREE.Vector3(), C = new THREE.Vector3(), N = new THREE.Vector3();
+    const tris = [], areas = []; let tot = 0;
+    for (let i = 0; i < P.count; i += 3) {
+      A.fromBufferAttribute(P, i); B.fromBufferAttribute(P, i + 1); C.fromBufferAttribute(P, i + 2);
+      N.subVectors(C, B).cross(new THREE.Vector3().subVectors(A, B)); const ar = N.length() / 2; N.normalize();
+      if (N.z < 0.25 || ar <= 0) continue;                          // vu de face seulement (comme un capteur)
+      tris.push(i); areas.push(tot += ar);
+    }
+    const n = 26000;
+    for (let k = 0; k < n; k++) {
+      const r = Math.random() * tot; let lo = 0, hi = areas.length - 1;
+      while (lo < hi) { const mid = (lo + hi) >> 1; if (areas[mid] < r) lo = mid + 1; else hi = mid; }
+      const i = tris[lo]; A.fromBufferAttribute(P, i); B.fromBufferAttribute(P, i + 1); C.fromBufferAttribute(P, i + 2);
+      let u = Math.random(), v = Math.random(); if (u + v > 1) { u = 1 - u; v = 1 - v; }
+      pts.push(A.x + (B.x - A.x) * u + (C.x - A.x) * v, A.y + (B.y - A.y) * u + (C.y - A.y) * v, A.z + (B.z - A.z) * u + (C.z - A.z) * v);
+    }
+  });
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+  g.setAttribute('graine', new THREE.Float32BufferAttribute(Float32Array.from({ length: pts.length / 3 }, () => Math.random()), 1));
+  const zr = size.z / 2;
+  const nuage = new THREE.Points(g, new THREE.ShaderMaterial({
+    uniforms: KU, transparent: true, depthWrite: false,
+    vertexShader: `uniform float uT, uPx; attribute float graine; varying float vD; varying float vScan;
+      void main() {
+        vec3 p = position;
+        p.z += (fract(sin(graine * 91.7 + floor(uT * 12.0)) * 4375.85) - 0.5) * ${(size.x * 0.004).toFixed(3)};   // bruit du capteur
+        vD = clamp(0.5 + p.z / ${(zr * 2.2).toFixed(3)}, 0.0, 1.0);
+        float sy = mod(uT * ${(size.y * 0.35).toFixed(2)}, ${(size.y * 1.6).toFixed(2)}) - ${(size.y * 0.8).toFixed(2)};
+        vScan = exp(-pow((p.y - sy) / ${(size.y * 0.03).toFixed(3)}, 2.0));
+        vec4 mv = modelViewMatrix * vec4(p, 1.0); gl_Position = projectionMatrix * mv;
+        gl_PointSize = uPx * (2.0 + 1.6 * vScan) * (2.2 / -mv.z);
+      }`,
+    fragmentShader: `varying float vD; varying float vScan;
+      void main() {
+        vec2 c = gl_PointCoord - 0.5; if (dot(c, c) > 0.25) discard;
+        vec3 loin = ${PAGE_SOMBRE ? 'vec3(0.18, 0.42, 0.95)' : 'vec3(0.02, 0.1, 0.45)'}, pres = ${PAGE_SOMBRE ? 'vec3(0.55, 1.0, 0.92)' : 'vec3(0.0, 0.5, 0.55)'};   // teinte de profondeur (foncée sur fond clair)
+        vec3 col = mix(loin, pres, vD) + vScan * ${PAGE_SOMBRE ? '0.8' : '0.35'};
+        gl_FragColor = vec4(col, 0.9);
+      }`,
+  }));
+  pivot.add(nuage);
+  obj.visible = false;                                              // le logo chrome laisse place au nuage
+}
 // plaque blanche percée de l'étoile (transition vers un projet) : carré du logo, trou = contour de l'étoile
 // (LOGO_STAR, légèrement resserré pour rester dans le carré), posée juste derrière le logo
 const starPlate = (() => {
@@ -540,20 +591,25 @@ if (CFG.orbit && window.LOGO_MODELS) {
         sh.uniforms.uTime = U.uTime;
         sh.fragmentShader = 'uniform float uTime;\n' + sh.fragmentShader.replace('#include <opaque_fragment>', `
           {
-            #define H2(p) fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453)
-            #define VN(p) mix(mix(H2(floor(p)), H2(floor(p) + vec2(1, 0)), smoothstep(0., 1., fract(p).x)), mix(H2(floor(p) + vec2(0, 1)), H2(floor(p) + vec2(1, 1)), smoothstep(0., 1., fract(p).x)), smoothstep(0., 1., fract(p).y))
-            float hov = 1.0 - uGrey;                                   // 0 au repos, 1 au survol
-            float t = uTime * (0.06 + 0.05 * hov);                     // dérive très lente ; un peu plus vive au survol
-            vec2 q = vMapUv * 1.8 + ${graine.toFixed(2)};
-            vec2 w = vec2(VN(q + vec2(t, 0.0)), VN(q + vec2(5.2, 1.3 - t))) - 0.5;   // déformation : volutes
-            q += w * 1.6;
-            float n = 0.0, a = 0.5;
-            for (int o = 0; o < 4; o++) { n += a * VN(q + vec2(t * 0.7, -t * 0.5)); q *= 2.03; a *= 0.5; }
+            // optimisé : le bruit n'est calculé que près du bord (le centre de la photo est opaque, rien à faire) ;
+            // 3 octaves au lieu de 4, valeurs de hachage moins coûteuses
             float dr = min(min(vMapUv.x, 1.0 - vMapUv.x), min(vMapUv.y, 1.0 - vMapUv.y));  // distance au bord (rectangle)
-            float de = 0.5 * (1.0 - length((vMapUv - 0.5) * 2.0) * 0.82);                  // … et à une ellipse
-            float d = max(0.0, min(dr, mix(dr, de, 0.85 - 0.5 * hov)));                     // silhouette arrondie ; un peu plus droite au survol
-            float edge = d * (1.0 + 0.05 * hov) - 0.42 * (1.0 - 0.55 * hov) * (n - 0.38) + 0.008 * hov;   // au survol : s'ouvre un peu, bord moins irrégulier
-            diffuseColor.a *= smoothstep(0.03, 0.2, edge) * smoothstep(0.0, 0.07, dr);  // toujours nul au bord du plan
+            if (dr < 0.42) {
+              #define H2(p) fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453)
+              #define VN(p) mix(mix(H2(floor(p)), H2(floor(p) + vec2(1, 0)), smoothstep(0., 1., fract(p).x)), mix(H2(floor(p) + vec2(0, 1)), H2(floor(p) + vec2(1, 1)), smoothstep(0., 1., fract(p).x)), smoothstep(0., 1., fract(p).y))
+              float hov = 1.0 - uGrey;                                   // 0 au repos, 1 au survol
+              float t = uTime * (0.06 + 0.05 * hov);                     // dérive très lente ; un peu plus vive au survol
+              vec2 q = vMapUv * 1.8 + ${graine.toFixed(2)};
+              vec2 w = vec2(VN(q + vec2(t, 0.0)), VN(q + vec2(5.2, 1.3 - t))) - 0.5;   // déformation : volutes
+              q += w * 1.6;
+              float n = 0.5 * VN(q + vec2(t * 0.7, -t * 0.5)); q *= 2.03;
+              n += 0.25 * VN(q + vec2(t * 0.7, -t * 0.5)); q *= 2.03;
+              n += 0.17 * VN(q + vec2(t * 0.7, -t * 0.5));
+              float de = 0.5 * (1.0 - length((vMapUv - 0.5) * 2.0) * 0.82);                  // … et à une ellipse
+              float d = max(0.0, min(dr, mix(dr, de, 0.85 - 0.5 * hov)));                     // silhouette arrondie ; un peu plus droite au survol
+              float edge = d * (1.0 + 0.05 * hov) - 0.42 * (1.0 - 0.55 * hov) * (n - 0.38) + 0.008 * hov;   // au survol : s'ouvre un peu, bord moins irrégulier
+              diffuseColor.a *= smoothstep(0.03, 0.2, edge) * smoothstep(0.0, 0.07, dr);  // toujours nul au bord du plan
+            }
           }
           #include <opaque_fragment>`);
       };
@@ -585,6 +641,71 @@ if (CFG.orbit && window.LOGO_MODELS) {
       radius: geo.boundingSphere.radius + geo.boundingSphere.center.length() });
   });
 }
+// ── V3 : réseaux sociaux en 3D sur l'accueil (Instagram, TikTok, LinkedIn si renseigné dans build.py) ──
+// Pictos simples extrudés, en chrome, qui flottent en bas à gauche du premier écran ; clic → le compte.
+const reseaux = [];
+if (orbitRenderer && !IN_STAGE && document.body.classList.contains('work') && (window.RESEAUX || []).length) {
+  const ext = (shapes, d = 0.14) => new THREE.ExtrudeGeometry(shapes, { depth: d, bevelEnabled: true, bevelThickness: 0.025, bevelSize: 0.02, bevelSegments: 2, curveSegments: 24 });
+  const rrect = (w, h, r, path = new THREE.Shape()) => { const x = -w / 2, y = -h / 2;
+    path.moveTo(x + r, y); path.lineTo(x + w - r, y); path.quadraticCurveTo(x + w, y, x + w, y + r); path.lineTo(x + w, y + h - r);
+    path.quadraticCurveTo(x + w, y + h, x + w - r, y + h); path.lineTo(x + r, y + h); path.quadraticCurveTo(x, y + h, x, y + h - r);
+    path.lineTo(x, y + r); path.quadraticCurveTo(x, y, x + r, y); return path; };
+  const ring = (cx, cy, r1, r2) => { const sh = new THREE.Shape(); sh.absarc(cx, cy, r1, 0, Math.PI * 2, false);
+    const ho = new THREE.Path(); ho.absarc(cx, cy, r2, 0, Math.PI * 2, true); sh.holes.push(ho); return sh; };
+  const disc = (cx, cy, r) => { const sh = new THREE.Shape(); sh.absarc(cx, cy, r, 0, Math.PI * 2, false); return sh; };
+  const formes = {
+    Instagram: () => { const o = rrect(1, 1, 0.28); o.holes.push(rrect(0.78, 0.78, 0.19, new THREE.Path())); return [o, ring(0, 0, 0.24, 0.15), disc(0.25, 0.25, 0.06)]; },
+    TikTok: () => { const st = new THREE.Shape(); st.moveTo(0.02, -0.28); st.lineTo(0.16, -0.28); st.lineTo(0.16, 0.5); st.lineTo(0.02, 0.5); st.closePath();
+      const fl = new THREE.Shape(); fl.moveTo(0.16, 0.5); fl.quadraticCurveTo(0.2, 0.26, 0.42, 0.24); fl.lineTo(0.42, 0.1); fl.quadraticCurveTo(0.26, 0.12, 0.16, 0.22); fl.closePath();
+      return [st, fl, ring(-0.09, -0.28, 0.25, 0.12)]; },
+    LinkedIn: () => { const o = rrect(1, 1, 0.16); o.holes.push(rrect(0.82, 0.82, 0.1, new THREE.Path()));
+      const i = new THREE.Shape(); i.moveTo(-0.27, -0.28); i.lineTo(-0.15, -0.28); i.lineTo(-0.15, 0.08); i.lineTo(-0.27, 0.08); i.closePath();
+      const n = new THREE.Shape(); n.moveTo(-0.07, -0.28); n.lineTo(0.05, -0.28); n.lineTo(0.05, 0.0); n.quadraticCurveTo(0.12, 0.06, 0.17, 0.0);
+      n.lineTo(0.17, -0.28); n.lineTo(0.29, -0.28); n.lineTo(0.29, 0.02); n.quadraticCurveTo(0.2, 0.18, 0.05, 0.06); n.lineTo(0.05, 0.08); n.lineTo(-0.07, 0.08); n.closePath();
+      return [o, i, n, disc(-0.21, 0.19, 0.07)]; },
+  };
+  const mat = new THREE.MeshPhysicalMaterial({ color: 0xe8e8ec, metalness: 1, roughness: 0.18, envMapIntensity: 1.3, clearcoat: 0.6 });
+  window.RESEAUX.forEach((r, k) => {
+    if (!formes[r.nom]) return;
+    const g = ext(formes[r.nom]()); g.center();
+    const m = new THREE.Mesh(g, mat);
+    const hold = new THREE.Group(); hold.add(m);
+    const hit = new THREE.Mesh(new THREE.SphereGeometry(0.75, 12, 8), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false }));
+    hold.add(hit); orbit.add(hold);
+    reseaux.push({ ...r, hold, mesh: m, hit, k, grow: 1 });
+  });
+}
+let reseauSurvol = null;
+const rayR = new THREE.Raycaster(), ndcR = new THREE.Vector2();
+function reseauSous(x, y) {
+  if (!reseaux.length || orbitShown < 0.6) return null;
+  ndcR.set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1); rayR.setFromCamera(ndcR, orbitCam);
+  const h = rayR.intersectObjects(reseaux.map(r => r.hit))[0];
+  return h ? reseaux.find(r => r.hit === h.object) : null;
+}
+function placeReseaux(t, dt, w, h) {
+  const tall = orbitCam.aspect < 1, sz = (tall ? 0.06 : 0.045) * h, gap = sz * 1.6;
+  reseaux.forEach(r => {
+    const x = -w / 2 + sz * (tall ? 1.4 : 2.2) + r.k * gap, y = -h / 2 + sz * (tall ? 2.4 : 1.8);
+    const vol = Math.sin(t * 1.3 + r.k * 1.7) * sz * 0.18;                          // petite lévitation
+    r.hold.position.set(x, y + vol + (1 - orbitShown) * h * 0.8, 0.3);
+    r.grow += ((r === reseauSurvol ? 1.25 : 1) - r.grow) * (1 - Math.exp(-dt * 10));
+    r.hold.scale.setScalar(sz * r.grow);
+    r.mesh.rotation.y = Math.sin(t * 0.9 + r.k) * 0.5 + (r === reseauSurvol ? Math.sin(t * 6) * 0.15 : 0);
+    r.mesh.rotation.x = Math.sin(t * 0.7 + r.k * 2) * 0.15;
+    r.hold.visible = orbitShown > 0.02;
+  });
+}
+addEventListener('pointermove', e => {
+  if (e.pointerType !== 'mouse' || !reseaux.length) return;
+  const r = reseauSous(e.clientX, e.clientY);
+  if (r !== reseauSurvol) { reseauSurvol = r; if (r) document.body.style.cursor = 'pointer'; }
+}, { passive: true });
+addEventListener('click', e => {
+  const r = reseauSous(e.clientX, e.clientY);
+  if (r && !e.target.closest?.('a, button, nav')) { e.stopImmediatePropagation(); window.open(r.url, '_blank', 'noopener'); }
+}, true);
+
 // survol d'une pièce : elle grossit, une étiquette donne le projet ; clic → page du projet
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
 let hovered = null;
@@ -612,7 +733,7 @@ function cardFor(pr, p) {
   cardLabel.href = pr.slug + '.html';
   // logo du client (projects.json « client_logo », fichier dans src/img/) : affiché seulement s'il existe,
   // et seulement avec l'accord écrit du client (règle 9 de CLAUDE.md)
-  const cl = pr.client_logo ? `<img class="cl" src="img/${pr.client_logo}" alt="${pr.client_nom || ''}" onerror="this.remove()">` : '';
+  const cl = pr.client_logo ? `<img class="cl" src="img/${pr.client_logo}" alt="${pr.client_nom || ''}" onerror="this.remove()" onload="if(this.naturalWidth/this.naturalHeight<1.6)this.classList.add('carre')">` : '';
   cardLabel.innerHTML = `<div class="cl-row"><b>${pr.title}</b>${cl}</div><span>Voir le projet →</span>`;
   cardLabel.classList.remove('on'); void cardLabel.offsetWidth; cardLabel.classList.add('on');   // relance l'animation
 }
@@ -816,6 +937,9 @@ function lensPass() {
 const warpRun = (mode, dur) => new Promise(done => Object.assign(warp, { mode, dur, k: 0, t0: performance.now(), done }));
 window.logoWarpOut = () => {
   if (FLAT) return null;
+  // la plaque derrière le logo prend la couleur du fond de la page (mode sombre : plus de fond blanc)
+  { const c = getComputedStyle(document.body).backgroundColor.match(/[\d.]+/g);
+    if (c) starPlate.traverse(o => o.material?.color?.setRGB(c[0] / 255, c[1] / 255, c[2] / 255, THREE.SRGBColorSpace)); }
   document.documentElement.classList.add('warp-stage');   // cadre du logo en plein écran (site.css)
   if (document.body.classList.contains('work')) {  // accueil : le médaillon revient au centre, en pleine définition
     stageEl.style.transition = 'transform .5s cubic-bezier(.6,0,.35,1)'; stageEl.style.transform = 'none';
@@ -830,6 +954,7 @@ const clock = new THREE.Clock();
 function tick() {
   const dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
   U.uTime.value = t;
+  KU.uT.value = t;
   stageShown += (stageTarget - stageShown) * (1 - Math.exp(-dt * 5));
   const st = stageShown;
 
@@ -920,6 +1045,7 @@ function tick() {
     // V3 : séparation — aucune pièce (vignette comprise) ne chevauche une autre ni le logo. On calcule à
     // l'écran (plan de la caméra), on écarte les paires qui se touchent, on sort celles qui mordent sur le logo,
     // puis le décalage est appliqué en douceur (pas de saccade quand une pièce grossit au survol)
+    if (reseaux.length) placeReseaux(t, dt, w, h);
     if (!IN_STAGE && gone < 0.05) {
       const camz = orbitCam.position.z, vis = pieces.filter((p, i) => p.holder.visible && i < slots.length);
       const F = p => camz / (camz - p.holder.position.z);
@@ -951,6 +1077,9 @@ function tick() {
           const mx = w / 2 * 0.97 - r, my = h / 2 * (tall ? 0.8 : 0.97) - r;
           const nx = Math.max(-mx, Math.min(mx, CX(p) + p.px)), ny = Math.max(-my, Math.min(my, CY(p) + p.py));
           p.px = nx - CX(p); p.py = ny - CY(p);
+          // la pièce elle-même (dans le coin bas de sa photo) reste aussi dans l'écran
+          const yPiece = p.holder.position.y * F(p) + p.py, yMin = -h / 2 * (tall ? 0.8 : 0.95) + (p.reachS || 0) * F(p) * 0.85;
+          if (yPiece < yMin) p.py += yMin - yPiece;
         });
       }
       const k = 1 - Math.exp(-dt * 3);

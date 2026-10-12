@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>About — Fize</title>
-<link rel="stylesheet" href="site.css?v=480d13b8">
+<link rel="stylesheet" href="site.css?v=53f184ac">
   <meta name="description" content="Un atelier d&#x27;impression 3D à Paris 18e pour le spectacle, le cinéma, l&#x27;événementiel et les agences : conception, impression et finition.">
   <link rel="canonical" href="https://fize-lab.com/about.html">
   <meta property="og:type" content="website">
@@ -135,6 +135,7 @@
 
     <section>
       <p class="lead"><a href="index.html" style="color:inherit">Voir les réalisations →</a></p>
+      <div class="about-reseaux"><span class="label">Suivre l'atelier</span><div class="reseaux"><a class="reseau" href="https://www.instagram.com/3dprint_by_fize/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.3" cy="6.7" r="1.2" fill="currentColor"/></svg><span>Instagram</span><em>@3dprint_by_fize</em></a><a class="reseau" href="https://www.tiktok.com/@3dprint.by.fize" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h3c.3 2.2 1.7 3.6 4 3.8v3.1c-1.6 0-3-.5-4-1.2V15a6 6 0 1 1-6-6v3.2A2.8 2.8 0 1 0 14 15V3z" fill="currentColor"/></svg><span>TikTok</span><em>@3dprint.by.fize</em></a></div></div>
     </section>
     <footer class="site-foot">
     <span>Impression 3D by Fize — Paris 18e</span>
@@ -142,12 +143,11 @@
     <a href="confidentialite.html">Confidentialité</a>
     <a href="faq.html">FAQ</a>
     <a href="cgv.html">CGV</a>
-    <a href="index.html#psyche" class="psy-link">PSY</a>
     <span>Médiation de la consommation : [MÉDIATEUR À CHOISIR]</span>
   </footer>
   </main>
 
-<script>window.LOGO_CONFIG = { mode: 'fixed' };</script>
+<script>window.LOGO_CONFIG = { mode: 'fixed', frame: 0.8 };   // V3 : logo F-LAB large, en nuage de points</script>
 <script type="importmap">
 { "imports": {
   "three": "./vendor/three.module.min.js",
@@ -166,8 +166,8 @@
     // pièces en orbite (accueil) et modèle du logo en parallèle, puis le moteur ;
     // chargés en arrière-plan : la page (liste des projets…) s'affiche sans les attendre
     const need = [add('logo-data.js?v=486514b4')];
-    if (C.orbit) need.push(add(C.models ? C.models + '?v=f0f31e02' : 'models-home.js?v=8c2298e7'));
-    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=50fef460', true); });
+    if (C.orbit) need.push(add(C.models ? C.models + '?v=09fc2908' : 'models-home.js?v=8c2298e7'));
+    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=a97c5d73', true); });
   }
 })();
 </script>

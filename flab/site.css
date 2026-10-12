@@ -706,3 +706,75 @@ body.finitions main { padding: max(26vh, 190px) 32px 4vh; }
 .p-meta .p-logo img { height: 18px; width: auto; max-width: 120px; object-fit: contain; filter: brightness(0); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .p-meta .p-logo img { filter: brightness(0) invert(1); } }
 :root[data-theme="dark"] .p-meta .p-logo img { filter: brightness(0) invert(1); }
+.card-label img.cl.carre { height: 30px; }             /* logo carré (ex. MOTHAIBA) : plus haut, pour rester lisible */
+.p-meta .p-logo img.carre { height: 34px; }
+
+/* V3 : Finitions et FAQ — le logo en médaillon en bas à droite (comme sur les pages projets), pas seul au milieu */
+body.finitions #stage, body.faq #stage { position: fixed; right: 20px; bottom: 16px; width: 150px; height: 150px; z-index: 15; }
+@media (max-width: 800px) { body.finitions #stage, body.faq #stage { width: 96px; height: 96px; right: 8px; bottom: 8px; } }
+
+/* V3 : bandeau défilant sous la liste des projets (savoir-faire) */
+.bandeau { overflow: hidden; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin: 8vh 0 6vh; padding: 18px 0; }
+.bandeau-piste { display: flex; width: max-content; animation: bandeau 26s linear infinite; }
+.bandeau-piste > div { display: flex; align-items: center; flex-shrink: 0; }
+.bandeau span { font: 400 clamp(28px, 4vw, 64px)/1 "VG5000", "Helvetica Neue", Arial, sans-serif; letter-spacing: .01em; white-space: nowrap; padding: 0 .45em; }
+.bandeau i { font-style: normal; font-size: clamp(16px, 2vw, 30px); color: var(--mute); }
+.bandeau:hover .bandeau-piste { animation-play-state: paused; }
+@keyframes bandeau { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .bandeau-piste { animation: none; } }
+
+/* V3 : réseaux sociaux (About, Contact) */
+.reseaux { display: flex; flex-wrap: wrap; gap: 10px 26px; margin-top: 12px; }
+.reseau { display: inline-flex; align-items: center; gap: 9px; color: var(--ink); text-decoration: none; font-size: 15px; }
+.reseau svg { width: 22px; height: 22px; flex-shrink: 0; transition: transform .25s cubic-bezier(.2,.8,.2,1); }
+.reseau em { font-style: normal; color: var(--mute); font-size: 13px; }
+.reseau:hover svg { transform: translateY(-3px) rotate(-6deg); }
+.infos-reseaux, .about-reseaux { margin-top: 36px; }
+
+/* ═══ V3 — Propositions de mise en page des pages projets (pages justice-mise-a/b/c) ═══ */
+.mise-switch { position: fixed; left: 50%; bottom: 18px; translate: -50% 0; z-index: 40; display: flex; gap: 6px; align-items: center;
+  padding: 7px 10px; background: var(--ink); color: var(--bg); font: 500 10px/1 Menlo, monospace; letter-spacing: .1em; border-radius: 20px; }
+.mise-switch a { color: var(--bg); text-decoration: none; padding: 5px 9px; border-radius: 14px; opacity: .65; }
+.mise-switch a.on, .mise-switch a:hover { opacity: 1; background: color-mix(in srgb, var(--bg) 18%, transparent); }
+
+/* A — Éditorial : tout centré, une colonne de lecture, grande photo, les trois rubriques côte à côte */
+body.mise-a .p-head { max-width: 1000px; margin-left: auto; margin-right: auto; }
+body.mise-a .p-top { display: block; max-width: 1000px; margin: 0 auto; padding-bottom: 10vh; }
+body.mise-a .p-hero { width: 100%; height: 72vh; object-fit: cover; object-position: center; margin-bottom: 7vh; }
+body.mise-a .p-side { max-width: 1000px; }
+body.mise-a .p-intro { font-size: clamp(26px, 2.8vw, 42px); max-width: 30ch; margin: 0 auto 6vh; text-align: center; }
+body.mise-a .p-cols { grid-template-columns: repeat(3, 1fr); gap: 36px; }
+body.mise-a .p-cols p { max-width: none; }
+body.mise-a .p-gallery { max-width: 1000px; margin: 0 auto; grid-template-columns: 1fr 1fr; gap: 16px; }
+body.mise-a .p-gallery figure.wide { grid-column: 1 / -1; }
+
+/* B — Fil latéral : le texte reste à gauche pendant que les photos défilent à droite */
+body.mise-b main { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 0 64px; margin: 0 32px; }
+body.mise-b .p-top { display: contents; }
+body.mise-b .p-side { grid-column: 1; grid-row: 1 / span 3; position: sticky; top: 130px; align-self: start; padding-bottom: 8vh; }
+body.mise-b .p-hero { grid-column: 2; grid-row: 1; width: 100%; height: auto; max-height: none; object-fit: contain; margin-bottom: 14px; }
+body.mise-b .p-gallery { grid-column: 2; grid-row: 2; margin: 0; max-width: none; grid-template-columns: 1fr; gap: 14px; }
+body.mise-b .p-gallery img, body.mise-b .p-gallery figure.wide img { aspect-ratio: auto; object-fit: contain; }
+body.mise-b .p-gallery figure.wide { grid-column: auto; }
+body.mise-b .p-next { grid-column: 1 / -1; grid-row: 4; }
+
+/* C — Mosaïque : une grande phrase, puis une mosaïque de photos de tailles variées, le texte en bandeau */
+body.mise-c .p-top { display: block; margin: 0 32px; padding-bottom: 6vh; }
+body.mise-c .p-intro { font-size: clamp(32px, 4.4vw, 72px); max-width: 22ch; margin-bottom: 6vh; }
+body.mise-c .p-cols { grid-template-columns: repeat(3, 1fr); gap: 36px; border-top: 0; padding-top: 0; }
+body.mise-c .p-hero { width: 100%; height: 60vh; object-fit: cover; margin-bottom: 8vh; }
+body.mise-c .p-top { display: flex; flex-direction: column-reverse; }
+body.mise-c .p-gallery { grid-template-columns: repeat(6, 1fr); grid-auto-rows: 22vh; gap: 10px; max-width: none; }
+body.mise-c .p-gallery figure { grid-column: span 2; grid-row: span 1; position: relative; }
+body.mise-c .p-gallery figure:nth-child(4n + 1) { grid-column: span 4; grid-row: span 2; }
+body.mise-c .p-gallery figure:nth-child(4n + 2) { grid-row: span 2; }
+body.mise-c .p-gallery img, body.mise-c .p-gallery figure.wide img { width: 100%; height: 100%; aspect-ratio: auto; object-fit: cover; }
+body.mise-c .p-gallery figcaption { position: absolute; left: 10px; bottom: 8px; color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.6); font-size: 12px; }
+
+@media (max-width: 800px) {
+  body.mise-a .p-cols, body.mise-c .p-cols { grid-template-columns: 1fr; }
+  body.mise-b main { display: block; margin: 0 16px; } body.mise-b .p-side { position: static; }
+  body.mise-c .p-gallery { grid-template-columns: 1fr 1fr; grid-auto-rows: 30vw; }
+  body.mise-c .p-gallery figure:nth-child(4n + 1) { grid-column: span 2; }
+  .mise-switch { bottom: 10px; font-size: 9px; } .mise-switch a { padding: 4px 6px; }
+}
