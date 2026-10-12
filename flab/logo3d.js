@@ -489,7 +489,7 @@ if (CFG.orbit && window.LOGO_MODELS) {
     if (FOND_PHOTOS && prj?.cover && !flatPic) {
       card = new THREE.Group();
       const tex = new THREE.TextureLoader().load('img/' + prj.cover.replace(/\.(jpe?g|png)$/i, '-800.webp'), t => {
-        const r = t.image.width / t.image.height, w = 1.9, h = w / r;   // vignette de 1,9 de large (la pièce mesure ~2)
+        const r = t.image.width / t.image.height, w = 1.9 * (prj.vignette || 1), h = w / r;   // 1,9 de large (la pièce mesure ~2) ; « vignette » : agrandie
         photo.scale.set(w, h, 1);
       });
       tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
@@ -503,7 +503,7 @@ if (CFG.orbit && window.LOGO_MODELS) {
           gl_FragColor.rgb *= mix(1.0, 0.68 + 0.32 * scan, uGrey);`); };
       const kS = pm.customProgramCacheKey.bind(pm); pm.customProgramCacheKey = () => kS() + ':scan';
       const photo = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), pm);
-      photo.scale.set(1.9, 1.4, 1);
+      photo.scale.set(1.9 * (prj.vignette || 1), 1.4 * (prj.vignette || 1), 1);
       card.add(photo);
       card.position.set(i % 2 ? -0.45 : 0.45, 0.3, -1.25);       // derrière la pièce, un peu décalée
       card.rotation.z = (i % 2 ? 1 : -1) * 0.07;
@@ -586,6 +586,13 @@ function showTip(pr, place) {
 // souris : survol
 addEventListener('pointermove', e => {
   if (!pieces.length || e.pointerType !== 'mouse') return;
+  // V3 : l'étiquette apparue reste accessible — la souris peut y aller (et s'en approcher) sans la faire disparaître
+  if (labelPiece && cardLabel.classList.contains('on')) {
+    const lr = cardLabel.getBoundingClientRect(), m = 14;
+    if (e.clientX > lr.left - m && e.clientX < lr.right + m && e.clientY > lr.top - m && e.clientY < lr.bottom + m) {
+      hovered = labelPiece; document.body.style.cursor = 'pointer'; return;
+    }
+  }
   const hit = pick(e.clientX, e.clientY, e.target);
   const pr = hit && projectOf(hit.slug);
   hovered = hit;                                  // grossit au survol, même sans projet lié
@@ -795,7 +802,7 @@ function tick() {
       const persp = (orbitCam.position.z - z) / orbitCam.position.z;
       const pr = projectOf(p.slug);
       const s = size * (star ? 1.5 : 1) * (pr?.orbit_scale || 1) * (CFG.orbitScale || 1);   // orbit_scale : projects.json
-      const eff = FOND_PHOTOS && p.card ? 1.5 : p.radius;              // avec sa vignette, la pièce prend plus de place
+      const eff = FOND_PHOTOS && p.card ? 1.5 * Math.sqrt(pr?.vignette || 1) : p.radius;   // avec sa vignette, la pièce prend plus de place
       const reach = s * eff * Math.max(p.grow, FOND_PHOTOS ? 1.12 : 1.3);   // rayon à l'écran, y compris agrandie au survol
       p.reachS = s * eff * p.grow;
       const hw = w / 2 * persp, hh = h / 2 * persp;               // demi-largeur / demi-hauteur visibles à cette profondeur
