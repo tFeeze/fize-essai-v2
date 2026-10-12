@@ -689,3 +689,14 @@ body.finitions main { padding: max(26vh, 190px) 32px 4vh; }
 .yt-play { position: absolute; left: 50%; top: 50%; width: 76px; height: 54px; margin: -27px 0 0 -38px; border-radius: 14px; background: rgba(0,0,0,.72); transition: background .2s, transform .2s; }
 .yt-play::after { content: ""; position: absolute; left: 31px; top: 16px; border-style: solid; border-width: 11px 0 11px 19px; border-color: transparent transparent transparent #fff; }
 .p-video a.yt:hover .yt-play, .p-video a.yt:focus-visible .yt-play { background: #e21836; transform: scale(1.06); }
+
+/* V3 : pages projets — images plus petites (photo principale, galerie en 3 colonnes, vidéo plus étroite) */
+.p-hero { height: 48vh; }
+.p-gallery { grid-template-columns: repeat(3, 1fr); max-width: 1180px; gap: 10px; }
+.p-gallery figure.wide { grid-column: span 2; }
+.p-gallery figure.p-video { grid-column: 1 / -1; max-width: 560px; }
+@media (max-width: 800px) {
+  .p-hero { height: 34vh; }
+  .p-gallery { grid-template-columns: 1fr 1fr; }
+  .p-gallery figure.wide { grid-column: 1 / -1; }
+}
