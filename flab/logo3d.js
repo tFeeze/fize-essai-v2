@@ -144,6 +144,7 @@ if (FLAT) {
 // sans les emporter. Même éclairage que le logo, même cadrage que l'ouverture.
 // orbit: 'stage' → les pièces restent dans le cadre du logo (page Contact, où le cadre ne bouge pas)
 const IN_STAGE = CFG.orbit === 'stage';
+const PAD = 0.18;                                   // V3 : marge floutée autour des vignettes photos (part de leur taille)
 // ESSAI V3 : vignettes photos derrière les pièces de l'accueil (sélecteur « Photos » ; choix gardé dans le navigateur)
 let FOND_PHOTOS = false; try { FOND_PHOTOS = document.body.classList.contains('work') && localStorage.getItem('fize-fond') === 'photos'; } catch (e) {}
 // ESSAI « studio » (inspiration Wide Angle Studio) : pièces en couleur franche, matière laiteuse, contre-jour
@@ -493,9 +494,27 @@ if (CFG.orbit && window.LOGO_MODELS) {
     if (FOND_PHOTOS && vImg && !flatPic) {
       card = new THREE.Group();
       const tex = new THREE.TextureLoader().load('img/' + vImg.replace(/\.(jpe?g|png)$/i, '-800.webp'), t => {
-        const r = t.image.width / t.image.height, w = 1.9 * (prj.vignette || 1), h = w / r;   // 1,9 de large (la pièce mesure ~2) ; « vignette » : agrandie
-        photo.scale.set(w, h, 1);
-        cardR = Math.hypot(w / 2 + 0.45, h / 2 + 0.3) * 0.8;    // rayon réel (vignette décalée comprise), pour l'écartement
+        // la photo est prolongée sur ses quatre côtés par une version floutée d'elle-même (remplissage sans IA) :
+        // l'effet nuage se fond dans ce flou, on ne voit jamais le bord droit de l'image, et on ne la recadre pas
+        const img = t.image, iw = img.width, ih = img.height, px = Math.round(iw * PAD), py = Math.round(ih * PAD);
+        const c = document.createElement('canvas'); c.width = iw + 2 * px; c.height = ih + 2 * py;
+        const g = c.getContext('2d'); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+        // flou « maison », compatible avec tous les navigateurs : image réduite très petite puis ré-agrandie
+        const petit = (src, sw, sh, k) => { const p = document.createElement('canvas'); p.width = Math.max(2, Math.round(sw * k)); p.height = Math.max(2, Math.round(sh * k));
+          const pg = p.getContext('2d'); pg.imageSmoothingQuality = 'high'; pg.drawImage(src, 0, 0, p.width, p.height); return p; };
+        g.drawImage(petit(img, iw, ih, 0.03), -px * 0.35, -py * 0.35, c.width + px * 0.7, c.height + py * 0.7);   // fond : la photo étirée, très floue
+        g.drawImage(petit(img, iw, ih, 0.06), px - iw * 0.05, py - ih * 0.05, iw * 1.1, ih * 1.1);              // raccord : floue, à sa place
+        // la photo nette, avec des bords adoucis (masque : rectangle rentré, flouté de la même façon)
+        const m = document.createElement('canvas'); m.width = iw; m.height = ih; const mg = m.getContext('2d');
+        const mk = document.createElement('canvas'); mk.width = 40; mk.height = Math.max(4, Math.round(40 * ih / iw));
+        const kg = mk.getContext('2d'); kg.fillStyle = '#000'; kg.fillRect(mk.width * 0.1, mk.height * 0.1, mk.width * 0.8, mk.height * 0.8);
+        mg.imageSmoothingQuality = 'high'; mg.drawImage(mk, 0, 0, iw, ih);
+        mg.globalCompositeOperation = 'source-in'; mg.drawImage(img, 0, 0);
+        g.drawImage(m, px, py);
+        t.image = c; t.needsUpdate = true;
+        const r = iw / ih, w = 1.9 * (prj.vignette || 1), h = w / r;   // taille de la photo : 1,9 de large (la pièce ~2) ; « vignette » : agrandie
+        photo.scale.set(w * (1 + 2 * PAD), h * (1 + 2 * PAD), 1);      // le plan porte aussi la marge floutée
+        cardR = Math.hypot(w / 2 + 0.45, h / 2 + 0.3) * 0.8;          // rayon réel (vignette décalée comprise), pour l'écartement
       });
       tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
       const pm = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false, transparent: true, depthWrite: false });
@@ -509,15 +528,15 @@ if (CFG.orbit && window.LOGO_MODELS) {
             #define H2(p) fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453)
             #define VN(p) mix(mix(H2(floor(p)), H2(floor(p) + vec2(1, 0)), smoothstep(0., 1., fract(p).x)), mix(H2(floor(p) + vec2(0, 1)), H2(floor(p) + vec2(1, 1)), smoothstep(0., 1., fract(p).x)), smoothstep(0., 1., fract(p).y))
             float hov = 1.0 - uGrey;                                   // 0 au repos, 1 au survol
-            float t = uTime * (0.12 + 0.55 * hov);
+            float t = uTime * (0.1 + 0.1 * hov);                       // dérive lente ; au survol à peine plus vive
             vec2 q = vMapUv * 1.8 + ${graine.toFixed(2)};
             vec2 w = vec2(VN(q + vec2(t, 0.0)), VN(q + vec2(5.2, 1.3 - t))) - 0.5;   // déformation : volutes
             q += w * 1.6;
             float n = 0.0, a = 0.5;
             for (int o = 0; o < 4; o++) { n += a * VN(q + vec2(t * 0.7, -t * 0.5)); q *= 2.03; a *= 0.5; }
             float d = min(min(vMapUv.x, 1.0 - vMapUv.x), min(vMapUv.y, 1.0 - vMapUv.y));   // distance au bord
-            float edge = d * (1.0 + 0.3 * hov) - 0.42 * (n - 0.38) + 0.05 * hov;
-            diffuseColor.a *= smoothstep(0.02, 0.16, edge);
+            float edge = d * (1.0 + 0.08 * hov) - 0.42 * (n - 0.38) + 0.015 * hov;
+            diffuseColor.a *= smoothstep(0.03, 0.2, edge);
           }
           #include <opaque_fragment>`);
       };
@@ -584,7 +603,8 @@ const _lab = new THREE.Vector3();
 function placeLabel() {
   if (!labelPiece) return;
   const ph = labelPiece.card.children[0];
-  _lab.set(-0.5, -0.5, 0); ph.localToWorld(_lab); _lab.project(orbitCam);              // coin bas gauche de la photo
+  const pc = 0.5 - PAD / (1 + 2 * PAD);                // coin de la photo dans le plan (hors marge floutée)
+  _lab.set(-pc, -pc, 0); ph.localToWorld(_lab); _lab.project(orbitCam);              // coin bas gauche de la photo
   let cx = _lab.x / 2, cy = _lab.y / 2;
   if (wideOn()) {                                     // grand angle (téléphone) : même déformation que l'image
     const K = wide.mat.uniforms.uK.value + psy * 0.75, qx = cx, qy = cy;
