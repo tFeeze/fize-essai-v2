@@ -554,6 +554,8 @@ function cardFor(pr, p) {
   cardLabel.classList.remove('on'); void cardLabel.offsetWidth; cardLabel.classList.add('on');   // relance l'animation
 }
 const _lab = new THREE.Vector3();
+const souris = { x: -1, y: -1 };                     // dernière position de la souris (étiquette survolée ?)
+addEventListener('pointermove', e => { souris.x = e.clientX; souris.y = e.clientY; }, { passive: true });
 function placeLabel() {
   if (!labelPiece) return;
   const ph = labelPiece.card.children[0];
@@ -565,6 +567,9 @@ function placeLabel() {
   }
   const rot = -(labelPiece.card.rotation.z + labelPiece.holder.rotation.z) * 180 / Math.PI;
   cardLabel.style.transform = `translate(${((cx + 0.5) * innerWidth).toFixed(1)}px, ${((0.5 - cy) * innerHeight).toFixed(1)}px) rotate(${rot.toFixed(2)}deg)`;
+  // la souris précisément sur l'étiquette (elle lévite : on teste à chaque image) → elle grossit un peu
+  const lr = cardLabel.getBoundingClientRect();
+  cardLabel.classList.toggle('over', souris.x >= lr.left && souris.x <= lr.right && souris.y >= lr.top && souris.y <= lr.bottom);
 }
 function showTip(pr, place) {
   if (FOND_PHOTOS) {
