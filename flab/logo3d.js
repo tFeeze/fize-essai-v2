@@ -639,8 +639,8 @@ addEventListener('scroll', () => {
 // emplacements autour du logo, en fraction de la zone visible (x, y) — écran large puis écran en hauteur
 // profondeur de chaque pièce (unités du logo, qui mesure 1) : devant / derrière le logo, pour étager la scène
 const DEPTHS = [0.55, -0.9, 0.25, -0.45, 0.8, -1.3, -0.2, 0.4];
-const SLOTS_WIDE = [[-0.58, 0.36], [0.6, 0.44], [-0.66, -0.4], [0.56, -0.46], [-0.08, -0.78], [0.2, 0.78], [-0.38, -0.74], [0.34, -0.76]];
-const SLOTS_TALL = [[-0.48, 0.62], [0.5, 0.6], [-0.78, 0.02], [0.78, -0.02], [-0.48, -0.62], [0.5, -0.64]];   // téléphone : 6 pièces (2 au-dessus, 2 de côté, 2 en dessous)
+const SLOTS_WIDE = [[-0.58, 0.36], [0.6, 0.44], [-0.66, -0.4], [0.56, -0.46], [-0.08, -0.78], [0.04, 0.78], [-0.38, -0.74], [0.34, -0.76]];   // V3 : 6e (kit rose) recentré
+const SLOTS_TALL = [[-0.48, 0.62], [0.5, 0.6], [-0.78, 0.02], [0.78, -0.02], [-0.48, -0.62], [0.32, -0.64]];   // téléphone : 6 pièces (2 au-dessus, 2 de côté, 2 en dessous)
 
 // ── Cadrage (dans la colonne gauche) ───────────────────
 let rw = 0, rh = 0, camZ = 5;
