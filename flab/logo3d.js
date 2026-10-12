@@ -498,7 +498,24 @@ if (CFG.orbit && window.LOGO_MODELS) {
         cardR = Math.hypot(w / 2 + 0.45, h / 2 + 0.3) * 0.8;    // rayon réel (vignette décalée comprise), pour l'écartement
       });
       tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
-      const pm = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false });
+      const pm = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false, transparent: true, depthWrite: false });
+      // bords « en nuage » : la photo se fond dans la page par un bord irrégulier (bruit), différent pour chaque vignette
+      const graine = (i * 7.31) % 10;
+      pm.onBeforeCompile = sh => {
+        sh.fragmentShader = sh.fragmentShader.replace('#include <opaque_fragment>', `
+          {
+            vec2 q = vMapUv * 3.5 + ${graine.toFixed(2)};
+            vec2 i0 = floor(q), f = fract(q); f = f * f * (3.0 - 2.0 * f);
+            #define H2(p) fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453)
+            float n = mix(mix(H2(i0), H2(i0 + vec2(1, 0)), f.x), mix(H2(i0 + vec2(0, 1)), H2(i0 + vec2(1, 1)), f.x), f.y);
+            vec2 q2 = q * 2.3; vec2 j0 = floor(q2), g = fract(q2); g = g * g * (3.0 - 2.0 * g);
+            n = n * 0.65 + 0.35 * mix(mix(H2(j0), H2(j0 + vec2(1, 0)), g.x), mix(H2(j0 + vec2(0, 1)), H2(j0 + vec2(1, 1)), g.x), g.y);
+            float d = min(min(vMapUv.x, 1.0 - vMapUv.x), min(vMapUv.y, 1.0 - vMapUv.y));   // distance au bord
+            diffuseColor.a *= smoothstep(0.0, 0.16 + 0.12 * n, d - 0.05 * n);
+          }
+          #include <opaque_fragment>`);
+      };
+      pm.customProgramCacheKey = () => 'nuage' + graine.toFixed(2);   // un programme par vignette (bruit différent)
       if (m.matiere) greyable(pm, grey);
       // lignes de balayage (écran cathodique) au repos ; elles s'effacent avec le gris au survol
       const prevS = pm.onBeforeCompile;
