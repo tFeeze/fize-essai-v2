@@ -486,9 +486,10 @@ if (CFG.orbit && window.LOGO_MODELS) {
     // ESSAI (V3, sélecteur « Photos » de l'accueil) : vignette photo du projet derrière la pièce, accrochée à
     // elle (elle lévite et suit la souris avec elle, sans tourner sur elle-même) ; grisée avec la pièce au repos
     let card = null;
-    if (FOND_PHOTOS && prj?.cover && !flatPic) {
+    const vImg = prj?.vignette_image || prj?.cover;            // projects.json « vignette_image » : photo dédiée à l'accueil
+    if (FOND_PHOTOS && vImg && !flatPic) {
       card = new THREE.Group();
-      const tex = new THREE.TextureLoader().load('img/' + prj.cover.replace(/\.(jpe?g|png)$/i, '-800.webp'), t => {
+      const tex = new THREE.TextureLoader().load('img/' + vImg.replace(/\.(jpe?g|png)$/i, '-800.webp'), t => {
         const r = t.image.width / t.image.height, w = 1.9 * (prj.vignette || 1), h = w / r;   // 1,9 de large (la pièce mesure ~2) ; « vignette » : agrandie
         photo.scale.set(w, h, 1);
       });
