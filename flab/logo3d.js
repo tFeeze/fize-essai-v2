@@ -528,7 +528,8 @@ if (CFG.orbit && window.LOGO_MODELS) {
         t.image = c; t.needsUpdate = true;
         const r = iw / ih, w = 1.9 * (prj.vignette || 1), h = w / r;   // taille de la photo : 1,9 de large (la pièce ~2) ; « vignette » : agrandie
         photo.scale.set(w * (1 + 2 * PAD), h * (1 + 2 * PAD), 1);      // le plan porte aussi la marge floutée
-        cardR = Math.hypot(w / 2 + 0.45, h / 2 + 0.3) * 0.8;          // rayon réel (vignette décalée comprise), pour l'écartement
+        card.userData.w = w; card.userData.h = h;                     // taille de la photo (pour placer la pièce dans son coin)
+        cardR = (Math.hypot(0.36 * w, 0.34 * h) + 0.5 * Math.hypot(w, h)) * 0.72;   // rayon réel (vignette décalée comprise), pour l'écartement
       });
       tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
       const pm = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false, transparent: true, depthWrite: false });
@@ -922,20 +923,25 @@ function tick() {
     if (!IN_STAGE && gone < 0.05) {
       const camz = orbitCam.position.z, vis = pieces.filter((p, i) => p.holder.visible && i < slots.length);
       const F = p => camz / (camz - p.holder.position.z);
-      const R = p => (p.reachS || 0) * F(p) * 1.04;
+      // centre et rayon de ce qui occupe l'écran : la photo (décalée au-dessus de la pièce) ou la pièce seule
+      const OX = p => (FOND_PHOTOS && p.card ? p.card.position.x * p.holder.scale.x : 0), OY = p => (FOND_PHOTOS && p.card ? p.card.position.y * p.holder.scale.y : 0);
+      const CX = p => (p.holder.position.x + OX(p)) * F(p), CY = p => (p.holder.position.y + OY(p)) * F(p);
+      const R = p => (FOND_PHOTOS && p.card && p.card.userData.w
+        ? Math.max(0.5 * Math.hypot(p.card.userData.w, p.card.userData.h) * p.card.scale.x * p.holder.scale.x * 0.92, p.reachS ? p.reachS / 1.5 : 0)
+        : (p.reachS || 0)) * F(p) * 1.04;
       const fr = CFG.frame || 0.42, lw = fr * Math.min(innerWidth, innerHeight) / innerHeight * h;   // largeur du logo (plan z = 0)
       const LHW = lw / 2, LHH = lw * LOGO_AR / 2 + h * 0.09;   // + la ligne d'accroche, avec de l'air                              // + la ligne d'accroche
       vis.forEach(p => { p.px = 0; p.py = 0; });
       for (let it = 0; it < 4; it++) {
         for (let a = 0; a < vis.length; a++) for (let b = a + 1; b < vis.length; b++) {
           const A = vis[a], B = vis[b];
-          const dx = (B.holder.position.x * F(B) + B.px) - (A.holder.position.x * F(A) + A.px);
-          const dy = (B.holder.position.y * F(B) + B.py) - (A.holder.position.y * F(A) + A.py);
+          const dx = (CX(B) + B.px) - (CX(A) + A.px);
+          const dy = (CY(B) + B.py) - (CY(A) + A.py);
           const d = Math.hypot(dx, dy) || 1e-3, m = R(A) + R(B) - d;
           if (m > 0) { const ux = dx / d, uy = dy / d; A.px -= ux * m / 2; A.py -= uy * m / 2; B.px += ux * m / 2; B.py += uy * m / 2; }
         }
         vis.forEach(p => {
-          const x = p.holder.position.x * F(p) + p.px, y = p.holder.position.y * F(p) + p.py, r = R(p);
+          const x = CX(p) + p.px, y = CY(p) + p.py, r = R(p);
           const lx = LHW + r, ly = LHH + r;
           if (Math.abs(x) < lx && Math.abs(y) < ly) {
             const ex = lx - Math.abs(x), ey = ly - Math.abs(y);
@@ -943,8 +949,8 @@ function tick() {
           }
           // et toujours dans l'écran
           const mx = w / 2 * 0.97 - r, my = h / 2 * (tall ? 0.8 : 0.97) - r;
-          const nx = Math.max(-mx, Math.min(mx, p.holder.position.x * F(p) + p.px)), ny = Math.max(-my, Math.min(my, p.holder.position.y * F(p) + p.py));
-          p.px = nx - p.holder.position.x * F(p); p.py = ny - p.holder.position.y * F(p);
+          const nx = Math.max(-mx, Math.min(mx, CX(p) + p.px)), ny = Math.max(-my, Math.min(my, CY(p) + p.py));
+          p.px = nx - CX(p); p.py = ny - CY(p);
         });
       }
       const k = 1 - Math.exp(-dt * 3);
@@ -964,9 +970,12 @@ function tick() {
     // la vignette se décale du côté opposé au logo (jamais vers lui) : à gauche pour les pièces de gauche,
     // en bas pour celles du bas…
     const sx = Math.sign(p.holder.position.x) || 1, sy = Math.sign(p.holder.position.y) || 1;
-    const o = orbitCam.aspect < 1 ? 0.25 : 1;          // téléphone : la vignette reste collée à sa pièce (sinon elle sort de l'écran)
-    p.card.scale.setScalar(orbitCam.aspect < 1 ? 0.68 : 1);   // téléphone : vignettes plus petites (6 pièces sur un écran étroit)
-    p.card.position.x += (sx * 0.45 * o - p.card.position.x) * 0.1; p.card.position.y += (sy * 0.3 * o - p.card.position.y) * 0.1; });
+    const k = orbitCam.aspect < 1 ? 0.68 : 1;          // téléphone : vignettes plus petites
+    p.card.scale.setScalar(k);
+    // la pièce se pose dans un coin inférieur de sa photo : la photo part vers le haut, et vers l'extérieur
+    // (pièce à gauche du logo → photo à sa gauche, la pièce dans le coin bas droit ; et inversement)
+    const cw = (p.card.userData.w || 1.9) * k, ch = (p.card.userData.h || 1.4) * k;
+    p.card.position.x += (sx * 0.36 * cw - p.card.position.x) * 0.1; p.card.position.y += (0.34 * ch - p.card.position.y) * 0.1; });
   if (labelPiece) { if (labelPiece !== hovered || orbitShown < 0.6) cardFor(null); else placeLabel(); }
   if (warp.mode) {                                  // transition en cours
     if (warp.mode !== 'hold') warp.k = Math.min(1, (performance.now() - warp.t0) / warp.dur);
