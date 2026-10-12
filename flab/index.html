@@ -208,11 +208,11 @@
     const off = -(lr.left + el.offsetWidth * 0.75) + 'px';
     // animée par translate (composité par la carte graphique) et non par left (qui recalcule la mise en page)
     const at = x => (typeof x === 'number' ? x + 'px' : x) + ' 0px';
+    // V3 : un seul ralentissement, progressif — elle traverse le titre lancée puis décélère en douceur (pas de freinage sec)
     el.anim = el.animate(still ? [{ opacity: 0 }, { opacity: 1 }] : [
-      { translate: at(off), easing: 'cubic-bezier(.22,.55,.35,1)' },                 // l'inclinaison vient du CSS (--rot)
-      { translate: at(end), offset: 0.13, easing: 'cubic-bezier(.3,0,.5,1)' },        // ~0,8 s : titre traversé, elle freine
-      { translate: at(Math.min(span * 0.92, end + span * 0.12)) },                   // puis glisse tout doucement
-    ], { duration: still ? 200 : 6000, easing: 'linear', fill: 'forwards' });
+      { translate: at(off) },                                                        // l'inclinaison vient du CSS (--rot)
+      { translate: at(Math.min(span * 0.9, end + span * 0.22)) },
+    ], { duration: still ? 200 : 5200, easing: 'cubic-bezier(.12,.62,.24,1)', fill: 'forwards' });
     li.flyer = el;
   }
   function flyOut(li) {
