@@ -112,7 +112,7 @@ pivot.add(obj);
 // V3 — page About : le logo en nuage de points, comme vu par une Kinect (caméra de profondeur) : seules les faces
 // tournées vers la caméra sont relevées, les points tremblent légèrement, une ligne de balayage les parcourt,
 // et leur teinte dit la profondeur. Il suit la souris comme le logo chrome.
-const KINECT = document.body.classList.contains('about') && !FLAT;
+const KINECT = false;   // V3 : essai « Kinect » sur About retiré (logo chrome normal) — passer à document.body.classList.contains('about') pour le rétablir
 const KU = { uT: { value: 0 }, uPx: { value: Math.min(devicePixelRatio, 2) } };
 if (KINECT) {
   const pts = [];

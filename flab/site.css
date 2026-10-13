@@ -780,3 +780,9 @@ body.mise-c .p-gallery figcaption { position: absolute; left: 10px; bottom: 8px;
 }
 .home-reseaux { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 14px 28px; margin: 0 32px 6vh; }
 .home-reseaux .reseaux { margin-top: 0; }
+/* V3 : bandeau collé à la liste (plus de grand vide), et plus large */
+body.work .rows { margin-bottom: 0; }
+.bandeau { margin: 5vh 0 6vh; padding: 30px 0; }
+.bandeau span { font-size: clamp(42px, 6.5vw, 112px); }
+.bandeau i { font-size: clamp(22px, 3vw, 48px); }
+.reseau.sans-lien { cursor: default; }
