@@ -719,7 +719,6 @@ body.finitions #stage, body.faq #stage { position: fixed; right: 20px; bottom: 1
 .bandeau-piste > div { display: flex; align-items: center; flex-shrink: 0; }
 .bandeau span { font: 400 clamp(28px, 4vw, 64px)/1 "VG5000", "Helvetica Neue", Arial, sans-serif; letter-spacing: .01em; white-space: nowrap; padding: 0 .45em; }
 .bandeau i { font-style: normal; font-size: clamp(16px, 2vw, 30px); color: var(--mute); }
-.bandeau:hover .bandeau-piste { animation-play-state: paused; }
 @keyframes bandeau { to { transform: translateX(-50%); } }
 @media (prefers-reduced-motion: reduce) { .bandeau-piste { animation: none; } }
 
