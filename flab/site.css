@@ -778,3 +778,5 @@ body.mise-c .p-gallery figcaption { position: absolute; left: 10px; bottom: 8px;
   body.mise-c .p-gallery figure:nth-child(4n + 1) { grid-column: span 2; }
   .mise-switch { bottom: 10px; font-size: 9px; } .mise-switch a { padding: 4px 6px; }
 }
+.home-reseaux { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 14px 28px; margin: 0 32px 6vh; }
+.home-reseaux .reseaux { margin-top: 0; }
