@@ -996,7 +996,7 @@ function tick() {
       const persp = (orbitCam.position.z - z) / orbitCam.position.z;
       const pr = projectOf(p.slug);
       const s = size * (star ? 1.5 : 1) * (pr?.orbit_scale || 1) * (CFG.orbitScale || 1);   // orbit_scale : projects.json
-      const eff = FOND_PHOTOS && p.card ? Math.max(tall ? 1.1 : 1.5, (p.cardR || 1.5 * Math.sqrt(pr?.vignette || 1)) * (tall ? 0.68 : 1)) : p.radius;   // avec sa vignette (taille réelle)
+      const eff = FOND_PHOTOS && p.card ? Math.max(tall ? 1.1 : 1.5, (p.cardR || 1.5 * Math.sqrt(pr?.vignette || 1)) * (tall ? (p.cs || 0.88) : 1)) : p.radius;   // avec sa vignette (taille réelle)
       const reach = s * eff * Math.max(p.grow, FOND_PHOTOS ? 1.12 : 1.3);   // rayon à l'écran, y compris agrandie au survol
       p.reachS = s * eff * p.grow;
       const hw = w / 2 * persp, hh = h / 2 * persp;               // demi-largeur / demi-hauteur visibles à cette profondeur
@@ -1099,8 +1099,10 @@ function tick() {
     // la vignette se décale du côté opposé au logo (jamais vers lui) : à gauche pour les pièces de gauche,
     // en bas pour celles du bas…
     const sx = Math.sign(p.holder.position.x) || 1, sy = Math.sign(p.holder.position.y) || 1;
-    const k = orbitCam.aspect < 1 ? 0.68 : 1;          // téléphone : vignettes plus petites
-    p.card.scale.setScalar(k);
+    // téléphone : vignettes un peu réduites (4 pièces sur un écran étroit) ; touchée (sélectionnée), elle s'agrandit
+    const tel = orbitCam.aspect < 1, kv = (tel ? 0.88 : 1) * (tel && p === hovered ? 1.45 : 1);
+    p.cs = (p.cs ?? kv) + (kv - (p.cs ?? kv)) * 0.12;
+    const k = p.cs; p.card.scale.setScalar(k);
     // la pièce se pose dans un coin inférieur de sa photo : la photo part vers le haut, et vers l'extérieur
     // (pièce à gauche du logo → photo à sa gauche, la pièce dans le coin bas droit ; et inversement)
     const cw = (p.card.userData.w || 1.9) * k, ch = (p.card.userData.h || 1.4) * k;
