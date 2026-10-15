@@ -1169,6 +1169,12 @@ function tick() {
           // la pièce elle-même (dans le coin bas de sa photo) reste aussi dans l'écran
           const yPiece = p.holder.position.y * F(p) + p.py, yMin = -h / 2 * (tall ? 0.8 : 0.95) + (p.reachS || 0) * F(p) * 0.85;
           if (yPiece < yMin) p.py += yMin - yPiece;
+          // bloquée par le bord de l'écran, elle mord encore sur le logo : on l'écarte sur le côté
+          const x2 = CX(p) + p.px, y2 = CY(p) + p.py;
+          if (Math.abs(x2) < lx && Math.abs(y2) < ly) {
+            const nx2 = Math.sign(x2 || 1) * Math.min(lx, mx);
+            p.px = nx2 - CX(p);
+          }
         });
       }
       const k = 1 - Math.exp(-dt * 3);
