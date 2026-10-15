@@ -386,6 +386,25 @@ function greyable(mat, u) {
   const key = mat.customProgramCacheKey?.bind(mat);
   mat.customProgramCacheKey = () => (key ? key() : '') + ':gris';
 }
+// V3 : au survol, la pièce devient « verre » (modes avec une photo derrière) : transparente au centre, bords
+// éclairés (effet Fresnel) — on voit la photo à travers. u : uniforme de gris (1 repos → 0 survol).
+function verre(mat, u) {
+  mat.transparent = true;
+  const prev = mat.onBeforeCompile;
+  mat.onBeforeCompile = (sh, r) => {
+    prev?.call(mat, sh, r);
+    sh.uniforms.uVerre = u;
+    sh.fragmentShader = 'uniform float uVerre;\n' + sh.fragmentShader.replace('#include <dithering_fragment>', `#include <dithering_fragment>
+      {
+        float hv = 1.0 - uVerre;
+        float fr = pow(1.0 - abs(dot(normal, normalize(vViewPosition))), 2.2);
+        gl_FragColor.rgb = mix(gl_FragColor.rgb, gl_FragColor.rgb * 0.75 + vec3(0.55) * fr + vec3(0.08), hv);
+        gl_FragColor.a *= mix(1.0, 0.24 + 0.76 * fr, hv);
+      }`);
+  };
+  const key = mat.customProgramCacheKey?.bind(mat);
+  mat.customProgramCacheKey = () => (key ? key() : '') + ':verre';
+}
 function filament(geo, color, u) {
   const src = geo.attributes.position, n = Math.min(1600, src.count), step = src.count / n;
   const target = new Float32Array(n * 3), dir = new Float32Array(n * 3), seed = new Float32Array(n);
@@ -527,6 +546,7 @@ if (CFG.orbit && window.LOGO_MODELS) {
     }
     const grey = { value: 1 };
     if (m.matiere) greyable(mat, grey);
+    if (m.matiere && (FOND_GRILLE || FOND_PHOTOS)) verre(mat, grey);
     if (m.interieur) {                    // ce qu'on voit à travers la pièce (ex. la carte dans le boîtier transparent)
       const d = m.interieur, ig = new THREE.BufferGeometry();
       ig.setAttribute('position', new THREE.Float32BufferAttribute(Float32Array.from(new Int16Array(bytes(d.pos)), v => v / 32767 * m.scale), 3));
