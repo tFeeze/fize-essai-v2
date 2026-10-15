@@ -201,7 +201,7 @@ body.contact main { position: relative; z-index: 2; width: 62vw; padding: 24vh 0
 /* ═══ Page projet ══════════════════════════════════════ */
 body.projet #stage { position: fixed; right: 20px; bottom: 16px; width: 150px; height: 150px; z-index: 15; }
 .back {
-  position: fixed; right: 32px; top: 30px; z-index: 20; color: var(--ink); text-decoration: none;
+  position: fixed; right: 32px; top: 64px; z-index: 20; color: var(--ink); text-decoration: none;   /* sous les pictos réseaux */
   font: 500 11px/1 "Helvetica Neue", Arial, sans-serif; letter-spacing: .16em; text-transform: uppercase;
 }
 .back:hover { opacity: .6; }
@@ -664,11 +664,11 @@ body.finitions main { padding: max(26vh, 190px) 32px 4vh; }
 }
 
 /* ═══ ESSAI (V3) : vignettes photos derrière les pièces de l'accueil (sélecteur « Photos » en haut à droite) ═══ */
-.fond-switch { position: fixed; right: 32px; top: 30px; z-index: 30; font: 500 11px/1 Menlo, monospace; letter-spacing: .12em; color: var(--mute); }
+.fond-switch { position: fixed; right: 32px; top: 64px; z-index: 30; font: 500 11px/1 Menlo, monospace; letter-spacing: .12em; color: var(--mute); }
 .fond-switch button { all: unset; cursor: pointer; padding: 2px 3px; color: var(--mute); }
 .fond-switch button.on { color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
 .fond-switch button:focus-visible { outline: 1px solid var(--ink); }
-@media (max-width: 800px) { .fond-switch { top: 64px; right: 16px; } }
+@media (max-width: 800px) { .fond-switch { top: 56px; right: 16px; } }
 
 /* V3, mode Photos : étiquette collée sous la vignette survolée (nom + lien), qui se déroule de gauche à droite */
 .card-label { position: fixed; left: 0; top: 0; z-index: 16; transform-origin: 0 0; display: flex; flex-direction: column; gap: 3px;
@@ -802,3 +802,10 @@ html { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//ww
 body { background: transparent; }
 html:has(body.contact) { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22160%22%20height%3D%22160%22%3E%3Cpath%20d%3D%22M32.5%200V160M0%2032.5H160%22%20stroke%3D%22%23fff%22%20stroke-opacity%3D%22.017%22%20stroke-width%3D%221%22/%3E%3Cpath%20d%3D%22M64.5%200V160M0%2064.5H160%22%20stroke%3D%22%23fff%22%20stroke-opacity%3D%22.017%22%20stroke-width%3D%221%22/%3E%3Cpath%20d%3D%22M96.5%200V160M0%2096.5H160%22%20stroke%3D%22%23fff%22%20stroke-opacity%3D%22.017%22%20stroke-width%3D%221%22/%3E%3Cpath%20d%3D%22M128.5%200V160M0%20128.5H160%22%20stroke%3D%22%23fff%22%20stroke-opacity%3D%22.017%22%20stroke-width%3D%221%22/%3E%3Cpath%20d%3D%22M.5%200V160M0%20.5H160%22%20stroke%3D%22%23fff%22%20stroke-opacity%3D%22.034%22%20stroke-width%3D%221%22/%3E%3Cpath%20d%3D%22M.5%20-5V6M-5%20.5H6M160.5%20-5V6M155%20.5H166M.5%20155V166M-5%20160.5H6%22%20stroke%3D%22%23fff%22%20stroke-opacity%3D%22.09%22%20stroke-width%3D%221%22/%3E%3C/svg%3E"); }
 .grille-canvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 13; pointer-events: none; }   /* sous les pièces (14) */
+
+/* réseaux, dès le haut de page : trois pictos discrets en haut à droite (ils défilent avec la page) */
+.top-reseaux { position: absolute; right: 32px; top: 28px; z-index: 30; display: flex; gap: 16px; }
+.top-reseaux a { color: var(--ink); opacity: .4; transition: opacity .2s, transform .25s cubic-bezier(.2,.8,.2,1); display: block; }
+.top-reseaux a:hover, .top-reseaux a:focus-visible { opacity: 1; transform: translateY(-2px); }
+.top-reseaux svg { width: 18px; height: 18px; display: block; }
+@media (max-width: 800px) { .top-reseaux { right: auto; left: 16px; top: 58px; gap: 14px; } }   /* sous la barre de menu, à gauche */
