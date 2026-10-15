@@ -177,6 +177,22 @@ const starPlate = (() => {
   m.position.z = -size.z / 2 * 1.02;
   g.add(m); g.visible = false; pivot.add(g); return g;
 })();
+// plaque pleine, couleur du fond de page, derrière le logo : le logo est évidé (rien entre le cadre et
+// les lettres), sans elle le texte de la page se lit à travers quand le logo passe dessus
+const fondPlate = (() => {
+  const hx = size.x / 2 * 0.985, hy = size.y / 2 * 0.985;
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(hx * 2, hy * 2), new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false, side: THREE.DoubleSide }));
+  m.position.z = -size.z / 2 * 1.04; m.visible = false; pivot.add(m); return m;
+})();
+function fondPlateMaj() {
+  // pas sur l'accueil plein écran (le logo flotte sur la grille) ni pendant la transition (l'étoile doit rester un trou)
+  const on = !FLAT && !warp.mode && (!document.body.classList.contains('work') || document.body.classList.contains('moved'));
+  if (on && !fondPlate.visible) {
+    let c = getComputedStyle(document.body).backgroundColor.match(/[\d.]+/g);
+    if (!c || c[3] === '0') c = getComputedStyle(document.documentElement).backgroundColor.match(/[\d.]+/g);   // body transparent : le fond est sur html
+    if (c && c[3] !== '0') fondPlate.material.color.setRGB(c[0] / 255, c[1] / 255, c[2] / 255, THREE.SRGBColorSpace); }
+  fondPlate.visible = on;
+}
 
 
 let flat = null;                                 // téléphone : l'image du logo (voir FLAT)
@@ -1246,6 +1262,7 @@ function tick() {
       warp.mode = null; warp.amt = 0; starPlate.visible = false;
       camera.fov = BASE_FOV; camera.updateProjectionMatrix(); camera.position.set(0, 0, camZ); d?.(); }
   } else camera.position.set(0, 0, camZ);
+  fondPlateMaj();
   if (warp.mode && warp.amt > 0.01 && !FLAT) {     // transition : rendu à travers l'« objectif »
     const L = lensPass(), size = renderer.getDrawingBufferSize(new THREE.Vector2());
     if (L.rt.width !== size.x || L.rt.height !== size.y) { L.rt.setSize(size.x, size.y); L.mat.uniforms.uAspect.value = size.x / size.y; }
