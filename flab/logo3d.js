@@ -198,6 +198,8 @@ const IN_STAGE = CFG.orbit === 'stage';
 const PAD = 0.18;                                   // V3 : marge floutée autour des vignettes photos (part de leur taille)
 // ESSAI V3 : vignettes photos derrière les pièces de l'accueil (sélecteur « Photos » ; choix gardé dans le navigateur)
 let FOND_PHOTOS = false; try { FOND_PHOTOS = document.body.classList.contains('work') && localStorage.getItem('fize-fond') === 'photos'; } catch (e) {}
+// ESSAI V3, 3e choix « grille » : seulement les pièces ; au survol, la photo du projet apparaît sur les carreaux du fond
+let FOND_GRILLE = false; try { FOND_GRILLE = document.body.classList.contains('work') && localStorage.getItem('fize-fond') === 'grille'; } catch (e) {}
 // ESSAI « studio » (inspiration Wide Angle Studio) : pièces en couleur franche, matière laiteuse, contre-jour
 // qui fait briller les bords, forte exposition et grand angle. false → retour aux pièces grises.
 const STUDIO = false;     // 'gomme' (matière mate type Crocs) · 'contre-jour' (rendu photo du micro) · false
@@ -727,7 +729,7 @@ const cardLabel = document.createElement('a'); cardLabel.className = 'card-label
 cardLabel.addEventListener('click', e => { e.preventDefault(); (window.warpTo || (u => { location.href = u; }))(cardLabel.getAttribute('href')); });
 let labelPiece = null;
 function cardFor(pr, p) {
-  if (!pr || !p) { cardLabel.classList.remove('on'); labelPiece = null; return; }
+  if (!pr || !p) { cardLabel.classList.remove('on'); labelPiece = null; grilleFor(null); return; }
   if (labelPiece === p) return;
   labelPiece = p;
   cardLabel.href = pr.slug + '.html';
@@ -740,6 +742,10 @@ function cardFor(pr, p) {
 const _lab = new THREE.Vector3();
 function placeLabel() {
   if (!labelPiece) return;
+  if (FOND_GRILLE) {                                  // mode grille : sous l'image dessinée sur les carreaux
+    if (grille.rect) cardLabel.style.transform = `translate(${grille.rect.x + 1}px, ${grille.rect.y + grille.rect.h + 6 - scrollY}px)`;
+    return;
+  }
   const ph = labelPiece.card.children[0];
   const pc = 0.5 - PAD / (1 + 2 * PAD);                // coin de la photo dans le plan (hors marge floutée)
   _lab.set(-pc, -pc, 0); ph.localToWorld(_lab); _lab.project(orbitCam);              // coin bas gauche de la photo
@@ -751,7 +757,70 @@ function placeLabel() {
   const rot = -(labelPiece.card.rotation.z + labelPiece.holder.rotation.z) * 180 / Math.PI;
   cardLabel.style.transform = `translate(${((cx + 0.5) * innerWidth).toFixed(1)}px, ${((0.5 - cy) * innerHeight).toFixed(1)}px) rotate(${rot.toFixed(2)}deg)`;
 }
+// ── Mode « grille » : la photo du projet se dessine sur les carreaux du fond (trame blueprint, 32 px),
+// carreau par carreau, en partant de la pièce survolée ; elle s'efface de même quand la souris s'en va.
+// Un canvas fixe sous les pièces ; les carreaux suivent la trame (qui défile avec la page).
+const CASE = 32;
+const grille = { cv: null, g: null, img: null, rect: null, cells: [], t0: 0, sortie: 0, slug: null, cache: {} };
+if (FOND_GRILLE) {
+  const cv = document.createElement('canvas'); cv.className = 'grille-canvas'; document.body.appendChild(cv);
+  grille.cv = cv; grille.g = cv.getContext('2d');
+  const taille = () => { const d = Math.min(devicePixelRatio, 2); cv.width = innerWidth * d; cv.height = innerHeight * d; grille.g.setTransform(d, 0, 0, d, 0, 0); };
+  addEventListener('resize', taille); taille();
+  (window.PROJECTS || []).forEach(p => { const f = p.vignette_image || p.cover; if (!f) return;
+    const im = new Image(); im.src = 'img/' + f.replace(/\.(jpe?g|png)$/i, '-800.webp'); grille.cache[p.slug] = im; });
+}
+function grilleFor(pr, p) {
+  if (!FOND_GRILLE) return;
+  if (!pr || !p) { if (grille.slug && !grille.sortie) grille.sortie = performance.now(); return; }
+  if (grille.slug === pr.slug && !grille.sortie) return;
+  const im = grille.cache[pr.slug]; if (!im || !im.naturalWidth) return;
+  // position de la pièce à l'écran
+  const v = new THREE.Vector3(); p.holder.getWorldPosition(v); v.project(orbitCam);
+  const px = (v.x + 1) / 2 * innerWidth, py = (1 - v.y) / 2 * innerHeight;
+  const W = Math.min(Math.max(innerWidth * 0.26, 260), 440), H = W * im.naturalHeight / im.naturalWidth;
+  // les carreaux de la trame sont repérés dans la page (la trame défile avec elle) : traits à 32·k − 1 px
+  const snap = v => Math.round(v / CASE) * CASE - 1;
+  const x = Math.max(-1, Math.min(snap(innerWidth - W), snap(px - W / 2)));
+  const y = Math.max(snap(scrollY), snap(py + scrollY - H / 2));        // en coordonnées de page
+  const nx = Math.max(2, Math.round(W / CASE)), ny = Math.max(2, Math.round(H / CASE));
+  grille.rect = { x, y, w: nx * CASE, h: ny * CASE }; grille.img = im; grille.slug = pr.slug;
+  const pyPage = py + scrollY;
+  grille.cells = [];
+  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
+    const cx = x + i * CASE + CASE / 2, cy = y + j * CASE + CASE / 2;
+    const d = Math.hypot(cx - px, cy - pyPage) / Math.hypot(W, H);
+    grille.cells.push({ i, j, delai: d * 900 + Math.random() * 140 });   // ~1 s pour couvrir l'image, depuis la pièce
+  }
+  grille.t0 = performance.now(); grille.sortie = 0;
+}
+function grilleDessine() {
+  if (!FOND_GRILLE || !grille.g) return;
+  const g = grille.g; g.clearRect(0, 0, innerWidth, innerHeight);
+  if (!grille.img || !grille.rect) return;
+  const now = performance.now(), r = grille.rect, im = grille.img;
+  // image « cover » sur le rectangle
+  const sr = im.naturalWidth / im.naturalHeight, rr = r.w / r.h;
+  const sw = sr > rr ? im.naturalHeight * rr : im.naturalWidth, sh = sr > rr ? im.naturalHeight : im.naturalWidth / rr;
+  const sx0 = (im.naturalWidth - sw) / 2, sy0 = (im.naturalHeight - sh) / 2, kx = sw / r.w, ky = sh / r.h;
+  let vivantes = 0;
+  for (const c of grille.cells) {
+    let a = Math.min(1, Math.max(0, (now - grille.t0 - c.delai) / 220));
+    if (grille.sortie) a *= 1 - Math.min(1, Math.max(0, (now - grille.sortie - (1040 - c.delai) * 0.45) / 200));   // s'efface des bords vers la pièce
+    if (a <= 0) continue; vivantes++;
+    const X = r.x + c.i * CASE + 1, Y = r.y - scrollY + c.j * CASE + 1;
+    const s = 0.6 + 0.4 * a, w = (CASE - 1) * s, o = (CASE - 1 - w) / 2;
+    g.globalAlpha = a;
+    g.drawImage(im, sx0 + c.i * CASE * kx, sy0 + c.j * CASE * ky, (CASE - 1) * kx, (CASE - 1) * ky, X + o, Y + o, w, w);
+  }
+  g.globalAlpha = 1;
+  if (grille.sortie && !vivantes) { grille.img = null; grille.rect = null; grille.slug = null; grille.sortie = 0; }
+}
 function showTip(pr, place) {
+  if (FOND_GRILLE) {
+    const p = pr && pieces.find(q => q.slug === pr.slug);
+    if (p || !pr) { tip.classList.remove('on'); cardFor(pr, p); grilleFor(pr, p); return; }
+  }
   if (FOND_PHOTOS) {
     const p = pr && pieces.find(q => q.slug === pr.slug && q.card);
     if (p || !pr) { tip.classList.remove('on'); cardFor(pr, p); return; }
@@ -1108,6 +1177,7 @@ function tick() {
     const cw = (p.card.userData.w || 1.9) * k, ch = (p.card.userData.h || 1.4) * k;
     p.card.position.x += (sx * 0.36 * cw - p.card.position.x) * 0.1; p.card.position.y += (0.34 * ch - p.card.position.y) * 0.1; });
   if (labelPiece) { if (labelPiece !== hovered || orbitShown < 0.6) cardFor(null); else placeLabel(); }
+  if (FOND_GRILLE) grilleDessine();
   if (warp.mode) {                                  // transition en cours
     if (warp.mode !== 'hold') warp.k = Math.min(1, (performance.now() - warp.t0) / warp.dur);
     // le logo reste de face, il ne suit plus la souris : la caméra vise l'étoile puis passe au travers
