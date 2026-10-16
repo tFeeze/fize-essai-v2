@@ -1144,7 +1144,7 @@ function tick() {
       y = Math.min(top, Math.max(-bottom, y));
       p.holder.position.set(x, y + fly, z);                        // l'envol au scroll, lui, peut sortir par le haut
       p.holder.rotation.set(p.ly * 0.5, p.lx * 0.5, 0);
-      p.grow += ((p === hovered ? (FOND_PHOTOS ? 1.12 : FOND_GRILLE ? 0.55 : 1.3) : 1) - p.grow) * (1 - Math.exp(-dt * (FOND_GRILLE ? 5 : 10)));   // grille : rapetisse, pour laisser lire l'image
+      p.grow += ((p === hovered ? (FOND_PHOTOS ? 1.12 : FOND_GRILLE ? 0 : 1.3) : 1) - p.grow) * (1 - Math.exp(-dt * (FOND_GRILLE ? 6 : 10)));   // grille : la pièce disparaît, l'image prend sa place
       p.grey.value += ((p === hovered ? 0 : 1) - p.grey.value) * (1 - Math.exp(-dt * 7));   // V3 : la couleur revient au survol
       // couleur du projet : la première vraiment colorée de sa photo (argent, gris, blanc écartés) ;
       // sinon on garde la couleur de filament de la pièce
@@ -1157,7 +1157,7 @@ function tick() {
       if (p.mat.userData.uDeep) { if (!p.lit) { backlit(p, p.rest); p.lit = true; }
         p.mat.emissiveIntensity = 1; p.mat.color.setScalar(p === hovered ? 1.25 : 1); }   // survol : plus lumineuse
       else if (!p.flat && !p.finish) p.mat.color.lerp(p === hovered ? p.tint : p.rest, 1 - Math.exp(-dt * 8));   // la couleur monte en fondu
-      p.holder.scale.setScalar(s * p.grow);
+      p.holder.scale.setScalar(s * Math.max(p.grow, 1e-3));
       if (p.pu && p.build < 1) {
         // départ décalé d'une pièce à l'autre ; 2,6 s par pièce ; la hauteur avance par couches entières
         p.build = Math.min(1, Math.max(0, (printClock - 0.3 - i * 0.35) / 2.6));
@@ -1224,23 +1224,6 @@ function tick() {
       vis.forEach(p => {
         p.ox = (p.ox || 0) + (p.px / F(p) - (p.ox || 0)) * k; p.oy = (p.oy || 0) + (p.py / F(p) - (p.oy || 0)) * k;
         p.holder.position.x += p.ox; p.holder.position.y += p.oy;
-      });
-      // mode grille : la pièce survolée glisse dans un coin bas de l'image (côté bord d'écran), réduite
-      if (FOND_GRILLE) vis.forEach(p => {
-        const actif = p === hovered && grille.piece === p && grille.rect && !grille.sortie;
-        if (actif) {
-          const r = grille.rect, gauche = r.x + r.w / 2 < innerWidth / 2;
-          const ppx = h / F(p) / innerHeight;                     // unités du monde par pixel, à la profondeur de la pièce
-          const rp = Math.min((p.reachS || 0) / ppx, 70);   // rayon de la pièce à l'écran (px)
-          // tout au coin : la pièce mord sur l'angle de l'image (la tache est irrégulière, ses angles sont souvent vides)
-          const tx = gauche ? r.x + rp * 0.35 : r.x + r.w - rp * 0.35, ty = r.y - scrollY + r.h - rp * 0.45;
-          const v = p.holder.position.clone().applyMatrix4(p.holder.parent.matrixWorld).project(orbitCam);   // position sans le glissement
-          const cx = (v.x + 1) / 2 * innerWidth, cy = (1 - v.y) / 2 * innerHeight;
-          p.tgx = (tx - cx) * ppx; p.tgy = -(ty - cy) * ppx;
-        } else { p.tgx = 0; p.tgy = 0; }
-        const kg = 1 - Math.exp(-dt * 4);
-        p.gx = (p.gx || 0) + (p.tgx - (p.gx || 0)) * kg; p.gy = (p.gy || 0) + (p.tgy - (p.gy || 0)) * kg;
-        p.holder.position.x += p.gx; p.holder.position.y += p.gy;
       });
     }
 
