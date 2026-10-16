@@ -562,7 +562,7 @@ if (CFG.orbit && window.LOGO_MODELS) {
     }
     const grey = { value: 1 };
     if (m.matiere) greyable(mat, grey);
-    if (m.matiere && (FOND_GRILLE || FOND_PHOTOS)) verre(mat, grey);
+    if (m.matiere && FOND_PHOTOS) verre(mat, grey);   // grille : pas de verre, la pièce glisse dans un coin
     if (m.interieur) {                    // ce qu'on voit à travers la pièce (ex. la carte dans le boîtier transparent)
       const d = m.interieur, ig = new THREE.BufferGeometry();
       ig.setAttribute('position', new THREE.Float32BufferAttribute(Float32Array.from(new Int16Array(bytes(d.pos)), v => v / 32767 * m.scale), 3));
@@ -820,7 +820,7 @@ function grilleFor(pr, p) {
   const x = Math.max(-1, Math.min(snap(innerWidth - W), snap(px - W / 2)));
   const y = Math.max(snap(scrollY + 96), snap(py + scrollY - H / 2));   // en coordonnées de page ; sous la bande du haut (menu, réseaux)
   const nx = Math.max(2, Math.round(W / CASE)), ny = Math.max(2, Math.round(H / CASE));
-  grille.rect = { x, y, w: nx * CASE, h: ny * CASE }; grille.img = im; grille.slug = pr.slug;
+  grille.rect = { x, y, w: nx * CASE, h: ny * CASE }; grille.img = im; grille.slug = pr.slug; grille.piece = p;
   const pyPage = py + scrollY;
   // organique : la tache n'est pas un rectangle (bord irrégulier tiré d'un bruit, carreaux épars en lisière),
   // elle s'étale depuis la pièce par coulées inégales, comme de l'encre ; chaque carreau naît rond et rebondit
@@ -905,6 +905,11 @@ addEventListener('pointermove', e => {
     if (e.clientX > lr.left - m && e.clientX < lr.right + m && e.clientY > lr.top - m && e.clientY < lr.bottom + m) {
       hovered = labelPiece; document.body.style.cursor = 'pointer'; return;
     }
+  }
+  // mode grille : tant que la souris est sur l'image, la pièce reste « survolée » (elle a glissé dans un coin)
+  if (FOND_GRILLE && grille.piece && grille.rect && !grille.sortie && !e.target.closest?.('a, button, nav')) {
+    const r = grille.rect, X = e.clientX, Y = e.clientY + scrollY;
+    if (X > r.x && X < r.x + r.w && Y > r.y && Y < r.y + r.h) { hovered = grille.piece; document.body.style.cursor = 'pointer'; return; }
   }
   const hit = pick(e.clientX, e.clientY, e.target);
   const pr = hit && projectOf(hit.slug);
@@ -1139,7 +1144,7 @@ function tick() {
       y = Math.min(top, Math.max(-bottom, y));
       p.holder.position.set(x, y + fly, z);                        // l'envol au scroll, lui, peut sortir par le haut
       p.holder.rotation.set(p.ly * 0.5, p.lx * 0.5, 0);
-      p.grow += ((p === hovered ? (FOND_PHOTOS ? 1.12 : 1.3) : 1) - p.grow) * (1 - Math.exp(-dt * 10));
+      p.grow += ((p === hovered ? (FOND_PHOTOS ? 1.12 : FOND_GRILLE ? 0.55 : 1.3) : 1) - p.grow) * (1 - Math.exp(-dt * (FOND_GRILLE ? 5 : 10)));   // grille : rapetisse, pour laisser lire l'image
       p.grey.value += ((p === hovered ? 0 : 1) - p.grey.value) * (1 - Math.exp(-dt * 7));   // V3 : la couleur revient au survol
       // couleur du projet : la première vraiment colorée de sa photo (argent, gris, blanc écartés) ;
       // sinon on garde la couleur de filament de la pièce
@@ -1219,6 +1224,22 @@ function tick() {
       vis.forEach(p => {
         p.ox = (p.ox || 0) + (p.px / F(p) - (p.ox || 0)) * k; p.oy = (p.oy || 0) + (p.py / F(p) - (p.oy || 0)) * k;
         p.holder.position.x += p.ox; p.holder.position.y += p.oy;
+      });
+      // mode grille : la pièce survolée glisse dans un coin bas de l'image (côté bord d'écran), réduite
+      if (FOND_GRILLE) vis.forEach(p => {
+        const actif = p === hovered && grille.piece === p && grille.rect && !grille.sortie;
+        if (actif) {
+          const r = grille.rect, gauche = r.x + r.w / 2 < innerWidth / 2;
+          const ppx = h / F(p) / innerHeight;                     // unités du monde par pixel, à la profondeur de la pièce
+          const rp = Math.min((p.reachS || 0) / ppx, Math.min(r.w, r.h) * 0.3);   // rayon de la pièce à l'écran (px)
+          const tx = gauche ? r.x + rp + 10 : r.x + r.w - rp - 10, ty = r.y - scrollY + r.h - rp - 10;
+          const v = p.holder.position.clone().applyMatrix4(p.holder.parent.matrixWorld).project(orbitCam);   // position sans le glissement
+          const cx = (v.x + 1) / 2 * innerWidth, cy = (1 - v.y) / 2 * innerHeight;
+          p.tgx = (tx - cx) * ppx; p.tgy = -(ty - cy) * ppx;
+        } else { p.tgx = 0; p.tgy = 0; }
+        const kg = 1 - Math.exp(-dt * 4);
+        p.gx = (p.gx || 0) + (p.tgx - (p.gx || 0)) * kg; p.gy = (p.gy || 0) + (p.tgy - (p.gy || 0)) * kg;
+        p.holder.position.x += p.gx; p.holder.position.y += p.gy;
       });
     }
 
