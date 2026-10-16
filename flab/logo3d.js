@@ -1231,8 +1231,9 @@ function tick() {
         if (actif) {
           const r = grille.rect, gauche = r.x + r.w / 2 < innerWidth / 2;
           const ppx = h / F(p) / innerHeight;                     // unités du monde par pixel, à la profondeur de la pièce
-          const rp = Math.min((p.reachS || 0) / ppx, Math.min(r.w, r.h) * 0.3);   // rayon de la pièce à l'écran (px)
-          const tx = gauche ? r.x + rp + 10 : r.x + r.w - rp - 10, ty = r.y - scrollY + r.h - rp - 10;
+          const rp = Math.min((p.reachS || 0) / ppx, 70);   // rayon de la pièce à l'écran (px)
+          // tout au coin : la pièce mord sur l'angle de l'image (la tache est irrégulière, ses angles sont souvent vides)
+          const tx = gauche ? r.x + rp * 0.35 : r.x + r.w - rp * 0.35, ty = r.y - scrollY + r.h - rp * 0.45;
           const v = p.holder.position.clone().applyMatrix4(p.holder.parent.matrixWorld).project(orbitCam);   // position sans le glissement
           const cx = (v.x + 1) / 2 * innerWidth, cy = (1 - v.y) / 2 * innerHeight;
           p.tgx = (tx - cx) * ppx; p.tgy = -(ty - cy) * ppx;
