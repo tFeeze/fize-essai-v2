@@ -818,36 +818,58 @@ function grilleFor(pr, p) {
   // les carreaux de la trame sont repérés dans la page (la trame défile avec elle) : traits à 32·k − 1 px
   const snap = v => Math.round(v / CASE) * CASE - 1;
   const x = Math.max(-1, Math.min(snap(innerWidth - W), snap(px - W / 2)));
-  const y = Math.max(snap(scrollY), snap(py + scrollY - H / 2));        // en coordonnées de page
+  const y = Math.max(snap(scrollY + 96), snap(py + scrollY - H / 2));   // en coordonnées de page ; sous la bande du haut (menu, réseaux)
   const nx = Math.max(2, Math.round(W / CASE)), ny = Math.max(2, Math.round(H / CASE));
   grille.rect = { x, y, w: nx * CASE, h: ny * CASE }; grille.img = im; grille.slug = pr.slug;
   const pyPage = py + scrollY;
+  // organique : la tache n'est pas un rectangle (bord irrégulier tiré d'un bruit, carreaux épars en lisière),
+  // elle s'étale depuis la pièce par coulées inégales, comme de l'encre ; chaque carreau naît rond et rebondit
+  const graine = Math.random() * 100, cx0 = x + nx * CASE / 2, cy0 = y + ny * CASE / 2;
   grille.cells = [];
   for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
     const cx = x + i * CASE + CASE / 2, cy = y + j * CASE + CASE / 2;
+    const n = fbm2(i * 0.32 + graine, j * 0.32), n2 = fbm2(i * 0.18 - graine, j * 0.18 + 7.3);
+    const e = Math.hypot((cx - cx0) / (nx * CASE / 2), (cy - cy0) / (ny * CASE / 2)) / 1.12 + (n - 0.5) * 0.85;   // 0 au centre, 1 au bord de la tache
+    const bord = Math.min(1, Math.max(0, (1 - e) / 0.34));
+    if (bord <= 0 || (bord < 1 && Math.random() > bord + 0.25)) continue;       // lisière : quelques carreaux épars
     const d = Math.hypot(cx - px, cy - pyPage) / Math.hypot(W, H);
-    grille.cells.push({ i, j, delai: d * 900 + Math.random() * 140 });   // ~1 s pour couvrir l'image, depuis la pièce
+    grille.cells.push({ i, j, bord: Math.max(0.35, bord), ph: Math.random() * 6.28,
+      delai: d * 1000 + n2 * 520 + Math.random() * 70,            // le front avance en coulées (bruit), pas en cercle
+      duree: 300 + Math.random() * 260, sortie: (1 - d) * 380 + (1 - n2) * 300 + Math.random() * 60 });
   }
   grille.t0 = performance.now(); grille.sortie = 0;
 }
+// bruit de valeur 2D lissé (quelques octaves) : de quoi donner des bords et des fronts irréguliers
+function bruit2(x, y) {
+  const h = (i, j) => { const s = Math.sin(i * 127.1 + j * 311.7) * 43758.5453; return s - Math.floor(s); };
+  const X = Math.floor(x), Y = Math.floor(y), fx = x - X, fy = y - Y, u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy);
+  return (h(X, Y) * (1 - u) + h(X + 1, Y) * u) * (1 - v) + (h(X, Y + 1) * (1 - u) + h(X + 1, Y + 1) * u) * v;
+}
+const fbm2 = (x, y) => (bruit2(x, y) * 0.6 + bruit2(x * 2.1, y * 2.1) * 0.28 + bruit2(x * 4.3, y * 4.3) * 0.12);
+const rebond = t => { const c = 1.9; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); };   // ease-out-back
 function grilleDessine() {
   if (!FOND_GRILLE || !grille.g) return;
   const g = grille.g; g.clearRect(0, 0, innerWidth, innerHeight);
   if (!grille.img || !grille.rect) return;
-  const now = performance.now(), r = grille.rect, im = grille.img;
+  const now = performance.now(), r = grille.rect, im = grille.img, ts = now / 1000;
   // image « cover » sur le rectangle
   const sr = im.naturalWidth / im.naturalHeight, rr = r.w / r.h;
   const sw = sr > rr ? im.naturalHeight * rr : im.naturalWidth, sh = sr > rr ? im.naturalHeight : im.naturalWidth / rr;
   const sx0 = (im.naturalWidth - sw) / 2, sy0 = (im.naturalHeight - sh) / 2, kx = sw / r.w, ky = sh / r.h;
   let vivantes = 0;
   for (const c of grille.cells) {
-    let a = Math.min(1, Math.max(0, (now - grille.t0 - c.delai) / 220));
-    if (grille.sortie) a *= 1 - Math.min(1, Math.max(0, (now - grille.sortie - (1040 - c.delai) * 0.45) / 200));   // s'efface des bords vers la pièce
-    if (a <= 0) continue; vivantes++;
+    let t = Math.min(1, Math.max(0, (now - grille.t0 - c.delai) / c.duree));
+    if (grille.sortie) t = Math.min(t, 1 - Math.min(1, Math.max(0, (now - grille.sortie - c.sortie) / (c.duree * 0.7))));   // se résorbe des bords vers la pièce
+    if (t <= 0) continue; vivantes++;
+    const k = Math.max(0, rebond(t));                                   // taille : dépasse un peu puis se pose
+    const resp = c.bord < 1 ? 0.82 + 0.18 * Math.sin(ts * 1.4 + c.ph) : 1;   // la lisière respire
+    const a = Math.min(1, t * 1.6) * c.bord * resp;
+    const full = CASE - 1, w = full * (0.15 + 0.85 * k), o = (full - w) / 2;
     const X = r.x + c.i * CASE + 1, Y = r.y - scrollY + c.j * CASE + 1;
-    const s = 0.6 + 0.4 * a, w = (CASE - 1) * s, o = (CASE - 1 - w) / 2;
     g.globalAlpha = a;
-    g.drawImage(im, sx0 + c.i * CASE * kx, sy0 + c.j * CASE * ky, (CASE - 1) * kx, (CASE - 1) * ky, X + o, Y + o, w, w);
+    g.save(); g.beginPath(); g.roundRect(X + o, Y + o, w, w, (w / 2) * Math.pow(1 - Math.min(1, t), 1.5)); g.clip();   // naît rond, finit carré
+    g.drawImage(im, sx0 + c.i * CASE * kx, sy0 + c.j * CASE * ky, full * kx, full * ky, X, Y, full, full);
+    g.restore();
   }
   g.globalAlpha = 1;
   if (grille.sortie && !vivantes) { grille.img = null; grille.rect = null; grille.slug = null; grille.sortie = 0; }
