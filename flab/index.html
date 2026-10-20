@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fize — Atelier d'impression 3D, Paris</title>
-<link rel="stylesheet" href="site.css?v=5a986b40">
+<link rel="stylesheet" href="site.css?v=d8185d6b">
   <meta name="description" content="Accessoires et décors, objets de marque, prototypes et pièces techniques : conception, impression 3D et finition à la main, à Paris 18e.">
   <link rel="canonical" href="https://fize-lab.com/">
   <meta property="og:type" content="website">
@@ -122,7 +122,7 @@
 
 
 <script>
-  // la ligne sous le logo change toutes les 2 s : ce que fait l'atelier, dit autrement
+  // la ligne sous le logo change toutes les 3,5 s : ce que fait l'atelier, dit autrement
   // (sans accents : en VG5000 capitales, les lettres accentuées passent mal)
   (() => {
     const MOTS = ['Laboratoire creatif', 'Impression 3D', 'Maquettiste', 'Accessoiriste', 'Fabrication sur mesure',
@@ -133,8 +133,8 @@
       if (document.hidden || document.body.classList.contains('moved')) return;
       el.classList.add('sort');
       setTimeout(() => { i = (i + 1) % MOTS.length; el.textContent = MOTS[i];
-        el.classList.remove('sort'); el.classList.add('entre'); void el.offsetWidth; el.classList.remove('entre'); }, 260);
-    }, 2000);
+        el.classList.remove('sort'); el.classList.add('entre'); void el.offsetWidth; el.classList.remove('entre'); }, 450);
+    }, 3500);
   })();
   // part de la hauteur occupée par le logo en ouverture ; plus grande sur téléphone (écran en hauteur)
   let HERO_FRAME = innerWidth < 800 ? 0.78 : 0.44;
