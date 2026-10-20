@@ -840,7 +840,7 @@ function grilleFor(pr, p) {
   // carreaux du bord de la tache (un voisin manque) : ils changeront lentement d'opacité tant que l'image est là
   const pris = new Set(grille.cells.map(c => c.i + ',' + c.j));
   grille.cells.forEach(c => { c.lisiere = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([a, b]) => !pris.has((c.i + a) + ',' + (c.j + b)));
-    c.vit = 0.45 + Math.random() * 0.55; });
+    c.vit = 0.2 + Math.random() * 0.3; });   // une respiration de 12 à 30 s
   grille.t0 = performance.now(); grille.sortie = 0;
 }
 // bruit de valeur 2D lissé (quelques octaves) : de quoi donner des bords et des fronts irréguliers
