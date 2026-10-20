@@ -122,7 +122,7 @@
 
 
 <script>
-  // la ligne sous le logo change toutes les 3,5 s : ce que fait l'atelier, dit autrement
+  // la ligne sous le logo change toutes les 3 s : ce que fait l'atelier, dit autrement
   // (sans accents : en VG5000 capitales, les lettres accentuées passent mal)
   (() => {
     const MOTS = ['Laboratoire creatif', 'Impression 3D', 'Maquettiste', 'Accessoiriste', 'Fabrication sur mesure',
@@ -134,7 +134,7 @@
       el.classList.add('sort');
       setTimeout(() => { i = (i + 1) % MOTS.length; el.textContent = MOTS[i];
         el.classList.remove('sort'); el.classList.add('entre'); void el.offsetWidth; el.classList.remove('entre'); }, 450);
-    }, 3500);
+    }, 3000);
   })();
   // part de la hauteur occupée par le logo en ouverture ; plus grande sur téléphone (écran en hauteur)
   let HERO_FRAME = innerWidth < 800 ? 0.78 : 0.44;
@@ -285,7 +285,7 @@
     // chargés en arrière-plan : la page (liste des projets…) s'affiche sans les attendre
     const need = [add('logo-data.js?v=486514b4')];
     if (C.orbit) need.push(add(C.models ? C.models + '?v=09fc2908' : 'models-home.js?v=8c2298e7'));
-    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=cb14910c', true); });
+    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=31b5bb4d', true); });
   }
 })();
 </script>

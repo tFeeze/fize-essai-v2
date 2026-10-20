@@ -837,6 +837,10 @@ function grilleFor(pr, p) {
       delai: d * 1000 + n2 * 520 + Math.random() * 70,            // le front avance en coulées (bruit), pas en cercle
       duree: 300 + Math.random() * 260, sortie: (1 - d) * 380 + (1 - n2) * 300 + Math.random() * 60 });
   }
+  // carreaux du bord de la tache (un voisin manque) : ils changeront lentement d'opacité tant que l'image est là
+  const pris = new Set(grille.cells.map(c => c.i + ',' + c.j));
+  grille.cells.forEach(c => { c.lisiere = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([a, b]) => !pris.has((c.i + a) + ',' + (c.j + b)));
+    c.vit = 0.45 + Math.random() * 0.55; });
   grille.t0 = performance.now(); grille.sortie = 0;
 }
 // bruit de valeur 2D lissé (quelques octaves) : de quoi donner des bords et des fronts irréguliers
@@ -862,7 +866,7 @@ function grilleDessine() {
     if (grille.sortie) t = Math.min(t, 1 - Math.min(1, Math.max(0, (now - grille.sortie - c.sortie) / (c.duree * 0.7))));   // se résorbe des bords vers la pièce
     if (t <= 0) continue; vivantes++;
     const k = Math.max(0, rebond(t));                                   // taille : dépasse un peu puis se pose
-    const resp = c.bord < 1 ? 0.82 + 0.18 * Math.sin(ts * 1.4 + c.ph) : 1;   // la lisière respire
+    const resp = c.lisiere || c.bord < 1 ? 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(ts * c.vit + c.ph)) : 1;   // le bord respire lentement, chaque carreau à son rythme
     const a = Math.min(1, t * 1.6) * c.bord * resp;
     const full = CASE - 1, w = full * (0.15 + 0.85 * k), o = (full - w) / 2;
     const X = r.x + c.i * CASE + 1, Y = r.y - scrollY + c.j * CASE + 1;
@@ -980,6 +984,8 @@ function resize(force) {
   if (flat) flat.style.width = (frac * r.height) + 'px';      // même taille que le logo 3D
 }
 new ResizeObserver(() => resize()).observe(stageEl); resize(true);
+// la page change la taille du logo (accueil : fenêtre qui passe sous / au-dessus de 800 px de large)
+window.setLogoFrame = f => { CFG.frame = f; resize(true); dispatchEvent(new Event('logoframe')); };
 
 // ── Souris : le logo regarde le curseur (un peu moins qu'avant, le scroll fait aussi tourner)
 const MAX = THREE.MathUtils.degToRad(28);
