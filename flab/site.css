@@ -812,3 +812,35 @@ html:has(body.contact) { background-image: url("data:image/svg+xml,%3Csvg%20xmln
 .top-reseaux a:hover, .top-reseaux a:focus-visible { opacity: 1; transform: translateY(-2px); }
 .top-reseaux svg { width: 18px; height: 18px; display: block; }
 @media (max-width: 800px) { .top-reseaux { right: auto; left: 16px; top: 58px; gap: 14px; } }   /* sous la barre de menu, à gauche */
+
+/* ═══ Contact : bouton « Urgence » ═══════════════════════════════════════════════════
+   au survol, un petit gyrophare sort de derrière le bouton (posé dessous, caché par son fond) ;
+   activé (aria-pressed), le bouton passe au rouge et pulse, le gyrophare reste sorti et tourne */
+.urgence-wrap { position: relative; display: inline-block; isolation: isolate; }
+.submit .urgence { all: unset; position: relative; z-index: 1; cursor: pointer; padding: 15px 22px; display: block;
+  border: 1px solid var(--ink); background: var(--bg); color: var(--ink);
+  font: 400 15px/1 "VG5000", "Helvetica Neue", Arial, sans-serif; letter-spacing: .04em; text-transform: uppercase;
+  transition: background .25s, color .25s, border-color .25s; }
+.submit .urgence:hover { opacity: 1; }
+.urgence:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.urgence-wrap .gyro { position: absolute; left: 50%; top: 0; width: 30px; height: 26px; z-index: 0;
+  transform: translate(-50%, 4px); transition: transform .45s cubic-bezier(.3, 1.6, .5, 1); pointer-events: none; }
+.urgence-wrap:hover .gyro, .urgence-wrap:has([aria-pressed="true"]) .gyro { transform: translate(-50%, -25px); }
+.gyro .socle { position: absolute; left: 0; right: 0; bottom: 0; height: 6px; border-radius: 2px 2px 0 0; background: #2b2b2b; box-shadow: inset 0 1px 0 #555; }
+.gyro .dome { position: absolute; left: 4px; right: 4px; bottom: 5px; height: 18px; border-radius: 11px 11px 3px 3px; overflow: hidden;
+  background: radial-gradient(circle at 35% 30%, #ff9a8c 0 12%, #e3241b 45%, #8e0c07 100%); }
+.gyro .dome::before { content: ""; position: absolute; inset: -60%;            /* le faisceau qui tourne dans la cloche */
+  background: conic-gradient(from 0deg, transparent 0 70%, rgba(255,240,200,.95) 80%, transparent 90%);
+  animation: gyro-tour .7s linear infinite; animation-play-state: paused; }
+.gyro::after { content: ""; position: absolute; left: 50%; top: 10px; width: 120px; height: 120px; translate: -50% -50%;   /* halo */
+  border-radius: 50%; background: radial-gradient(circle, rgba(255,40,25,.45), transparent 62%); opacity: 0; transition: opacity .3s; z-index: -1; }
+.urgence-wrap:hover .gyro .dome::before, .urgence-wrap:has([aria-pressed="true"]) .gyro .dome::before { animation-play-state: running; }
+.urgence-wrap:has([aria-pressed="true"]) .gyro::after { opacity: 1; animation: gyro-halo .7s linear infinite; }
+.submit .urgence[aria-pressed="true"] { background: #e3241b; border-color: #e3241b; color: #fff; animation: urgence-pulse .8s ease-in-out infinite alternate; }
+@keyframes gyro-tour { to { transform: rotate(360deg); } }
+@keyframes gyro-halo { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+@keyframes urgence-pulse { from { background: #e3241b; box-shadow: 0 0 0 0 rgba(227,36,27,.55); } to { background: #a8120c; box-shadow: 0 0 0 10px rgba(227,36,27,0); } }
+@media (prefers-reduced-motion: reduce) {
+  .submit .urgence[aria-pressed="true"], .urgence-wrap .gyro::after, .gyro .dome::before { animation: none; }
+}
+@media (max-width: 800px) { .urgence-wrap { display: block; } .submit .urgence { text-align: center; } }

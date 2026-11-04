@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Contact — Fize</title>
-<link rel="stylesheet" href="site.css?v=d8185d6b">
+<link rel="stylesheet" href="site.css?v=093df5b1">
   <meta name="description" content="Décrivez votre projet d&#x27;impression 3D : fichier ou référence, dimensions, finition, date. Atelier à Paris 18e.">
   <link rel="canonical" href="https://fize-lab.com/contact.html">
   <meta property="og:type" content="website">
@@ -129,6 +129,12 @@
 
       <div class="submit">
         <button type="submit">Envoyer la demande →</button>
+        <!-- urgence : au survol un gyrophare sort de derrière le bouton ; activé, le bouton passe au rouge -->
+        <input type="hidden" name="urgence" id="urgence-val" value="">
+        <span class="urgence-wrap">
+          <span class="gyro" aria-hidden="true"><i class="dome"></i><i class="socle"></i></span>
+          <button type="button" class="urgence" id="urgence" aria-pressed="false"><span class="u-txt">Urgence</span></button>
+        </span>
         <p class="note">Ces informations et vos fichiers servent uniquement à répondre à votre demande et à établir un devis. Le bouton ouvre votre messagerie : rien n'est envoyé tant que vous n'avez pas envoyé l'e-mail. <a href="confidentialite.html">Politique de confidentialité</a>.</p>
       </div>
       <p class="status" id="status" role="status" aria-live="polite"></p>
@@ -201,11 +207,19 @@
   addEventListener('dragover', e => e.preventDefault());
   addEventListener('drop', e => e.preventDefault());
 
+  // ── Urgence : bouton bascule ; la demande part avec « URGENT » en tête d'objet ─────────────────
+  const urg = document.getElementById('urgence'), urgVal = document.getElementById('urgence-val');
+  urg.addEventListener('click', () => {
+    const on = urg.getAttribute('aria-pressed') !== 'true';
+    urg.setAttribute('aria-pressed', on); urgVal.value = on ? 'oui' : '';
+    urg.querySelector('.u-txt').textContent = on ? 'Urgence activée' : 'Urgence';
+  });
+
   // ── Envoi ─────────────────────────────────────────────────────────────────────────
   function summary(fd) {
     const lines = [
       ['Nom', fd.get('nom')], ['E-mail', fd.get('email')], ['Société', fd.get('societe')], ['Téléphone', fd.get('telephone')],
-      ['Lien fichiers', fd.get('lien')],
+      ['Lien fichiers', fd.get('lien')], ['Urgence', fd.get('urgence')],
     ].filter(([, v]) => v).map(([k, v]) => `${k} : ${v}`);
     return lines.join('\n') + '\n\n' + (fd.get('message') || '');
   }
@@ -221,7 +235,7 @@
     const fd = new FormData(form);
     for (let i = 1; i <= MAX_FILES; i++) fd.delete('fichier' + i);
     files.forEach((f, i) => fd.append('fichier' + (i + 1), f, f.name));
-    const subject = `Projet — ${fd.get('nom')}${fd.get('societe') ? ' — ' + fd.get('societe') : ''}`;
+    const subject = `${fd.get('urgence') ? 'URGENT — ' : ''}Projet — ${fd.get('nom')}${fd.get('societe') ? ' — ' + fd.get('societe') : ''}`;
 
     if (!FORM_ENDPOINT) {
       // pas encore de service branché : e-mail pré-rempli, fichiers à joindre à la main
@@ -239,7 +253,7 @@
       // pas d'en-tête Content-Type : le navigateur le pose lui-même avec les fichiers (recommandation Netlify)
       const r = await fetch(FORM_ENDPOINT, { method: 'POST', body: fd });
       if (!r.ok) throw new Error(r.status);
-      form.reset(); files = []; render();
+      form.reset(); files = []; render(); urg.setAttribute('aria-pressed', 'false'); urg.querySelector('.u-txt').textContent = 'Urgence';
       status.textContent = 'Merci, c\'est reçu. Réponse rapide par e-mail.'; status.classList.add('ok');
     } catch {
       status.textContent = `L'envoi n'a pas abouti. Écrivez directement à ${TO}.`; status.classList.add('err');
