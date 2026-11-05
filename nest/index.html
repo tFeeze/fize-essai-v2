@@ -30,7 +30,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   padding: calc(var(--u) * 2.4) calc(var(--u) * 3.2) 0; }
 .haut img { height: calc(var(--u) * 3.6); }
 .haut .nom { font-size: calc(var(--u) * 2); letter-spacing: .02em; }
-.haut .lbl { flex: 1; }
+.haut .vide { flex: 1; }
 .haut .heure { font-size: calc(var(--u) * 1.6); color: var(--mute); }
 
 /* ── scène ── */
@@ -39,27 +39,39 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .diapo.on { opacity: 1; visibility: visible; transition: opacity .7s ease .15s, visibility 0s; }
 
 /* halo coloré derrière la pièce : la couleur vient du projet, jamais de la marque */
-.halo { position: absolute; left: 6%; top: 8%; width: 52%; height: 84%; border-radius: 50%;
+.halo { position: absolute; left: 0; top: 8%; width: 42%; height: 84%; border-radius: 50%;
   background: radial-gradient(closest-side, var(--c, #555) 0%, transparent 100%); opacity: .28; }
 
 /* la pièce : elle monte en entrant, puis lévite */
-.piece { position: absolute; left: 8%; top: 13%; width: 48%; height: 72%; display: flex; align-items: center; justify-content: center;
+.piece { position: absolute; left: 7%; top: 16%; width: 30%; height: 72%; display: flex; align-items: center; justify-content: center;
   transform: translateY(6%); opacity: 0; transition: transform 1s cubic-bezier(.2,.7,.2,1) .25s, opacity .8s ease .25s; }
 .on .piece { transform: none; opacity: 1; }
 .piece .flotte { height: 100%; width: 100%; display: flex; align-items: center; justify-content: center; }
 .on .piece .flotte { animation: leviter 4.2s ease-in-out infinite alternate; }
 .piece img { max-width: 100%; max-height: 100%; }
-.ombre { position: absolute; left: 22%; bottom: 9%; width: 20%; height: calc(var(--u) * 1.6); border-radius: 50%;
+.ombre { position: absolute; left: 13%; bottom: 9%; width: 20%; height: calc(var(--u) * 1.6); border-radius: 50%;
   background: radial-gradient(closest-side, rgba(0,0,0,.75), transparent); }
 .on .ombre { animation: ombre 4.2s ease-in-out infinite alternate; }
 @keyframes leviter { from { transform: translateY(1.5%); } to { transform: translateY(-2.5%); } }
 @keyframes ombre   { from { transform: scaleX(1); opacity: .9; } to { transform: scaleX(.8); opacity: .5; } }
 
+.sans-photo .halo { left: 6%; width: 52%; }
+.sans-photo .piece { left: 8%; width: 48%; top: 13%; height: 72%; }
+.sans-photo .ombre { left: 22%; }
+.sans-photo .info { left: 58%; }
+
+/* la photo réelle : elle glisse en place une fois la pièce posée, puis ne bouge plus */
+.photo { position: absolute; left: 39%; top: 50%; width: 21%; margin-top: calc(var(--u) * -15.5);
+  opacity: 0; transform: translateX(calc(var(--u) * 3)); transition: opacity .7s ease 1.2s, transform .9s cubic-bezier(.2,.7,.2,1) 1.2s; }
+.on .photo { opacity: 1; transform: none; }
+.photo img { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: calc(var(--u) * .4); }
+.photo .lbl { margin-top: calc(var(--u) * 1); font-size: calc(var(--u) * 1); }
+
 /* le texte à droite */
-.info { position: absolute; left: 58%; right: 7%; top: 50%; transform: translateY(-50%); }
+.info { position: absolute; left: 63%; right: 8.5%; top: 50%; transform: translateY(-50%); }
 .info .num { font-size: calc(var(--u) * 1.5); color: var(--mute); margin-bottom: calc(var(--u) * 2.2); }
 .info .lbl { margin-bottom: calc(var(--u) * 1.2); }
-.info h2 { font-size: calc(var(--u) * 5.4); line-height: .98; letter-spacing: -.01em; position: relative; }
+.info h2 { font-size: calc(var(--u) * 4.8); line-height: .98; letter-spacing: -.01em; position: relative; }
 .info .fini { margin-top: calc(var(--u) * 2.2); font-size: calc(var(--u) * 1.75); color: var(--text); line-height: 1.4;
   opacity: 0; transform: translateY(calc(var(--u) * 1)); transition: opacity .6s ease 1.5s, transform .6s ease 1.5s; }
 .on .info .fini { opacity: 1; transform: none; }
@@ -136,7 +148,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 
 <header class="haut">
   <img src="img/F-LAB_centre_sans-cadre_blanc.svg" alt="F-LAB">
-  <span class="lbl">Atelier d'impression 3D — Paris 18e</span>
+  <span class="vide"></span>
   <span class="heure mono" id="heure"></span>
 </header>
 
@@ -175,12 +187,13 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 
   // ── Contenu : les pièces du site (rendus détourés de site-portfolio-v3), sans noms de clients ──
   var PIECES = [
-    { img: 'justice',        titre: 'Justice',        cat: 'Décor',                  fini: "Blanc veiné d'or, peint à la main",       c: '#b8913b' },
-    { img: 'micro',          titre: 'Micro serti',    cat: 'Accessoire de scène',    fini: 'Base noire, sertie de strass',              c: '#8e949b' },
-    { img: 'bijoux',         titre: 'Bijoux',         cat: 'Accessoire de scène',    fini: 'Effet métal argenté',                       c: '#a7adb4' },
+    { img: 'buste',          titre: 'Buste bronze',   cat: 'Accessoire de tournage', fini: 'PLA mat, finition bronze',                  c: '#8c5e2e', photo: 1 },
+    { img: 'justice',        titre: 'Justice',        cat: 'Décor',                  fini: "Blanc veiné d'or, peint à la main",       c: '#b8913b', photo: 1 },
+    { img: 'micro',          titre: 'Micro serti',    cat: 'Accessoire de scène',    fini: 'Base noire, sertie de strass',              c: '#8e949b', photo: 1 },
+    { img: 'bijoux',         titre: 'Bijoux',         cat: 'Accessoire de scène',    fini: 'Effet métal argenté',                       c: '#a7adb4', photo: 1 },
     { img: 'guitare-chicha', titre: 'Guitare chicha', cat: 'Décor',                  fini: 'Blocs décalés, assemblés sur socle',        c: '#9a6b4a' },
-    { img: 'plaque-logo',    titre: 'Plaque logo',    cat: 'Objet de marque',        fini: 'Trois couleurs, sans peinture',             c: '#6f7f99' },
-    { img: 'kit-rose',       titre: 'Kit rose',       cat: 'Accessoire de tournage', fini: 'Série de pièces pour une vidéo YouTube',    c: '#c97a98' },
+    { img: 'plaque-logo',    titre: 'Plaque logo',    cat: 'Objet de marque',        fini: 'Trois couleurs, sans peinture',             c: '#6f7f99', photo: 1 },
+    { img: 'kit-rose',       titre: 'Kit rose',       cat: 'Accessoire de tournage', fini: 'Série de pièces pour une vidéo YouTube',    c: '#c97a98', photo: 1 },
     { img: 'rpi-case',       titre: 'Boitier Pi',     cat: 'Projet perso',           fini: 'Résine transparente, carte visible',        c: '#1f8a3c' }
   ];
   // (sans accents dans les titres : en VG5000 capitales, les lettres accentuées passent mal)
@@ -209,9 +222,10 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
       '<div class="logo"><img src="img/F-LAB_centre_cadre_blanc.svg" alt="F-LAB"></div>' +
       '<div class="mot lbl"><span id="mot">' + MOTS[0] + '</span></div></section>';
   PIECES.forEach(function (p, i) {
-    html += '<section class="diapo" style="--c:' + p.c + '">' +
+    html += '<section class="diapo' + (p.photo ? '' : ' sans-photo') + '" style="--c:' + p.c + '">' +
       '<div class="halo"></div><div class="ombre"></div>' +
       '<div class="piece"><div class="flotte"><img src="img/' + p.img + '.png" alt=""></div></div>' +
+      (p.photo ? '<figure class="photo"><img src="img/photo-' + p.img + '.jpg" alt=""><div class="lbl">En vrai</div></figure>' : '') +
       '<div class="info">' +
         '<div class="num mono">N° ' + ('0' + (i + 1)).slice(-2) + ' / ' + ('0' + PIECES.length).slice(-2) + '</div>' +
         '<div class="lbl">' + p.cat + '</div>' +
