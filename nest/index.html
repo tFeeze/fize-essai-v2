@@ -40,17 +40,17 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .diapo.on { opacity: 1; visibility: visible; transition: opacity .7s ease .15s, visibility 0s; }
 
 /* halo coloré derrière la pièce : la couleur vient du projet, jamais de la marque */
-.halo { position: absolute; left: 0; top: 8%; width: 42%; height: 84%; border-radius: 50%;
+.halo { position: absolute; left: 0; top: 14%; width: 34%; height: 72%; border-radius: 50%;
   background: radial-gradient(closest-side, var(--c, #555) 0%, transparent 100%); opacity: .28; }
 
 /* la pièce : elle monte en entrant, puis lévite */
-.piece { position: absolute; left: 7%; top: 16%; width: 30%; height: 72%; display: flex; align-items: center; justify-content: center;
+.piece { position: absolute; left: 6%; top: 24%; width: 22%; height: 52%; display: flex; align-items: center; justify-content: center;
   transform: translateY(6%); opacity: 0; transition: transform 1s cubic-bezier(.2,.7,.2,1) .25s, opacity .8s ease .25s; }
 .on .piece { transform: none; opacity: 1; }
 .piece .flotte { height: 100%; width: 100%; display: flex; align-items: center; justify-content: center; }
 .on .piece .flotte { animation: leviter 4.2s ease-in-out infinite alternate; }
 .piece img { max-width: 100%; max-height: 100%; }
-.ombre { position: absolute; left: 13%; bottom: 9%; width: 20%; height: calc(var(--u) * 1.6); border-radius: 50%;
+.ombre { position: absolute; left: 10%; bottom: 19%; width: 14%; height: calc(var(--u) * 1.6); border-radius: 50%;
   background: radial-gradient(closest-side, rgba(0,0,0,.75), transparent); }
 .on .ombre { animation: ombre 4.2s ease-in-out infinite alternate; }
 @keyframes leviter { from { transform: translateY(1.5%); } to { transform: translateY(-2.5%); } }
@@ -62,14 +62,14 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .sans-photo .info { left: 58%; }
 
 /* la photo réelle : elle glisse en place une fois la pièce posée, puis ne bouge plus */
-.photo { position: absolute; left: 39%; top: 50%; width: 21%; margin-top: calc(var(--u) * -15.5);
+.photo { position: absolute; left: 30%; top: 50%; width: 31%; margin-top: calc(var(--u) * -20.6);
   opacity: 0; transform: translateX(calc(var(--u) * 3)); transition: opacity .7s ease 1.2s, transform .9s cubic-bezier(.2,.7,.2,1) 1.2s; }
 .on .photo { opacity: 1; transform: none; }
 .photo img { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: calc(var(--u) * .4); }
 .photo .lbl { margin-top: calc(var(--u) * 1); font-size: calc(var(--u) * 1); }
 
 /* le texte à droite */
-.info { position: absolute; left: 63%; right: 8.5%; top: 50%; transform: translateY(-50%); }
+.info { position: absolute; left: 64.5%; right: 8%; top: 50%; transform: translateY(-50%); }
 .info .lbl { margin-bottom: calc(var(--u) * 1.2); }
 .info h2 { font-size: calc(var(--u) * 4.8); line-height: .98; letter-spacing: -.01em; position: relative; }
 .info .fini { margin-top: calc(var(--u) * 2.2); font-size: calc(var(--u) * 1.75); color: var(--text); line-height: 1.4;
@@ -203,7 +203,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   };
   var ORDRE_QR = ['site', 'contact', 'instagram', 'tiktok'];
 
-  var V = '3';             // à augmenter quand une image change : le Nest garde les anciennes en mémoire
+  var V = '4';             // à augmenter quand une image change : le Nest garde les anciennes en mémoire
   var DUREE = 8000;          // une diapositive
   var QR_AUTO_FERME = 30000; // le panneau QR se referme seul
 
