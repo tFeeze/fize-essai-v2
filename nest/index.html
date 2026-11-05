@@ -67,6 +67,12 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .on .photo { opacity: 1; transform: none; }
 .photo img { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: calc(var(--u) * .4); }
 .photo .lbl { margin-top: calc(var(--u) * 1); font-size: calc(var(--u) * 1); }
+/* comme le mode « grille » du site : la photo se dessine carreau par carreau (canvas posé sur l'image, cachée) */
+.photo.carreaux { opacity: 1; transform: none; transition: none; }
+.photo.carreaux img { visibility: hidden; }
+.photo canvas { position: absolute; left: 0; top: 0; width: 100%; aspect-ratio: 4 / 5; }
+.photo.carreaux .lbl { opacity: 0; transition: opacity .6s ease; }
+.on .photo.carreaux .lbl { opacity: 1; transition-delay: 2.2s; }
 
 /* le texte à droite */
 .info { position: absolute; left: 64.5%; right: 8%; top: 50%; transform: translateY(-50%); }
@@ -203,7 +209,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   };
   var ORDRE_QR = ['site', 'contact', 'instagram', 'tiktok'];
 
-  var V = '4';             // à augmenter quand une image change : le Nest garde les anciennes en mémoire
+  var V = '5';             // à augmenter quand une image change : le Nest garde les anciennes en mémoire
   var DUREE = 8000;          // une diapositive
   var QR_AUTO_FERME = 30000; // le panneau QR se referme seul
 
@@ -221,7 +227,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
     html += '<section class="diapo' + (p.photo ? '' : ' sans-photo') + '" style="--c:' + p.c + '">' +
       '<div class="halo"></div><div class="ombre"></div>' +
       '<div class="piece"><div class="flotte"><img src="img/' + p.img + '.png?v=' + V + '" alt=""></div></div>' +
-      (p.photo ? '<figure class="photo"><img src="img/photo-' + p.img + '.jpg?v=' + V + '" alt=""><div class="lbl">En vrai</div></figure>' : '') +
+      (p.photo ? '<figure class="photo"><img src="img/photo-' + p.img + '.jpg?v=' + V + '" alt=""><canvas></canvas><div class="lbl">En vrai</div></figure>' : '') +
       '<div class="info">' +
         '<div class="lbl">' + p.cat + '</div>' +
         '<h2 class="vg imprime"><span>' + p.titre + '</span></h2>' +
@@ -234,6 +240,65 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   var n = diapos.length;
   $('points').innerHTML = new Array(n + 1).join('<i><b></b></i>');
   var points = $('points').children;
+
+  // ── Photos : elles se dessinent carreau par carreau, comme en mode « grille » sur le site ──
+  // Tache organique (bord irrégulier tiré d'un bruit, carreaux épars en lisière) qui s'étale depuis le côté
+  // de la pièce par coulées inégales ; chaque carreau naît rond, rebondit un peu et finit carré.
+  // Sur le Nest, on ne redessine que pendant l'apparition (~2 s), puis l'image reste figée.
+  var CASES = 10, ATTENTE = 900, anim = null;
+  if (window.HTMLCanvasElement) [].forEach.call(document.querySelectorAll('.photo'), function (f) { f.classList.add('carreaux'); });
+  function bruit2(x, y) {
+    var h = function (i, j) { var s = Math.sin(i * 127.1 + j * 311.7) * 43758.5453; return s - Math.floor(s); };
+    var X = Math.floor(x), Y = Math.floor(y), fx = x - X, fy = y - Y, u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy);
+    return (h(X, Y) * (1 - u) + h(X + 1, Y) * u) * (1 - v) + (h(X, Y + 1) * (1 - u) + h(X + 1, Y + 1) * u) * v;
+  }
+  function fbm2(x, y) { return bruit2(x, y) * 0.6 + bruit2(x * 2.1, y * 2.1) * 0.28 + bruit2(x * 4.3, y * 4.3) * 0.12; }
+  function rebond(t) { var c = 1.9; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); }
+  function arrondi(g, x, y, w, r) {          // roundRect n'existe pas sur le navigateur du Nest
+    g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + w, r); g.arcTo(x + w, y + w, x, y + w, r);
+    g.arcTo(x, y + w, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
+  }
+  function carreaux(diapo) {
+    if (anim) { cancelAnimationFrame(anim.raf); clearTimeout(anim.tempo); anim = null; }
+    var fig = diapo.querySelector('.photo.carreaux'); if (!fig) return;
+    var im = fig.querySelector('img'), cv = fig.querySelector('canvas'), g = cv.getContext('2d');
+    var W = fig.offsetWidth, H = Math.round(W * 5 / 4), d = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = W * d; cv.height = H * d; g.setTransform(d, 0, 0, d, 0, 0); g.clearRect(0, 0, W, H);
+    var C = W / CASES, nx = CASES, ny = Math.round(H / C);
+    var graine = Math.random() * 100, cells = [];
+    for (var j = 0; j < ny; j++) for (var i = 0; i < nx; i++) {
+      var cx = (i + .5) / nx, cy = (j + .5) / ny;
+      var n1 = fbm2(i * 0.32 + graine, j * 0.32), n2 = fbm2(i * 0.18 - graine, j * 0.18 + 7.3);
+      var e = Math.sqrt(Math.pow((cx - .5) * 2, 2) + Math.pow((cy - .5) * 2, 2)) / 1.12 + (n1 - 0.5) * 0.85;
+      var bord = Math.min(1, Math.max(0, (1 - e) / 0.34));
+      if (bord <= 0 || (bord < 1 && Math.random() > bord + 0.25)) continue;
+      var dist = Math.sqrt(cx * cx + Math.pow(cy - .5, 2)) / 1.2;     // part du bord gauche, côté pièce
+      cells.push({ i: i, j: j, bord: Math.max(0.35, bord), delai: dist * 1000 + n2 * 520 + Math.random() * 70, duree: 300 + Math.random() * 260 });
+    }
+    var sr = im.naturalWidth / im.naturalHeight, rr = W / H;
+    var sw = sr > rr ? im.naturalHeight * rr : im.naturalWidth, sh = sr > rr ? im.naturalHeight : im.naturalWidth / rr;
+    var sx0 = (im.naturalWidth - sw) / 2, sy0 = (im.naturalHeight - sh) / 2, kx = sw / W, ky = sh / H;
+    var a = anim = { raf: 0, tempo: 0, t0: 0 };
+    function dessine() {
+      if (anim !== a) return;
+      var now = Date.now(), finies = 0; g.clearRect(0, 0, W, H);
+      for (var c = 0; c < cells.length; c++) {
+        var q = cells[c], t = Math.min(1, Math.max(0, (now - a.t0 - q.delai) / q.duree));
+        if (t >= 1) finies++;
+        if (t <= 0) continue;
+        var k = Math.max(0, rebond(t)), full = C - 1, w = full * (0.15 + 0.85 * k), o = (full - w) / 2;
+        var X = q.i * C + .5, Y = q.j * C + .5;
+        g.globalAlpha = Math.min(1, t * 1.6) * q.bord;
+        g.save(); arrondi(g, X + o, Y + o, w, (w / 2) * Math.pow(1 - t, 1.5)); g.clip();
+        g.drawImage(im, sx0 + q.i * C * kx, sy0 + q.j * C * ky, full * kx, full * ky, X, Y, full, full);
+        g.restore();
+      }
+      g.globalAlpha = 1;
+      if (finies < cells.length) a.raf = requestAnimationFrame(dessine);
+    }
+    function partir() { if (anim !== a) return; a.t0 = Date.now(); a.raf = requestAnimationFrame(dessine); }
+    a.tempo = setTimeout(function () { if (im.complete && im.naturalWidth) partir(); else im.onload = partir; }, ATTENTE);
+  }
 
   // ── Défilement ──
   var cur = -1, minuteur = null, debut = 0, reste = DUREE, enPause = false;
@@ -248,6 +313,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
       var b = points[k].firstChild; b.style.animation = 'none'; void b.offsetWidth; b.style.animation = '';
     }
     points[i].className = 'cours';
+    carreaux(diapos[i]);
     cur = i;
     reste = DUREE;
     programmer();
