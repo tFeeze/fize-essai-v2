@@ -454,7 +454,8 @@ h1.label { font-weight: 500; letter-spacing: .16em; }                        /* 
 @media (prefers-reduced-motion: reduce) { .cue { animation: none; } html { scroll-behavior: auto; } }
 
 /* ═══ FAQ : même grammaire que la liste Work (filets, typo étirée), questions qui s'ouvrent ═══ */
-body.faq main { padding: max(26vh, 190px) 32px 4vh; max-width: 1100px; }
+body.faq main { padding: max(26vh, 190px) 32px 4vh; max-width: 1100px; margin-left: clamp(190px, 17vw, 280px); }   /* à droite du menu fixe, comme les pages légales */
+@media (max-width: 800px) { body.faq main { margin-left: 0; } }
 .faq-head { display: flex; flex-direction: column; gap: 12px; margin-bottom: 7vh; }
 .faq-head h1 { font-size: clamp(30px, 3.4vw, 52px); line-height: 1.05; }   /* titre discret : le menu dit déjà où l'on est */
 .faq-head p { max-width: 30ch; font-size: 14px; line-height: 1.55; color: var(--text); }
