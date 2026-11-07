@@ -568,7 +568,10 @@ if (CFG.orbit && window.LOGO_MODELS) {
     }
     const grey = { value: 1 };
     if (m.matiere) greyable(mat, grey);
-    if (m.matiere && FOND_PHOTOS) verre(mat, grey);   // grille : pas de verre, la pièce glisse dans un coin
+    if (m.matiere && FOND_PHOTOS) verre(mat, grey);
+    // grille : quand on survole une autre pièce, celle-ci passe en verre (1 = normale, 0 = verre) — on ne regarde que la photo
+    const vitre = { value: 1 };
+    if (m.matiere && FOND_GRILLE) verre(mat, vitre);
     if (m.interieur) {                    // ce qu'on voit à travers la pièce (ex. la carte dans le boîtier transparent)
       const d = m.interieur, ig = new THREE.BufferGeometry();
       ig.setAttribute('position', new THREE.Float32BufferAttribute(Float32Array.from(new Int16Array(bytes(d.pos)), v => v / 32767 * m.scale), 3));
@@ -679,7 +682,7 @@ if (CFG.orbit && window.LOGO_MODELS) {
       new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false }));
     holder.add(hit);
     mesh.rotation.set(0, flatPic ? 0 : (m.cap || 0), 0);   // V3 : face importante vers nous (rendus.json « cap »)
-    pieces.push({ pu, dots, build: 0, holder, mesh, hit, slug: m.slug, grey, card, get cardR() { return cardR; }, cap: m.cap || 0, tilt: m.incline || 0, phase: i * 1.7, spin: (i % 2 ? -1 : 1) * (0.25 + 0.1 * i), grow: 1, lx: 0, ly: 0, mat, flat: flatPic, finish: !!m.matiere, rest: flatPic ? new THREE.Color('#ffffff') : STUDIO === 'gomme' ? gum(COLORS[i % COLORS.length]) : STUDIO ? bright(COLORS[i % COLORS.length]) : NEUTRAL,
+    pieces.push({ pu, dots, build: 0, holder, mesh, hit, slug: m.slug, grey, vitre, card, get cardR() { return cardR; }, cap: m.cap || 0, tilt: m.incline || 0, phase: i * 1.7, spin: (i % 2 ? -1 : 1) * (0.25 + 0.1 * i), grow: 1, lx: 0, ly: 0, mat, flat: flatPic, finish: !!m.matiere, rest: flatPic ? new THREE.Color('#ffffff') : STUDIO === 'gomme' ? gum(COLORS[i % COLORS.length]) : STUDIO ? bright(COLORS[i % COLORS.length]) : NEUTRAL,
       tint: (STUDIO === 'gomme' ? gum : STUDIO ? bright : muted)(COLORS[i % COLORS.length]),
       // rayon réel de la pièce (sphère qui la contient quelle que soit sa rotation), pour la garder à l'écran
       radius: geo.boundingSphere.radius + geo.boundingSphere.center.length() });
@@ -1162,6 +1165,7 @@ function tick() {
       p.holder.rotation.set(p.ly * 0.5, p.lx * 0.5, 0);
       p.grow += ((p === hovered ? (FOND_PHOTOS ? 1.12 : FOND_GRILLE ? 0 : 1.3) : 1) - p.grow) * (1 - Math.exp(-dt * (FOND_GRILLE ? 6 : 10)));   // grille : la pièce disparaît, l'image prend sa place
       p.grey.value += ((p === hovered ? 0 : 1) - p.grey.value) * (1 - Math.exp(-dt * 7));   // V3 : la couleur revient au survol
+      p.vitre.value += ((FOND_GRILLE && hovered && hovered !== p ? 0 : 1) - p.vitre.value) * (1 - Math.exp(-dt * 6));   // les autres en verre
       // couleur du projet : la première vraiment colorée de sa photo (argent, gris, blanc écartés) ;
       // sinon on garde la couleur de filament de la pièce
       if (p.flat) p.tinted = true;                   // rendu photo : ses couleurs sont dans l'image
@@ -1265,6 +1269,7 @@ function tick() {
   if (FOND_GRILLE) {
     grilleDessine();
     const vise = grille.slug && !grille.sortie ? 1 : 0;              // photo affichée : le logo passe en verre
+    if (!!vise !== document.body.classList.contains('grille-on')) document.body.classList.toggle('grille-on', !!vise);   // la ligne sous le logo s'efface
     LOGO_VERRE.value += (vise - LOGO_VERRE.value) * (1 - Math.exp(-dt * 6));
   }
   if (warp.mode) {                                  // transition en cours

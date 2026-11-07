@@ -125,7 +125,7 @@ body.moved .cue { opacity: 0; }
 /* ce qu'on fait, dit dès l'arrivée : une ligne sous le logo, qui s'efface quand on descend */
 .baseline { position: absolute; left: 50%; top: calc(50% + min(100vh, 100vw) * var(--hero-frame, .44) * var(--logo-ratio, .39) / 2 + 24px); transform: translateX(-50%); margin: 0; white-space: nowrap;   /* V3 : en VG5000, la typo de la marque */
   font: 400 17px/1 "VG5000", "Helvetica Neue", Arial, sans-serif; letter-spacing: .04em; text-transform: uppercase; color: var(--ink); z-index: 16; transition: opacity .3s; }
-body.moved .baseline { opacity: 0; }
+body.moved .baseline, body.grille-on .baseline { opacity: 0; }   /* grille-on : une photo de projet s'affiche */
 .bl-mot { display: inline-block; transition: opacity .45s ease, transform .45s ease, filter .45s ease; }
 .bl-mot.sort { opacity: 0; transform: translateY(-7px); filter: blur(2px); }
 .bl-mot.entre { opacity: 0; transform: translateY(7px); filter: blur(2px); transition: none; }

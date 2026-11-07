@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Contact — Fize</title>
-<link rel="stylesheet" href="site.css?v=f42d23e4">
+<link rel="stylesheet" href="site.css?v=31d68c36">
   <meta name="description" content="Décrivez votre projet d&#x27;impression 3D : fichier ou référence, dimensions, finition, date. Atelier à Paris 18e.">
   <link rel="canonical" href="https://fize-lab.com/contact.html">
   <meta property="og:type" content="website">
@@ -281,7 +281,7 @@
     // chargés en arrière-plan : la page (liste des projets…) s'affiche sans les attendre
     const need = [add('logo-data.js?v=486514b4')];
     if (C.orbit) need.push(add(C.models ? C.models + '?v=1c2a5639' : 'models-home.js?v=8c2298e7'));
-    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=44db5f15', true); });
+    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=650a44c0', true); });
   }
 })();
 </script>
