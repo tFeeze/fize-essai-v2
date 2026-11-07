@@ -130,12 +130,8 @@ body.moved .baseline { opacity: 0; }
 .bl-mot.sort { opacity: 0; transform: translateY(-7px); filter: blur(2px); }
 .bl-mot.entre { opacity: 0; transform: translateY(7px); filter: blur(2px); transition: none; }
 @media (max-width: 799px) { .baseline { font-size: 13px; letter-spacing: .03em; } }
-/* médaillon de l'accueil : le logo en image détourée, qui glisse depuis la droite quand le logo 3D est parti */
-.medaillon { position: fixed; right: 20px; bottom: 18px; width: 140px; z-index: 16; display: block; line-height: 0;
-  transform: translateX(calc(100% + 40px)); transition: transform .7s cubic-bezier(.2,.9,.25,1); }
-.medaillon img { width: 100%; height: auto; display: block; }
-body.scrolled .medaillon { transform: none; }
-html.warping .medaillon { transition: none; }
+.to-top { position: fixed; right: 20px; bottom: 16px; width: 150px; height: 150px; z-index: 16; display: none; }   /* sur le médaillon, en bas à droite */
+body.scrolled .to-top { display: block; }
 .work-head { padding: 8vh 32px 8vh; display: flex; justify-content: space-between; align-items: end; gap: 32px; }
 .work-head h1 { font-size: clamp(56px, 11vw, 190px); line-height: .85; }
 .work-head p { white-space: nowrap; font-size: 14px; line-height: 1.55; color: var(--text); }
@@ -304,7 +300,7 @@ footer { padding: 6vh 32px; font-size: 12px; color: var(--mute); }
   body.home section { min-height: 80vh; padding: 8vh 20px 10vh; border-left: 0; border-top: 1px solid var(--line); }
   #steps { display: none; }
 
-  .medaillon { width: 90px; right: 10px; bottom: 10px; }
+  .to-top { width: 96px; height: 96px; right: 8px; bottom: 8px; }
   .work-head { align-items: end; gap: 16px; padding: 6vh 16px 6vh; }
   .work-head p { font-size: 12px; line-height: 1.4; text-align: right; }
   .rows { margin: 0 16px 20vh; }
@@ -446,7 +442,7 @@ body.legal main { max-width: 760px; padding: 22vh 32px 6vh; }
 body.legal h1 { font-size: clamp(34px, 5vw, 64px); margin-bottom: 28px; }
 body.legal h2 { font-size: 18px; margin: 28px 0 8px; }
 body.legal p { font-size: 15px; line-height: 1.65; color: var(--text); }
-body.legal a { color: var(--ink); }
+body.legal main a { color: var(--ink); }   /* pas « body.legal a » : le menu (blanc + difference) devenait invisible */
 @media (max-width: 800px) { .site-foot { padding: 6vh 16px 8vh; } body.home .site-foot, body.about .site-foot { margin-left: 0; } body.legal main { padding: 16vh 16px 4vh; } }
 
 /* ═══ Accessibilité ═══ */
@@ -722,7 +718,7 @@ body.finitions #stage, body.faq #stage { position: fixed; right: 20px; bottom: 1
 
 /* V3 : bandeau défilant sous la liste des projets (savoir-faire) */
 .bandeau { overflow: hidden; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin: 8vh 0 6vh; padding: 18px 0; }
-.bandeau-piste { display: flex; width: max-content; animation: bandeau 26s linear infinite; }
+.bandeau-piste { display: flex; width: max-content; animation: bandeau 42s linear infinite; }   /* plus lent (Tom, 07/11) */
 .bandeau-piste > div { display: flex; align-items: center; flex-shrink: 0; }
 .bandeau span { font: 400 clamp(28px, 4vw, 64px)/1 "VG5000", "Helvetica Neue", Arial, sans-serif; letter-spacing: .01em; white-space: nowrap; padding: 0 .45em; }
 .bandeau i { font-style: normal; font-size: clamp(16px, 2vw, 30px); color: var(--mute); }
@@ -788,9 +784,9 @@ body.mise-c .p-gallery figcaption { position: absolute; left: 10px; bottom: 8px;
 .home-reseaux .reseaux { margin-top: 0; }
 /* V3 : bandeau collé à la liste (plus de grand vide), et plus large */
 body.work .rows { margin-bottom: 0; }
-.bandeau { margin: 5vh 0 6vh; padding: 38px 0; }
-.bandeau span { font-size: clamp(52px, 8.2vw, 144px); }
-.bandeau i { font-size: clamp(26px, 3.6vw, 60px); }
+.bandeau { margin: 5vh 0 6vh; padding: 30px 0; }
+.bandeau span { font-size: clamp(40px, 6vw, 104px); }   /* un peu plus petit (Tom, 07/11) */
+.bandeau i { font-size: clamp(20px, 2.6vw, 44px); }
 .reseau.sans-lien { cursor: default; }
 
 /* V3 : au survol, seul « 3D PRINT » s'anime (le mot s'imprime couche par couche) */

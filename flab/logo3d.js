@@ -92,15 +92,21 @@ document.documentElement.style.setProperty('--logo-ratio', (size.y / size.x).toF
 
 // Logo en chrome : métal poli, face bombée optiquement pour que les reflets glissent quand il pivote,
 // grain fin par-dessus. Un seul calcul simple par pixel, léger pour les téléphones.
-const material = new THREE.MeshPhysicalMaterial({ color: 0xf5f5f5, metalness: 1, roughness: 0.06, envMapIntensity: 1.2 });
+const material = new THREE.MeshPhysicalMaterial({ color: 0xf5f5f5, metalness: 1, roughness: 0.06, envMapIntensity: 1.2, transparent: true });
+// accueil, mode grille : pendant qu'une photo de projet s'affiche, le logo devient « verre » (transparent au centre,
+// bords lumineux) pour ne pas cacher la photo qui passe derrière ; 0 = chrome, 1 = verre (piloté dans tick)
+const LOGO_VERRE = { value: 0 };
 material.onBeforeCompile = sh => {
-  Object.assign(sh.uniforms, U, { uBend: { value: 0.25 / (0.5 / s) } });
+  Object.assign(sh.uniforms, U, { uBend: { value: 0.25 / (0.5 / s) }, uLogoVerre: LOGO_VERRE });
   sh.vertexShader = 'uniform float uBend;\n' + sh.vertexShader.replace('#include <beginnormal_vertex>',
     `#include <beginnormal_vertex>
      if (abs(objectNormal.z) > 0.9) objectNormal = normalize(objectNormal + vec3(position.xy * uBend, 0.0));`);
-  sh.fragmentShader = 'uniform float uTime;\n' + sh.fragmentShader.replace('#include <dithering_fragment>',
+  sh.fragmentShader = 'uniform float uTime;\nuniform float uLogoVerre;\n' + sh.fragmentShader.replace('#include <dithering_fragment>',
     `#include <dithering_fragment>
-     gl_FragColor.rgb += (fract(sin(dot(floor(gl_FragCoord.xy) + fract(uTime) * 91.7, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) * 0.035;`);
+     gl_FragColor.rgb += (fract(sin(dot(floor(gl_FragCoord.xy) + fract(uTime) * 91.7, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) * 0.035;
+     { float fr = pow(1.0 - abs(dot(normal, normalize(vViewPosition))), 2.0);
+       gl_FragColor.rgb = mix(gl_FragColor.rgb, gl_FragColor.rgb * 0.7 + vec3(0.5) * fr + vec3(0.1), uLogoVerre);
+       gl_FragColor.a *= mix(1.0, 0.16 + 0.84 * fr, uLogoVerre); }`);
 };
 obj.traverse(m => { if (m.isMesh) {
   m.material = material;
@@ -1256,7 +1262,11 @@ function tick() {
     const cw = (p.card.userData.w || 1.9) * k, ch = (p.card.userData.h || 1.4) * k;
     p.card.position.x += (sx * 0.36 * cw - p.card.position.x) * 0.1; p.card.position.y += (0.34 * ch - p.card.position.y) * 0.1; });
   if (labelPiece) { if (labelPiece !== hovered || orbitShown < 0.6) cardFor(null); else placeLabel(); }
-  if (FOND_GRILLE) grilleDessine();
+  if (FOND_GRILLE) {
+    grilleDessine();
+    const vise = grille.slug && !grille.sortie ? 1 : 0;              // photo affichée : le logo passe en verre
+    LOGO_VERRE.value += (vise - LOGO_VERRE.value) * (1 - Math.exp(-dt * 6));
+  }
   if (warp.mode) {                                  // transition en cours
     if (warp.mode !== 'hold') warp.k = Math.min(1, (performance.now() - warp.t0) / warp.dur);
     // le logo reste de face, il ne suit plus la souris : la caméra vise l'étoile puis passe au travers
