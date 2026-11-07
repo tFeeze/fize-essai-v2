@@ -438,12 +438,12 @@ html:has(body.contact) { background: #0b0b0b; }
 .site-foot a { color: var(--mute); }
 body.home .site-foot { margin-left: 50vw; }
 body.about .site-foot { margin-left: 40vw; }
-body.legal main { max-width: 760px; padding: 22vh 32px 6vh; }
+body.legal main { max-width: 760px; padding: 22vh 32px 6vh; margin-left: clamp(190px, 17vw, 280px); }   /* à droite du menu fixe : le texte ne passe plus dessous au défilement */
 body.legal h1 { font-size: clamp(34px, 5vw, 64px); margin-bottom: 28px; }
 body.legal h2 { font-size: 18px; margin: 28px 0 8px; }
 body.legal p { font-size: 15px; line-height: 1.65; color: var(--text); }
 body.legal main a { color: var(--ink); }   /* pas « body.legal a » : le menu (blanc + difference) devenait invisible */
-@media (max-width: 800px) { .site-foot { padding: 6vh 16px 8vh; } body.home .site-foot, body.about .site-foot { margin-left: 0; } body.legal main { padding: 16vh 16px 4vh; } }
+@media (max-width: 800px) { .site-foot { padding: 6vh 16px 8vh; } body.home .site-foot, body.about .site-foot { margin-left: 0; } body.legal main { padding: 16vh 16px 4vh; margin-left: 0; } }
 
 /* ═══ Accessibilité ═══ */
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }    /* focus clavier toujours visible */
