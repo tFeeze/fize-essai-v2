@@ -186,7 +186,7 @@ const fondPlate = (() => {
 })();
 function fondPlateMaj() {
   // pas sur l'accueil plein écran (le logo flotte sur la grille) ni pendant la transition (l'étoile doit rester un trou)
-  const on = !FLAT && !warp.mode && (!document.body.classList.contains('work') || document.body.classList.contains('moved'));
+  const on = false;   // retirée (Tom, 07/11) : le logo garde un fond transparent, même au-dessus du texte
   if (on && !fondPlate.visible) {
     let c = getComputedStyle(document.body).backgroundColor.match(/[\d.]+/g);
     if (!c || c[3] === '0') c = getComputedStyle(document.documentElement).backgroundColor.match(/[\d.]+/g);   // body transparent : le fond est sur html
@@ -814,11 +814,15 @@ function grilleFor(pr, p) {
   // position de la pièce à l'écran
   const v = new THREE.Vector3(); p.holder.getWorldPosition(v); v.project(orbitCam);
   const px = (v.x + 1) / 2 * innerWidth, py = (1 - v.y) / 2 * innerHeight;
-  const W = Math.min(Math.max(innerWidth * 0.26, 260), 440), H = W * im.naturalHeight / im.naturalWidth;
+  // l'image et son étiquette (≈ 64 px dessous) tiennent entre la bande du haut (96 px) et le bas de l'écran
+  let W = Math.min(Math.max(innerWidth * 0.26, 260), 440), H = W * im.naturalHeight / im.naturalWidth;
+  const Hmax = innerHeight - 96 - 72;
+  if (H > Hmax) { W *= Hmax / H; H = Hmax; }                        // image en hauteur (bijoux, Garfield) : réduite
   // les carreaux de la trame sont repérés dans la page (la trame défile avec elle) : traits à 32·k − 1 px
   const snap = v => Math.round(v / CASE) * CASE - 1;
   const x = Math.max(-1, Math.min(snap(innerWidth - W), snap(px - W / 2)));
-  const y = Math.max(snap(scrollY + 96), snap(py + scrollY - H / 2));   // en coordonnées de page ; sous la bande du haut (menu, réseaux)
+  // en coordonnées de page ; sous la bande du haut (menu, réseaux) et au-dessus du bas de l'écran (étiquette comprise)
+  const y = Math.max(snap(scrollY + 96), Math.min(snap(scrollY + innerHeight - 72 - H), snap(py + scrollY - H / 2)));
   const nx = Math.max(2, Math.round(W / CASE)), ny = Math.max(2, Math.round(H / CASE));
   grille.rect = { x, y, w: nx * CASE, h: ny * CASE }; grille.img = im; grille.slug = pr.slug; grille.piece = p;
   const pyPage = py + scrollY;

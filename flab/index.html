@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fize — Atelier d'impression 3D, Paris</title>
-<link rel="stylesheet" href="site.css?v=8b2d84ab">
+<link rel="stylesheet" href="site.css?v=62c5049c">
   <meta name="description" content="Accessoires et décors, objets de marque, prototypes et pièces techniques : conception, impression 3D et finition à la main, à Paris 18e.">
   <link rel="canonical" href="https://fize-lab.com/">
   <meta property="og:type" content="website">
@@ -26,7 +26,8 @@
   <a class="skip" href="#contenu">Aller au contenu</a>
   <!-- le logo : plein écran au centre, il suit la souris ; au scroll il rétrécit jusqu'au médaillon -->
   <div id="stage"><canvas id="scene"></canvas></div>
-  <a class="to-top" href="#top" aria-label="Revenir en haut"></a>
+  <!-- médaillon : le logo en image (PNG détouré), qui arrive en glissant en bas à droite une fois le logo 3D parti -->
+  <a class="medaillon" href="#top" aria-label="Revenir en haut"><img src="img/logo-flab-medaillon.webp" alt="" width="600" height="235"></a>
   <!-- Écran de chargement : une bobine en volume (CSS 3D, sans attendre le moteur 3D) dont le fil
      s'enroule au rythme du chargement. Injecté par build.py.
      Étapes : page lue → modèle du logo chargé → moteur 3D prêt → première image affichée.
@@ -142,41 +143,22 @@
   let HERO_FRAME = innerWidth < 800 ? 0.78 : 0.44;
   window.LOGO_CONFIG = { mode: 'fixed', frame: HERO_FRAME, orbit: true, models: 'models-v2.js' };   // V2 3D : vraies pièces, vraies matières
 
-  // ── Au scroll, le logo s'envole vers le haut avec les pièces ; une fois parti, il revient en médaillon
-  // en glissant depuis la gauche, en bas à gauche de l'écran (transform CSS : le rendu 3D garde sa taille)
+  // ── Au scroll, le logo 3D s'envole vers le haut avec les pièces ; une fois parti, un médaillon
+  // (le logo en image, fond transparent) arrive en glissant en bas à droite (site.css, .medaillon)
   const stageEl = document.getElementById('stage');
   let head;                                        // grand titre WORK, cherché une seule fois
-  let medal = false, sortie = 0;                   // médaillon affiché ? fin de son départ (ms)
   function place() {
     document.documentElement.style.setProperty('--hero-frame', HERO_FRAME);   // V3 : la ligne d'accroche suit la taille réelle du logo
-    const W = innerWidth, H = stageEl.offsetHeight || innerHeight, small = W < 800;
-    const box = small ? 96 : 150, margin = small ? 8 : 20;
+    const W = innerWidth, H = stageEl.offsetHeight || innerHeight;
     const p = Math.min(1, Math.max(0, scrollY / (H * 0.8)));
     const full = Math.min(HERO_FRAME, HERO_FRAME * W / H) * H;   // taille du logo en plein écran (cf. frame)
     const ratio = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--logo-ratio')) || 0.4;
-    const sm = (box * 0.92) / full;                               // échelle du médaillon
-    const mx = margin + box / 2 - W / 2, my = innerHeight - margin - box / 2 - H / 2;   // bas gauche de l'écran visible
-    const off = -(box + margin + 40);                             // hors cadre, à gauche
-    const T = (x, y, k) => `translate(${x}px, ${y}px) scale(${k})`;
-    const now = performance.now();
-    let s = 1;
-    if (p >= 0.7) {                                               // le logo est parti : le médaillon arrive en glissant
-      s = sm;
-      if (!medal) { medal = true; stageEl.style.transition = 'none'; stageEl.style.transform = T(mx + off, my, sm);
-        stageEl.offsetWidth; stageEl.style.transition = 'transform .7s cubic-bezier(.2,.9,.25,1)'; }
-      stageEl.style.transform = T(mx, my, sm);
-    } else if (medal) {                                           // on remonte : le médaillon repart par la gauche
-      medal = false; sortie = now + 300; s = sm;
-      stageEl.style.transition = 'transform .3s cubic-bezier(.5,0,.75,0)'; stageEl.style.transform = T(mx + off, my, sm);
-      setTimeout(place, 320);
-    } else if (now < sortie) { s = sm; }                          // départ en cours : on le laisse finir
-    else {
-      // l'envol : même départ que les pièces (setOrbit plus bas), le logo sort entièrement par le haut
-      const g = Math.min(1, p * 1.6), up = Math.pow(g, 1.6) * (H / 2 + full * ratio / 2 + 60);
-      stageEl.style.transition = 'none'; stageEl.style.transform = `translate(0px, ${-up}px)`;
-    }
+    // l'envol : même départ que les pièces (setOrbit plus bas), le logo sort entièrement par le haut
+    const g = Math.min(1, p * 1.6), up = Math.pow(g, 1.6) * (H / 2 + full * ratio / 2 + 60);
+    stageEl.style.transition = 'none'; stageEl.style.transform = `translate(0px, ${-up}px)`;
+    const s = 1;
     window.LOGO_SCALE = s; window.setLogoScale?.(s);   // médaillon : rendu 3D allégé
-    document.body.classList.toggle('scrolled', medal);            // lien « revenir en haut » sur le médaillon
+    document.body.classList.toggle('scrolled', p >= 0.7);         // le médaillon arrive (site.css)
     // « Work ↓ » s'efface quand le grand titre WORK entre à l'écran
     head ??= document.querySelector('.work-head h1');
     document.body.classList.toggle('moved', !!head && head.getBoundingClientRect().top < innerHeight - 20);
@@ -296,7 +278,7 @@
     // chargés en arrière-plan : la page (liste des projets…) s'affiche sans les attendre
     const need = [add('logo-data.js?v=486514b4')];
     if (C.orbit) need.push(add(C.models ? C.models + '?v=1c2a5639' : 'models-home.js?v=8c2298e7'));
-    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=131d1a9f', true); });
+    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=bec9cec6', true); });
   }
 })();
 </script>

@@ -130,8 +130,12 @@ body.moved .baseline { opacity: 0; }
 .bl-mot.sort { opacity: 0; transform: translateY(-7px); filter: blur(2px); }
 .bl-mot.entre { opacity: 0; transform: translateY(7px); filter: blur(2px); transition: none; }
 @media (max-width: 799px) { .baseline { font-size: 13px; letter-spacing: .03em; } }
-.to-top { position: fixed; left: 20px; bottom: 16px; width: 150px; height: 150px; z-index: 16; display: none; }   /* sur le médaillon, en bas à gauche */
-body.scrolled .to-top { display: block; }
+/* médaillon de l'accueil : le logo en image détourée, qui glisse depuis la droite quand le logo 3D est parti */
+.medaillon { position: fixed; right: 20px; bottom: 18px; width: 140px; z-index: 16; display: block; line-height: 0;
+  transform: translateX(calc(100% + 40px)); transition: transform .7s cubic-bezier(.2,.9,.25,1); }
+.medaillon img { width: 100%; height: auto; display: block; }
+body.scrolled .medaillon { transform: none; }
+html.warping .medaillon { transition: none; }
 .work-head { padding: 8vh 32px 8vh; display: flex; justify-content: space-between; align-items: end; gap: 32px; }
 .work-head h1 { font-size: clamp(56px, 11vw, 190px); line-height: .85; }
 .work-head p { white-space: nowrap; font-size: 14px; line-height: 1.55; color: var(--text); }
@@ -300,7 +304,7 @@ footer { padding: 6vh 32px; font-size: 12px; color: var(--mute); }
   body.home section { min-height: 80vh; padding: 8vh 20px 10vh; border-left: 0; border-top: 1px solid var(--line); }
   #steps { display: none; }
 
-  .to-top { width: 96px; height: 96px; left: 8px; bottom: 8px; }
+  .medaillon { width: 90px; right: 10px; bottom: 10px; }
   .work-head { align-items: end; gap: 16px; padding: 6vh 16px 6vh; }
   .work-head p { font-size: 12px; line-height: 1.4; text-align: right; }
   .rows { margin: 0 16px 20vh; }
