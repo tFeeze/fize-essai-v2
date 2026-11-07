@@ -17,11 +17,9 @@
 - [Bijoux](https://fize-lab.com/bijoux.html) : Accessoire de scène — Effet métal argent. Des bijoux triangulaires surdimensionnés, portés en image.
 - [Plaque logo](https://fize-lab.com/plaque-logo.html) : Objet de marque — Impression multicolore. Des plaques logo imprimées en plusieurs couleurs, sans peinture : la couleur vient directement du filament.
 - [Kit rose](https://fize-lab.com/kit-rose.html) : Accessoire de tournage — PLA rose brut. Une série de pièces roses — tirelire, maisons, damier — imprimées pour la vidéo « 10 Pauvres VS 10 Riches » du youtubeur Le Motif.
-- [Lance-flammes](https://fize-lab.com/lance-flammes.html) : Accessoire de scène — Conception 3D. Un lance-flammes de scène, conçu en 3D avant impression.
+- [Garfield](https://fize-lab.com/garfield.html) : Projet perso — À compléter. Garfield revisité en Terminator : un chat chromé aux yeux rouges, de 60 cm de haut.
 - [Pièce scooter](https://fize-lab.com/scooter.html) : Pièce technique — Brut d'impression. Une pièce de scooter renforcée, modélisée pour être imprimée et montée.
 - [Guitare chicha](https://fize-lab.com/guitare-chicha.html) : Décor — Conception 3D. Un décor de chicha en forme de guitare, découpé en tranches décalées, conçu en 3D avant impression.
-- [Tabourets 1:20](https://fize-lab.com/tabourets.html) : Maquette d'architecture — Échelle 1:20. Le mobilier d'une maquette d'architecture au 1:20 : tabourets, chaises et tables, imprimés en série.
-- [Boîtier Raspberry Pi](https://fize-lab.com/rpi-case.html) : Projet perso — Résine transparente. Un boîtier pour Raspberry Pi 3 B+, imprimé en résine transparente : la carte reste visible à travers.
 
 ## Informations légales
 - [Mentions légales](https://fize-lab.com/mentions-legales.html)

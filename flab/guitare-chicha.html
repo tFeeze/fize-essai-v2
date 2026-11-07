@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Guitare chicha — Fize</title>
 <meta name="description" content="Décor — Conception 3D. Un décor de chicha en forme de guitare, découpé en tranches décalées, conçu en 3D avant impression.">
-<link rel="stylesheet" href="site.css?v=8a378a7d">
+<link rel="stylesheet" href="site.css?v=8b2d84ab">
   <link rel="canonical" href="https://fize-lab.com/guitare-chicha.html">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Impression 3D by Fize">
@@ -100,7 +100,7 @@
     <!-- numéro, catégorie et infos (finition, client…) sur la ligne du titre, à sa suite -->
     <div class="p-titlerow">
       <h1 class="printed long"><span class="stretch">Guitare chicha</span></h1>
-      <span class="label p-num">09 / 11 — Décor</span>
+      <span class="label p-num">09 / 09 — Décor</span>
       <dl class="p-meta"><div><dt>Finition</dt><dd>Conception 3D</dd></div></dl>
     </div>
   </header>
@@ -119,7 +119,7 @@
 
     <div class="p-next">
       <a href="scooter.html"><span class="label">Précédent</span><span class="t">Pièce scooter</span></a>
-      <a href="tabourets.html"><span class="label">Suivant</span><span class="t">Tabourets 1:20</span></a>
+      <a href="justice.html"><span class="label">Suivant</span><span class="t">Justice</span></a>
     </div>
   </main>
   <footer class="site-foot">
@@ -206,8 +206,8 @@
     // pièces en orbite (accueil) et modèle du logo en parallèle, puis le moteur ;
     // chargés en arrière-plan : la page (liste des projets…) s'affiche sans les attendre
     const need = [add('logo-data.js?v=486514b4')];
-    if (C.orbit) need.push(add(C.models ? C.models + '?v=fe4e6195' : 'models-home.js?v=8c2298e7'));
-    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=6165303c', true); });
+    if (C.orbit) need.push(add(C.models ? C.models + '?v=1c2a5639' : 'models-home.js?v=8c2298e7'));
+    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=131d1a9f', true); });
   }
 })();
 </script>
@@ -229,7 +229,7 @@
 // Une image du logo (img/logo-chrome.webp) fait le travail : identique sur ordinateur et téléphone,
 // et indépendante du moteur 3D (qui recharge à chaque page). Injecté en ligne par build.py.
 (() => {
-  const SLUGS = ["justice", "micro", "buste", "bijoux", "plaque-logo", "kit-rose", "lance-flammes", "scooter", "guitare-chicha", "tabourets", "rpi-case"];
+  const SLUGS = ["justice", "micro", "buste", "bijoux", "plaque-logo", "kit-rose", "garfield", "scooter", "guitare-chicha"];
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const KEY = 'fize-warp';
   // pivot : le centre de l'étoile (mesuré sur l'image du logo) ; SR = rayon du disque inscrit dans l'étoile

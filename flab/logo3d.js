@@ -213,9 +213,9 @@ if (FLAT) {
 const IN_STAGE = CFG.orbit === 'stage';
 const PAD = 0.18;                                   // V3 : marge floutée autour des vignettes photos (part de leur taille)
 // ESSAI V3 : vignettes photos derrière les pièces de l'accueil (sélecteur « Photos » ; choix gardé dans le navigateur)
-let FOND_PHOTOS = false; try { FOND_PHOTOS = document.body.classList.contains('work') && localStorage.getItem('fize-fond') === 'photos'; } catch (e) {}
+const FOND_PHOTOS = false;   // V3 : mode « photos derrière les pièces » abandonné au profit de la grille
 // ESSAI V3, 3e choix « grille » : seulement les pièces ; au survol, la photo du projet apparaît sur les carreaux du fond
-let FOND_GRILLE = false; try { FOND_GRILLE = document.body.classList.contains('work') && localStorage.getItem('fize-fond') === 'grille'; } catch (e) {}
+const FOND_GRILLE = document.body.classList.contains('work');   // V3 : retenu pour l'accueil (le sélecteur NON / OUI / GRILLE est retiré)
 // ESSAI « studio » (inspiration Wide Angle Studio) : pièces en couleur franche, matière laiteuse, contre-jour
 // qui fait briller les bords, forte exposition et grand angle. false → retour aux pièces grises.
 const STUDIO = false;     // 'gomme' (matière mate type Crocs) · 'contre-jour' (rendu photo du micro) · false

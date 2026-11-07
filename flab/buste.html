@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Buste bronze — Fize</title>
 <meta name="description" content="Accessoire de tournage — Finition bronze. Le buste de @le.corbz : 30 cm imprimés en 3D et finis façon bronze, pour une production vidéo.">
-<link rel="stylesheet" href="site.css?v=8a378a7d">
+<link rel="stylesheet" href="site.css?v=8b2d84ab">
   <link rel="canonical" href="https://fize-lab.com/buste.html">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Impression 3D by Fize">
@@ -100,7 +100,7 @@
     <!-- numéro, catégorie et infos (finition, client…) sur la ligne du titre, à sa suite -->
     <div class="p-titlerow">
       <h1 class="printed long"><span class="stretch">Buste bronze</span></h1>
-      <span class="label p-num">03 / 11 — Accessoire de tournage</span>
+      <span class="label p-num">03 / 09 — Accessoire de tournage</span>
       <dl class="p-meta"><div><dt>Finition</dt><dd>Finition bronze</dd></div><div><dt>Client</dt><dd>Boomerang Agency</dd></div><div><dt>Délai</dt><dd>2 jours</dd></div><div><dt>Année</dt><dd>2026</dd></div><div><dt>Buste de</dt><dd><a href="https://www.instagram.com/le.corbz/" target="_blank" rel="noopener">@le.corbz</a></dd></div><div class="p-logo"><dt>Pour</dt><dd><img src="img/client-boomerang.svg" alt="Boomerang Agency"></dd></div></dl>
     </div>
   </header>
@@ -206,8 +206,8 @@
     // pièces en orbite (accueil) et modèle du logo en parallèle, puis le moteur ;
     // chargés en arrière-plan : la page (liste des projets…) s'affiche sans les attendre
     const need = [add('logo-data.js?v=486514b4')];
-    if (C.orbit) need.push(add(C.models ? C.models + '?v=fe4e6195' : 'models-home.js?v=8c2298e7'));
-    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=6165303c', true); });
+    if (C.orbit) need.push(add(C.models ? C.models + '?v=1c2a5639' : 'models-home.js?v=8c2298e7'));
+    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=131d1a9f', true); });
   }
 })();
 </script>
@@ -229,7 +229,7 @@
 // Une image du logo (img/logo-chrome.webp) fait le travail : identique sur ordinateur et téléphone,
 // et indépendante du moteur 3D (qui recharge à chaque page). Injecté en ligne par build.py.
 (() => {
-  const SLUGS = ["justice", "micro", "buste", "bijoux", "plaque-logo", "kit-rose", "lance-flammes", "scooter", "guitare-chicha", "tabourets", "rpi-case"];
+  const SLUGS = ["justice", "micro", "buste", "bijoux", "plaque-logo", "kit-rose", "garfield", "scooter", "guitare-chicha"];
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const KEY = 'fize-warp';
   // pivot : le centre de l'étoile (mesuré sur l'image du logo) ; SR = rayon du disque inscrit dans l'étoile

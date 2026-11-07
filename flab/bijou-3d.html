@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Essai 3D — Bijou triangle</title>
 <meta name="robots" content="noindex">
-<link rel="stylesheet" href="site.css?v=8a378a7d">
+<link rel="stylesheet" href="site.css?v=8b2d84ab">
 <style>
   /* Essai : rendu Blender (image) à gauche, la même pièce en 3D temps réel à droite */
   body.essai3d { background: #fff; }
@@ -135,7 +135,7 @@
 // Une image du logo (img/logo-chrome.webp) fait le travail : identique sur ordinateur et téléphone,
 // et indépendante du moteur 3D (qui recharge à chaque page). Injecté en ligne par build.py.
 (() => {
-  const SLUGS = ["justice", "micro", "buste", "bijoux", "plaque-logo", "kit-rose", "lance-flammes", "scooter", "guitare-chicha", "tabourets", "rpi-case"];
+  const SLUGS = ["justice", "micro", "buste", "bijoux", "plaque-logo", "kit-rose", "garfield", "scooter", "guitare-chicha"];
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const KEY = 'fize-warp';
   // pivot : le centre de l'étoile (mesuré sur l'image du logo) ; SR = rayon du disque inscrit dans l'étoile
