@@ -844,3 +844,8 @@ html:has(body.contact) { background-image: url("data:image/svg+xml,%3Csvg%20xmln
   .submit .urgence[aria-pressed="true"], .urgence-wrap .gyro::after, .gyro .dome::before { animation: none; }
 }
 @media (max-width: 800px) { .urgence-wrap { display: block; } .submit .urgence { text-align: center; } }
+.p-meta dd a { color: inherit; text-underline-offset: 3px; }          /* lien dans la ligne d'infos (ex. « Buste de @le.corbz ») */
+.p-meta dd a:hover { opacity: .6; }
+/* logo incliné (Boomerang) : le bandeau penché le rend petit à hauteur égale */
+.p-meta .p-logo img[src*="client-boomerang"] { height: 30px; max-width: 150px; }
+.card-label img.cl[src*="client-boomerang"] { height: 24px; max-width: 110px; }
