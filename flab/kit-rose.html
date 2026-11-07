@@ -100,7 +100,7 @@
     <!-- numéro, catégorie et infos (finition, client…) sur la ligne du titre, à sa suite -->
     <div class="p-titlerow">
       <h1 class="printed"><span class="stretch">Kit rose</span></h1>
-      <span class="label p-num">05 / 10 — Accessoire de tournage</span>
+      <span class="label p-num">06 / 11 — Accessoire de tournage</span>
       <dl class="p-meta"><div><dt>Finition</dt><dd>PLA rose brut</dd></div><div><dt>Client</dt><dd>Le Motif (YouTube)</dd></div><div><dt>Production</dt><dd>MOTHAIBA</dd></div><div class="p-logo"><dt>Pour</dt><dd><img class="carre" src="img/client-mothaiba.svg" alt="MOTHAIBA"></dd></div></dl>
     </div>
   </header>
@@ -206,8 +206,8 @@
     // pièces en orbite (accueil) et modèle du logo en parallèle, puis le moteur ;
     // chargés en arrière-plan : la page (liste des projets…) s'affiche sans les attendre
     const need = [add('logo-data.js?v=486514b4')];
-    if (C.orbit) need.push(add(C.models ? C.models + '?v=09fc2908' : 'models-home.js?v=8c2298e7'));
-    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=da364bae', true); });
+    if (C.orbit) need.push(add(C.models ? C.models + '?v=fe4e6195' : 'models-home.js?v=8c2298e7'));
+    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=6165303c', true); });
   }
 })();
 </script>
@@ -229,7 +229,7 @@
 // Une image du logo (img/logo-chrome.webp) fait le travail : identique sur ordinateur et téléphone,
 // et indépendante du moteur 3D (qui recharge à chaque page). Injecté en ligne par build.py.
 (() => {
-  const SLUGS = ["justice", "micro", "bijoux", "plaque-logo", "kit-rose", "lance-flammes", "scooter", "guitare-chicha", "tabourets", "rpi-case"];
+  const SLUGS = ["justice", "micro", "buste", "bijoux", "plaque-logo", "kit-rose", "lance-flammes", "scooter", "guitare-chicha", "tabourets", "rpi-case"];
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const KEY = 'fize-warp';
   // pivot : le centre de l'étoile (mesuré sur l'image du logo) ; SR = rayon du disque inscrit dans l'étoile

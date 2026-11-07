@@ -13,6 +13,7 @@
 ## Projets
 - [Justice](https://fize-lab.com/justice.html) : Décor — Blanc veiné d'or. Une statue de la Justice imprimée en 3D pour un décor de chicha, finie en blanc et veinée d'or.
 - [Micro serti](https://fize-lab.com/micro.html) : Accessoire de scène — Serti de strass. Un habillage de micro pour la scène : lettrage gothique et cœur, sertis de strass.
+- [Buste bronze](https://fize-lab.com/buste.html) : Accessoire de tournage — Finition bronze. Un buste de 30 cm imprimé en 3D et fini façon bronze, pour une production vidéo.
 - [Bijoux](https://fize-lab.com/bijoux.html) : Accessoire de scène — Effet métal argent. Des bijoux triangulaires surdimensionnés, portés en image.
 - [Plaque logo](https://fize-lab.com/plaque-logo.html) : Objet de marque — Impression multicolore. Des plaques logo imprimées en plusieurs couleurs, sans peinture : la couleur vient directement du filament.
 - [Kit rose](https://fize-lab.com/kit-rose.html) : Accessoire de tournage — PLA rose brut. Une série de pièces roses — tirelire, maisons, damier — imprimées pour la vidéo « 10 Pauvres VS 10 Riches » du youtubeur Le Motif.

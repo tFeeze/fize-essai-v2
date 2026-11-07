@@ -1,9 +1,10 @@
 // Matières des pièces V2 (accueil 3D et page Finitions) : une fiche de models-v2.js → un matériau Three.js.
 // argent, blanc-or (veines d'or), pla (stries de couches), bois, resine (mate), multi (couleurs par objet),
-// cristal (résine transparente), laque (peint verni brillant).
+// cristal (résine transparente), laque (peint verni brillant), bronze (finition bronze).
 export function finishMaterial(THREE, m) {
   const col = new THREE.Color(m.couleur);
   const P = { argent: { color: 0xdcdee3, metalness: 1, roughness: 0.14 },
+              bronze: { color: 0xb88446, metalness: 1, roughness: 0.3 },
               'blanc-or': { color: col, roughness: 0.25, clearcoat: 0.3 },
               pla: { color: col, roughness: 0.45, clearcoat: 0.15 },
               bois: { color: col, roughness: 0.5, clearcoat: 0.5, clearcoatRoughness: 0.2 },
@@ -15,6 +16,7 @@ export function finishMaterial(THREE, m) {
                 transparent: true, depthWrite: false, side: THREE.DoubleSide } }[m.matiere] || { color: col };
   const mat = new THREE.MeshPhysicalMaterial(P);
   if (m.matiere === 'argent') { mat.envMapIntensity = 2.6; mat.color.set(0xeef0f4); }           // le métal vit de ses reflets
+  if (m.matiere === 'bronze') mat.envMapIntensity = 2.2;                                         // bronze : reflets chauds
   if (m.matiere === 'cristal') {
     mat.customProgramCacheKey = () => 'cristal';
     mat.onBeforeCompile = sh => {            // opacité selon l'angle (Fresnel) : bords nets, face transparente

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { finishMaterial as finishMat } from './matieres.js?v=ba23a129';
+import { finishMaterial as finishMat } from './matieres.js?v=7e765140';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
 // Moteur 3D commun à toutes les pages : le logo en chrome, qui suit la souris.
@@ -13,7 +13,7 @@ window.loadStep?.(0.8);   // le moteur 3D est chargé
 if (window.PIECES_V2) window.LOGO_MODELS = window.PIECES_V2;
 // V3 : sur téléphone, 4 pièces seulement (le boîtier Raspberry Pi et la plaque Eiffage restent sur ordinateur)
 if (window.LOGO_MODELS && matchMedia('(pointer: coarse)').matches && Math.min(innerWidth, innerHeight) < 700)
-  window.LOGO_MODELS = window.LOGO_MODELS.filter(m => !['rpi-case', 'plaque-logo'].includes(m.slug));
+  window.LOGO_MODELS = window.LOGO_MODELS.filter(m => !['buste', 'plaque-logo'].includes(m.slug));
 const CFG = Object.assign({ mode: 'fixed', stage: 0, frame: 0.42 }, window.LOGO_CONFIG);
 // Téléphone et tablette : le logo ne suit pas de souris et ne tourne pas, donc une image du logo
 // en chrome (fond et étoile transparents) remplace le rendu 3D : rien à calculer à chaque image.
