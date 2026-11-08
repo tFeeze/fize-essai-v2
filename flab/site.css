@@ -445,7 +445,7 @@ body.legal h1 { font-size: clamp(34px, 5vw, 64px); margin-bottom: 28px; }
 body.legal h2 { font-size: 18px; margin: 28px 0 8px; }
 body.legal p { font-size: 15px; line-height: 1.65; color: var(--text); }
 body.legal main a { color: var(--ink); }   /* pas « body.legal a » : le menu (blanc + difference) devenait invisible */
-@media (max-width: 800px) { .site-foot { padding: 6vh 16px 8vh; } body.home .site-foot, body.about .site-foot { margin-left: 0; } body.legal main { padding: 16vh 16px 4vh; margin-left: 0; } }
+@media (max-width: 800px) { .site-foot { padding: 6vh 16px 8vh; } body.home .site-foot, body.about .site-foot { margin-left: 0; } body.legal main { padding: 84px 16px 4vh; margin-left: 0; }   /* juste sous la barre de menu (plus de pictos réseaux en haut) */ }
 
 /* ═══ Accessibilité ═══ */
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }    /* focus clavier toujours visible */
