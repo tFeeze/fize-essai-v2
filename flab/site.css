@@ -853,3 +853,9 @@ html:has(body.contact) { background-image: url("data:image/svg+xml,%3Csvg%20xmln
 .p-meta .p-logo img[src*="client-boomerang"] { height: 30px; max-width: 150px; }
 .card-label img.cl[src*="client-boomerang"] { height: 24px; max-width: 110px; }
 .p-reseaux { margin-top: 10vh; }                        /* pages projet : les réseaux en bas, après précédent / suivant */
+/* pages légales : sur téléphone, les réseaux en bas de page plutôt qu'en haut (Tom, 08/11) ; sur ordinateur, inchangé */
+.legal-reseaux { display: none; }
+@media (max-width: 800px) {
+  body.legal .top-reseaux { display: none; }
+  body.legal .legal-reseaux { display: flex; margin: 4vh 16px 6vh; }
+}
