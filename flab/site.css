@@ -388,7 +388,7 @@ html:has(body.contact) { background: #0b0b0b; }
 }
 
 @media (max-width: 800px) {
-  body.projet #stage { width: 96px; height: 96px; right: 8px; bottom: 8px; }
+  body.projet #stage { display: none; }   /* pas de médaillon sur téléphone (Tom, 08/11) */
   .back { right: 16px; top: 16px; }
   .p-head { padding: 18vh 16px 5vh; }
   .p-meta { grid-template-columns: 1fr 1fr; }
