@@ -147,7 +147,7 @@ body.scrolled .to-top { display: block; }
 .rows a.row { position: relative; z-index: 1; }        /* le titre reste devant la photo */
 .rows a.row {
   display: grid; grid-template-columns: 60px 1fr auto; align-items: baseline; gap: 16px;
-  padding: 14px 0 10px; color: inherit; text-decoration: none;
+  padding: 12px 0; color: inherit; text-decoration: none;
 }
 .rows .n { font: 500 11px/1 Menlo, monospace; color: var(--mute); }
 .rows .t { font-weight: 700; font-size: clamp(30px, 4.6vw, 80px); line-height: .95; letter-spacing: -0.02em;
@@ -164,7 +164,9 @@ body.scrolled .to-top { display: block; }
 @keyframes tint-flow { to { background-position: 150% 0; } }
 @media (prefers-color-scheme: dark) { .rows li { --g: var(--g-dark, none); } }
 @media (prefers-reduced-motion: reduce) { .rows li:hover .t { animation: none; } }
-.rows .m { font-size: 12px; color: var(--mute); text-align: right; line-height: 1.5; }
+.rows .m { font-size: 12px; color: var(--mute); text-align: right; line-height: 1.5; align-self: center; }
+/* même blanc au-dessus et au-dessous des majuscules (VG5000 : moins d'air au-dessus) */
+.rows .t { padding-top: .096em; }
 .rows:hover li { color: var(--faint); }
 .rows:hover li:hover { color: var(--ink); }
 
