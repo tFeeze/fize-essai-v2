@@ -166,7 +166,7 @@ body.scrolled .to-top { display: block; }
 @media (prefers-reduced-motion: reduce) { .rows li:hover .t { animation: none; } }
 .rows .m { font-size: 12px; color: var(--mute); text-align: right; line-height: 1.5; align-self: center; }
 /* même blanc au-dessus et au-dessous des majuscules (VG5000 : moins d'air au-dessus) */
-.rows .t { padding-top: .096em; }
+.rows .t { padding-top: .116em; }
 .rows:hover li { color: var(--faint); }
 .rows:hover li:hover { color: var(--ink); }
 
