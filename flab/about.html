@@ -24,7 +24,7 @@
 </head>
 <body class="about">
   <a class="skip" href="#contenu">Aller au contenu</a>
-  <div id="stage"><canvas id="scene" aria-hidden="true"></canvas></div>   <!-- portrait en nuage de points (portrait-nuage.js) -->
+  <div id="stage"><a class="home" href="index.html" aria-label="Accueil"><canvas id="scene"></canvas></a></div>
   <!-- Écran de chargement : une bobine en volume (CSS 3D, sans attendre le moteur 3D) dont le fil
      s'enroule au rythme du chargement. Injecté par build.py.
      Étapes : page lue → modèle du logo chargé → moteur 3D prêt → première image affichée.
@@ -150,7 +150,30 @@
   </footer>
   </main>
 
-<script src="portrait-nuage.js?v=3d1376ed"></script>
+<script>window.LOGO_CONFIG = { mode: 'fixed', frame: 0.8 };   // V3 : logo F-LAB large, en nuage de points</script>
+<script type="importmap">
+{ "imports": {
+  "three": "./vendor/three.module.min.js",
+  "three/addons/loaders/OBJLoader.js": "./vendor/OBJLoader.js"
+} }
+</script>
+<script>
+(() => {
+  const C = window.LOGO_CONFIG || {}, touch = matchMedia('(pointer: coarse)').matches;
+  // aperçu dans l'étoile pendant une transition : page seule, sans moteur 3D (rien ne la ralentit)
+  if (location.search.includes('apercu')) { window.loadStep?.(1); return; }
+  const add = (src, mod) => new Promise(ok => {
+    const s = document.createElement('script'); if (mod) s.type = 'module'; s.src = src; s.onload = ok; document.body.appendChild(s);
+  });
+  {
+    // pièces en orbite (accueil) et modèle du logo en parallèle, puis le moteur ;
+    // chargés en arrière-plan : la page (liste des projets…) s'affiche sans les attendre
+    const need = [add('logo-data.js?v=486514b4')];
+    if (C.orbit) need.push(add(C.models ? C.models + '?v=1c2a5639' : 'models-home.js?v=8c2298e7'));
+    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=b444c96f', true); });
+  }
+})();
+</script>
 <script>
 // ── Transition vers un projet : le logo chrome se transforme ─────────────────────────────
 // Départ (n'importe quelle page) : le logo quitte sa place, pivote en 3D et grandit jusqu'à couvrir
