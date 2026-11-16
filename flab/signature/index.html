@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Signature mail — F-LAB</title>
+<!-- Page outil (non liée au site) : la signature mail F-LAB, prête à copier dans Gmail / Apple Mail.
+     La signature n'utilise que des tableaux et des styles en ligne (seuls compris par les messageries),
+     des polices système (la VG5000 ne s'affiche pas dans un mail) et des images hébergées ici, en PNG.
+     ⚠️ Adresse du site : version d'essai GitHub — à remplacer par le vrai domaine au lancement. -->
+<style>
+  body { margin: 0; background: #f4f4f1; font: 14px/1.5 -apple-system, "Helvetica Neue", Arial, sans-serif; color: #3d3d3d; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 56px 16px; }
+  h1 { font: 700 13px/1 "Helvetica Neue", Arial, sans-serif; letter-spacing: .16em; text-transform: uppercase; color: #000; margin: 0 0 24px; }
+  .carte { background: #fff; border: 1px solid #e6e6e3; padding: 32px; overflow-x: auto; }
+  button { margin-top: 20px; font: 700 12px/1 "Helvetica Neue", Arial, sans-serif; letter-spacing: .16em; text-transform: uppercase;
+           background: #000; color: #fff; border: 0; padding: 14px 20px; cursor: pointer; }
+  button.ok { background: #3d3d3d; }
+  ol { margin: 28px 0 0; padding-left: 18px; color: #6b6b6b; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Signature mail</h1>
+  <div class="carte"><div id="sig">
+<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#3d3d3d;">
+  <tr>
+    <td valign="middle" style="padding:0 22px 0 0;">
+      <a href="https://tfeeze.github.io/fize-essai-v2/flab/" style="text-decoration:none;"><img src="https://tfeeze.github.io/fize-essai-v2/flab/signature/f-lab.png" width="150" height="59" alt="F-LAB" style="display:block;border:0;width:150px;height:59px;"></a>
+    </td>
+    <td valign="middle" style="padding:2px 0 2px 22px;border-left:1px solid #000000;">
+      <div style="font-size:16px;line-height:20px;font-weight:bold;color:#000000;">Tom Fize</div>
+      <div style="font-size:10px;line-height:14px;letter-spacing:2px;text-transform:uppercase;color:#6b6b6b;padding:2px 0 10px;">Atelier F-LAB &middot; Paris 18e</div>
+      <div style="font-size:12px;line-height:19px;">
+        <span style="color:#6b6b6b;">Hotline</span>&nbsp;&nbsp;<a href="tel:+33983628404" style="color:#000000;text-decoration:none;">09 83 62 84 04</a><br>
+        <a href="mailto:contact@fize-lab.com" style="color:#000000;text-decoration:none;">contact@fize-lab.com</a><br>
+        <a href="https://tfeeze.github.io/fize-essai-v2/flab/" style="color:#000000;text-decoration:none;">Voir les réalisations</a><br>
+        <a href="https://maps.google.com/?q=63+bis+rue+Ramey,+75018+Paris" style="color:#6b6b6b;text-decoration:none;">63 bis rue Ramey, 75018 Paris</a>
+      </div>
+      <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-top:10px;">
+        <tr>
+          <td style="padding:0 10px 0 0;"><a href="https://www.instagram.com/3dprint_by_fize/"><img src="https://tfeeze.github.io/fize-essai-v2/flab/signature/instagram.png" width="18" height="18" alt="Instagram" style="display:block;border:0;width:18px;height:18px;"></a></td>
+          <td style="padding:0;"><a href="https://www.tiktok.com/@3dprint.by.fize"><img src="https://tfeeze.github.io/fize-essai-v2/flab/signature/tiktok.png" width="18" height="18" alt="TikTok" style="display:block;border:0;width:18px;height:18px;"></a></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+  </div></div>
+  <button id="copier">Copier la signature</button>
+  <ol>
+    <li>Cliquer sur « Copier la signature ».</li>
+    <li>Gmail : Paramètres → Voir tous les paramètres → Général → Signature → Créer → coller (⌘V) → Enregistrer en bas de page.</li>
+    <li>Apple Mail : Réglages → Signatures → + → décocher « Toujours utiliser ma police par défaut » → coller.</li>
+  </ol>
+</div>
+<script>
+  // copie en HTML (liens et images gardés) ; repli : sélection + commande copier
+  const b = document.getElementById('copier'), sig = document.getElementById('sig');
+  b.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.write([new ClipboardItem({
+        'text/html': new Blob([sig.innerHTML], { type: 'text/html' }),
+        'text/plain': new Blob([sig.innerText], { type: 'text/plain' }) })]);
+    } catch {
+      const r = document.createRange(); r.selectNodeContents(sig);
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r); document.execCommand('copy'); s.removeAllRanges();
+    }
+    b.textContent = 'Copiée ✓'; b.classList.add('ok');
+    setTimeout(() => { b.textContent = 'Copier la signature'; b.classList.remove('ok'); }, 2000);
+  });
+</script>
+</body>
+</html>
