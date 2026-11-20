@@ -17,7 +17,7 @@
 - [Bijoux pour Slimani](https://fizelab.com/bijoux.html) : Accessoire de scène — Effet métal argent. Des bijoux triangulaires surdimensionnés, portés en image.
 - [Plaque Eiffage](https://fizelab.com/plaque-logo.html) : Objet de marque — Impression multicolore. Des plaques logo imprimées en plusieurs couleurs, sans peinture : la couleur vient directement du filament.
 - [Accessoires pour Le Motif](https://fizelab.com/kit-rose.html) : Accessoire de tournage — PLA rose brut. Une série de pièces roses — tirelire, maisons, damier — imprimées pour la vidéo « 10 Pauvres VS 10 Riches » du youtubeur Le Motif.
-- [Cyber-Garfield](https://fizelab.com/garfield.html) : Projet perso — À compléter. Garfield revisité en Terminator : un chat chromé aux yeux rouges, de 60 cm de haut.
+- [Cyber-Garfield](https://fizelab.com/garfield.html) : Projet perso. Garfield revisité en Terminator : un chat chromé aux yeux rouges, de 60 cm de haut.
 - [Pièce scooter](https://fizelab.com/scooter.html) : Pièce technique — Brut d'impression. Une pièce de scooter renforcée, modélisée pour être imprimée et montée.
 - [Guitare chicha](https://fizelab.com/guitare-chicha.html) : Décor — Conception 3D. Un décor de chicha en forme de guitare, découpé en tranches décalées, conçu en 3D avant impression.
 

@@ -565,6 +565,12 @@ nav a:hover { transform: translateX(8px); }
 
 /* téléphone : le logo en image (img/logo-chrome.webp) à la place du rendu 3D, au centre du cadre */
 .logo-flat { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); height: auto; pointer-events: none; user-select: none; }
+.logo-flat img { display: block; width: 100%; height: auto; opacity: calc(1 - var(--verre, 0)); }
+.logo-flat img.verre { position: absolute; inset: 0; opacity: var(--verre, 0); }
+@media (prefers-reduced-motion: no-preference) {        /* le léger flottement du logo 3D */
+  .logo-flat { animation: flotte 7.85s ease-in-out infinite; }
+}
+@keyframes flotte { 0%, 100% { translate: 0 0; } 50% { translate: 0 -1.2%; } }
 
 /* téléphone, page projet : le titre remonte juste sous « ← Tous les projets » */
 @media (max-width: 800px) { body.projet .p-head { padding-top: 64px; } }   /* titre plus près du menu (Tom, 20/11) */
@@ -873,7 +879,7 @@ html:has(body.contact) { background-image: url("data:image/svg+xml,%3Csvg%20xmln
 /* pages légales : sur téléphone, les réseaux en bas de page plutôt qu'en haut (Tom, 08/11) ; sur ordinateur, inchangé */
 .legal-reseaux { display: none; }
 @media (max-width: 800px) {
-  body.legal .top-reseaux, body.faq .top-reseaux, body.contact .top-reseaux { display: none; }   /* + FAQ et Contact (Tom, 20/11) */
+  body.legal .top-reseaux, body.faq .top-reseaux, body.contact .top-reseaux, body.about .top-reseaux { display: none; }   /* + FAQ, Contact, About (Tom, 20/11) */
   body.legal .legal-reseaux, body.faq .legal-reseaux { display: flex; margin: 4vh 16px 6vh; }
 }
 
@@ -920,8 +926,10 @@ body > main { flex: 1 0 auto; }
   /* précédent / suivant : sans la place du médaillon (caché sur téléphone), flèches bien visibles */
   .p-next a + a { padding-right: 0; }
 }
-/* entrée des pages : chaque bloc descend un peu en apparaissant, l'un après l'autre (script dans _transition.js) */
-@media (max-width: 800px) and (prefers-reduced-motion: no-preference) {
+/* entrée des pages (ordinateur et téléphone) : chaque bloc descend un peu en apparaissant, l'un après l'autre
+   (script dans _transition.js ; « entree-attente » = caché tant que l'écran de chargement est là) */
+@media (prefers-reduced-motion: no-preference) {
+  .entree-attente { opacity: 0; }
   .entree { animation: entree .5s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i, 0) * 55ms + 60ms); }
 }
 @keyframes entree { from { opacity: 0; translate: 0 -12px; } }

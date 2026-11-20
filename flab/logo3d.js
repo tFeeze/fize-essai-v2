@@ -17,8 +17,11 @@ if (window.LOGO_MODELS && matchMedia('(pointer: coarse)').matches && Math.min(in
 const CFG = Object.assign({ mode: 'fixed', stage: 0, frame: 0.42 }, window.LOGO_CONFIG);
 // Téléphone et tablette : le logo ne suit pas de souris et ne tourne pas, donc une image du logo
 // en chrome (fond et étoile transparents) remplace le rendu 3D : rien à calculer à chaque image.
-const FLAT = false;                               // le logo 3D chrome partout, ordinateur et téléphone (avant : image sur téléphone)
+// Tom, 20/11 : sur téléphone, le logo reste à plat → deux images capturées du logo 3D (img/logo-tel.png : chrome ;
+// img/logo-tel-verre.png : état « verre » quand une photo de projet s'affiche). Les pièces en orbite restent en 3D.
 const TOUCH = matchMedia('(pointer: coarse)').matches;
+const FLAT = TOUCH && Math.min(innerWidth, innerHeight) < 700;
+const FLAT_AR = 269 / 686;                        // hauteur / largeur des images capturées
 
 const canvas = document.getElementById('scene');
 const stageEl = document.getElementById('stage');
@@ -84,7 +87,7 @@ if (document.body.classList.contains('work') && scrollY < 10 && !document.docume
 }
 const obj = FLAT ? new THREE.Group() : new OBJLoader().parse(window.LOGO_OBJ);   // modèle non chargé sur téléphone
 const box = new THREE.Box3().setFromObject(obj);
-const size = FLAT ? new THREE.Vector3(1, 1, 1) : box.getSize(new THREE.Vector3());
+const size = FLAT ? new THREE.Vector3(1, FLAT_AR, 0.06) : box.getSize(new THREE.Vector3());
 const center = FLAT ? new THREE.Vector3() : box.getCenter(new THREE.Vector3());
 const s = 1 / Math.max(size.x, size.y);
 const LOGO_AR = size.y / size.x;                     // hauteur / largeur du logo
@@ -204,8 +207,8 @@ function fondPlateMaj() {
 let flat = null;                                 // téléphone : l'image du logo (voir FLAT)
 if (FLAT) {
   rig.visible = false;
-  flat = document.createElement('img');
-  flat.src = 'img/logo-chrome.webp'; flat.alt = ''; flat.className = 'logo-flat'; flat.decoding = 'async';
+  flat = document.createElement('div'); flat.className = 'logo-flat';
+  flat.innerHTML = '<img src="img/logo-tel.webp" alt="" decoding="async"><img class="verre" src="img/logo-tel-verre.webp" alt="" decoding="async">';
   stageEl.appendChild(flat);
 }
 
@@ -907,7 +910,7 @@ function showTip(pr, place) {
     const n = String((window.PROJECTS || []).indexOf(pr) + 1).padStart(2, '0');
     const pic = pr.hover_thumb || pr.thumb;           // image dédiée au survol si le projet en a une (vignette)
     tip.innerHTML = (pic ? `<div class="frame"><img src="img/${pic}" alt=""></div>` : '')
-      + `<div class="txt"><i>N° ${n}</i><b>${pr.title}</b><span>${pr.cat} — ${pr.finish}</span><em>Voir le projet →</em></div>`;
+      + `<div class="txt"><i>N° ${n}</i><b>${pr.title}</b><span>${pr.cat}${pr.finish ? ' — ' + pr.finish : ''}</span><em>Voir le projet →</em></div>`;
     tip.style.rotate = ((pr.slug.length % 5) - 2) * 1.4 + 'deg';   // chaque fiche a sa petite inclinaison
   }
   const [x, y] = place(tip.offsetWidth, tip.offsetHeight);
@@ -1271,6 +1274,7 @@ function tick() {
     const vise = grille.slug && !grille.sortie ? 1 : 0;              // photo affichée : le logo passe en verre
     if (!!vise !== document.body.classList.contains('grille-on')) document.body.classList.toggle('grille-on', !!vise);   // la ligne sous le logo s'efface
     LOGO_VERRE.value += (vise - LOGO_VERRE.value) * (1 - Math.exp(-dt * 6));
+    if (flat) flat.style.setProperty('--verre', LOGO_VERRE.value.toFixed(3));   // téléphone : fondu entre les deux images
   }
   if (warp.mode) {                                  // transition en cours
     if (warp.mode !== 'hold') warp.k = Math.min(1, (performance.now() - warp.t0) / warp.dur);

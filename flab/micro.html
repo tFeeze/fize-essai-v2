@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Micro Kalash — Fize</title>
 <meta name="description" content="Accessoire de scène — Serti de strass. Un habillage de micro pour la scène : lettrage gothique et cœur, sertis de strass.">
-<link rel="stylesheet" href="site.css?v=dfebe0c2">
+<link rel="stylesheet" href="site.css?v=719e6c32">
   <meta name="robots" content="noindex, nofollow">
   <link rel="canonical" href="https://fizelab.com/micro.html">
   <meta property="og:type" content="website">
@@ -208,7 +208,7 @@
     // chargés en arrière-plan : la page (liste des projets…) s'affiche sans les attendre
     const need = [add('logo-data.js?v=486514b4')];
     if (C.orbit) need.push(add(C.models ? C.models + '?v=1c2a5639' : 'models-home.js?v=8c2298e7'));
-    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=b444c96f', true); });
+    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=f43f1b2c', true); });
   }
 })();
 </script>
@@ -325,15 +325,30 @@
   }
   window.warpTo = warpTo;
 
-  // ── Entrée des pages (téléphone) : les blocs apparaissent l'un après l'autre, de haut en bas ──
-  // (FAQ : chaque question ; Contact : chaque champ ; projets, About, pages légales : chaque bloc) — Tom, 20/11
-  if (matchMedia('(max-width: 800px)').matches && !document.body.classList.contains('work')) {
-    const els = [...document.querySelectorAll('.p-head, main .faq-head, main .faq-group > *, main .form > *, main > section > *, main > *:not(section):not(.faq-group):not(form):not(script)')]
-      .filter((el, i, a) => !a.some(o => o !== el && o.contains(el)));
-    let n = 0;
+  // ── Entrée des pages (ordinateur et téléphone) : tout arrive l'un après l'autre, de haut en bas ──
+  // (menu, réseaux, titre, puis chaque bloc : question de FAQ, champ de Contact…) — Tom, 20/11.
+  // L'animation part quand l'écran de chargement s'en va (sinon elle se jouerait dessous, sans être vue).
+  {
+    const accueil = document.body.classList.contains('work');
+    const sel = accueil
+      ? 'nav, .top-reseaux, .hero .baseline, .hero .cue'      // accueil : l'ouverture (le logo et les pièces arrivent avec la 3D)
+      : 'nav, .top-reseaux, .p-head, main .faq-head, main .faq-group > *, main .form > *, main > section > *, main > *:not(section):not(.faq-group):not(form):not(script), .site-foot';
+    const els = [...document.querySelectorAll(sel)].filter((el, i, a) => !a.some(o => o !== el && o.contains(el)));
+    const vus = [];
     for (const el of els) {
-      if (el.getBoundingClientRect().top > innerHeight * 1.3) break;   // plus bas que l'écran : affiché tel quel
-      el.style.setProperty('--i', Math.min(n++, 14)); el.classList.add('entree');
+      const r = el.getBoundingClientRect();
+      if (!r.height || getComputedStyle(el).display === 'none') continue;
+      if (r.top > innerHeight * 1.3) continue;                          // plus bas que l'écran : affiché tel quel
+      el.style.setProperty('--i', Math.min(vus.length, 14)); el.classList.add('entree-attente'); vus.push(el);
+    }
+    let parti = false;
+    const go = () => { if (parti) return; parti = true; for (const el of vus) el.classList.replace('entree-attente', 'entree'); };
+    const ld = document.getElementById('loading');
+    if (!ld || getComputedStyle(ld).display === 'none' || /done/.test(ld.className)) go();
+    else {
+      const mo = new MutationObserver(() => { if (!ld.isConnected || /done/.test(ld.className)) { mo.disconnect(); go(); } });
+      mo.observe(ld, { attributes: true, attributeFilter: ['class'] }); mo.observe(document.body, { childList: true });
+      setTimeout(go, 9500);                                              // filet de sécurité
     }
   }
 
