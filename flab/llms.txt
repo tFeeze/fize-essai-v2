@@ -5,23 +5,23 @@
 > Pour le spectacle, le cinéma, l'événementiel, les agences de communication et les PME. Travail sur devis.
 
 ## Pages principales
-- [Réalisations](https://fize-lab.com/) : les projets de l'atelier
-- [À propos](https://fize-lab.com/about.html) : l'atelier, les clients, les finitions
-- [FAQ](https://fize-lab.com/faq.html) : délais, taille, précision, matériaux, finitions, limites
-- [Contact](https://fize-lab.com/contact.html) : demander un devis (contact@fize-lab.com, hotline 09 83 62 84 04)
+- [Réalisations](https://fizelab.com/) : les projets de l'atelier
+- [À propos](https://fizelab.com/about.html) : l'atelier, les clients, les finitions
+- [FAQ](https://fizelab.com/faq.html) : délais, taille, précision, matériaux, finitions, limites
+- [Contact](https://fizelab.com/contact.html) : demander un devis (contact@fize-lab.com, hotline 09 83 62 84 04)
 
 ## Projets
-- [Chicha Justice](https://fize-lab.com/justice.html) : Décor — Blanc veiné d'or. Une statue de la Justice imprimée en 3D pour un décor de chicha, finie en blanc et veinée d'or.
-- [Micro Kalash](https://fize-lab.com/micro.html) : Accessoire de scène — Serti de strass. Un habillage de micro pour la scène : lettrage gothique et cœur, sertis de strass.
-- [Buste bronze de @le.corbz](https://fize-lab.com/buste.html) : Accessoire de tournage — Bronze. Le buste de @le.corbz : 30 cm imprimés en 3D et finis façon bronze, pour une production vidéo.
-- [Bijoux pour Slimani](https://fize-lab.com/bijoux.html) : Accessoire de scène — Effet métal argent. Des bijoux triangulaires surdimensionnés, portés en image.
-- [Plaque Eiffage](https://fize-lab.com/plaque-logo.html) : Objet de marque — Impression multicolore. Des plaques logo imprimées en plusieurs couleurs, sans peinture : la couleur vient directement du filament.
-- [Accessoires pour Le Motif](https://fize-lab.com/kit-rose.html) : Accessoire de tournage — PLA rose brut. Une série de pièces roses — tirelire, maisons, damier — imprimées pour la vidéo « 10 Pauvres VS 10 Riches » du youtubeur Le Motif.
-- [Cyber-Garfield](https://fize-lab.com/garfield.html) : Projet perso — À compléter. Garfield revisité en Terminator : un chat chromé aux yeux rouges, de 60 cm de haut.
-- [Pièce scooter](https://fize-lab.com/scooter.html) : Pièce technique — Brut d'impression. Une pièce de scooter renforcée, modélisée pour être imprimée et montée.
-- [Guitare chicha](https://fize-lab.com/guitare-chicha.html) : Décor — Conception 3D. Un décor de chicha en forme de guitare, découpé en tranches décalées, conçu en 3D avant impression.
+- [Chicha Justice](https://fizelab.com/justice.html) : Décor — Blanc veiné d'or. Une statue de la Justice imprimée en 3D pour un décor de chicha, finie en blanc et veinée d'or.
+- [Micro Kalash](https://fizelab.com/micro.html) : Accessoire de scène — Serti de strass. Un habillage de micro pour la scène : lettrage gothique et cœur, sertis de strass.
+- [Buste bronze de @le.corbz](https://fizelab.com/buste.html) : Accessoire de tournage — Bronze. Le buste de @le.corbz : 30 cm imprimés en 3D et finis façon bronze, pour une production vidéo.
+- [Bijoux pour Slimani](https://fizelab.com/bijoux.html) : Accessoire de scène — Effet métal argent. Des bijoux triangulaires surdimensionnés, portés en image.
+- [Plaque Eiffage](https://fizelab.com/plaque-logo.html) : Objet de marque — Impression multicolore. Des plaques logo imprimées en plusieurs couleurs, sans peinture : la couleur vient directement du filament.
+- [Accessoires pour Le Motif](https://fizelab.com/kit-rose.html) : Accessoire de tournage — PLA rose brut. Une série de pièces roses — tirelire, maisons, damier — imprimées pour la vidéo « 10 Pauvres VS 10 Riches » du youtubeur Le Motif.
+- [Cyber-Garfield](https://fizelab.com/garfield.html) : Projet perso — À compléter. Garfield revisité en Terminator : un chat chromé aux yeux rouges, de 60 cm de haut.
+- [Pièce scooter](https://fizelab.com/scooter.html) : Pièce technique — Brut d'impression. Une pièce de scooter renforcée, modélisée pour être imprimée et montée.
+- [Guitare chicha](https://fizelab.com/guitare-chicha.html) : Décor — Conception 3D. Un décor de chicha en forme de guitare, découpé en tranches décalées, conçu en 3D avant impression.
 
 ## Informations légales
-- [Mentions légales](https://fize-lab.com/mentions-legales.html)
-- [Conditions générales de vente](https://fize-lab.com/cgv.html)
-- [Confidentialité](https://fize-lab.com/confidentialite.html)
+- [Mentions légales](https://fizelab.com/mentions-legales.html)
+- [Conditions générales de vente](https://fizelab.com/cgv.html)
+- [Confidentialité](https://fizelab.com/confidentialite.html)
