@@ -567,7 +567,7 @@ nav a:hover { transform: translateX(8px); }
 .logo-flat { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); height: auto; pointer-events: none; user-select: none; }
 
 /* téléphone, page projet : le titre remonte juste sous « ← Tous les projets » */
-@media (max-width: 800px) { body.projet .p-head { padding-top: 96px; } }
+@media (max-width: 800px) { body.projet .p-head { padding-top: 64px; } }   /* titre plus près du menu (Tom, 20/11) */
 
 
 /* ═══ Transition vers un projet : le logo chrome se transforme (src/_transition.js) ═══ */
