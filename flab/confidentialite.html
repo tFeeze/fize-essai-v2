@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Confidentialité — Fize</title>
 <meta name="description" content="Politique de confidentialité du site Fize LAB.">
-<link rel="stylesheet" href="site.css?v=4f841b7b">
+<link rel="stylesheet" href="site.css?v=fab9a38e">
   <link rel="canonical" href="https://fize-lab.com/confidentialite.html">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Fize LAB">
@@ -118,7 +118,7 @@
   }
   function warpTo(url) {
     const go = () => { try { sessionStorage.setItem(KEY, '1'); } catch {} location.href = url; };
-    if (!window.logoWarpOut) return go();
+    if (touch || !window.logoWarpOut) return go();   // téléphone : on ouvre le projet directement, sans passer par le logo (Tom, 20/11)
     // la page du projet doit être prête avant de lancer l'animation (la charger pendant figerait le logo) :
     // ordinateur → préparée au survol ; téléphone → préparée dès que le doigt touche le lien. Si elle
     // n'est pas encore là, on l'attend un court instant (0,8 s au plus), puis on part quoi qu'il arrive.
@@ -160,6 +160,18 @@
   }
   window.warpTo = warpTo;
 
+  // ── Entrée des pages (téléphone) : les blocs apparaissent l'un après l'autre, de haut en bas ──
+  // (FAQ : chaque question ; Contact : chaque champ ; projets, About, pages légales : chaque bloc) — Tom, 20/11
+  if (matchMedia('(max-width: 800px)').matches && !document.body.classList.contains('work')) {
+    const els = [...document.querySelectorAll('.p-head, main .faq-head, main .faq-group > *, main .form > *, main > section > *, main > *:not(section):not(.faq-group):not(form):not(script)')]
+      .filter((el, i, a) => !a.some(o => o !== el && o.contains(el)));
+    let n = 0;
+    for (const el of els) {
+      if (el.getBoundingClientRect().top > innerHeight * 1.3) break;   // plus bas que l'écran : affiché tel quel
+      el.style.setProperty('--i', Math.min(n++, 14)); el.classList.add('entree');
+    }
+  }
+
   // survol d'un lien de projet : la page est préchargée, l'aperçu dans l'étoile s'affiche aussitôt au clic
   const pre = new Set();
   document.addEventListener('pointerover', e => {
@@ -169,7 +181,7 @@
     pre.add(slug); const l = document.createElement('link'); l.rel = 'prefetch'; l.href = slug + '.html'; document.head.appendChild(l);
   }, { passive: true });
   document.addEventListener('pointerdown', e => {
-    if (e.pointerType === 'mouse') return;
+    if (e.pointerType === 'mouse' || touch) return;
     const a = e.target.closest?.('a[href]'); if (!a) return;
     const u = new URL(a.href, location.href), slug = u.pathname.split('/').pop().replace(/\.html$/, '');
     if (u.origin === location.origin && SLUGS.includes(slug)) preview(u.href);

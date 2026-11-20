@@ -897,3 +897,31 @@ body > main { flex: 1 0 auto; }
   body.contact #stage, body.about #stage { display: none; }
   body.contact main, body.about main { padding-top: 84px; }
 }
+
+/* ═══ Téléphone — série du 20/11 (Tom) ═══════════════════════════════════════════════ */
+.p-next .fleche { font-size: 1.9em; line-height: 0; vertical-align: -.12em; transition: transform .25s cubic-bezier(.2,.8,.2,1); }
+.p-next a:first-child:hover .fleche { transform: translateX(-6px); }
+.p-next a + a:hover .fleche { transform: translateX(6px); }
+@media (max-width: 800px) {
+  /* WORK : pas de menu qui recouvre → les titres calés au bord gauche, le numéro passe à droite */
+  .rows a.row { grid-template-columns: 1fr auto; }
+  .rows .n { order: 2; align-self: center; }
+  /* moins de vide entre la bande de photos et la banderole */
+  .strip { padding-bottom: 8px; }
+  body.home .bandeau, body.work .bandeau { margin-top: 3vh; }
+  /* Suivre l'atelier : les réseaux en liste, sans le nom du compte */
+  .reseaux { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .reseau em { display: none; }
+  .home-reseaux { flex-direction: column; align-items: flex-start; gap: 14px; margin-left: 16px; margin-right: 16px; }
+  /* Contact : le formulaire plus près du titre */
+  .mega { margin-bottom: 4vh; }
+  /* pages projets : ni « 02 / 09 — catégorie », ni bouton « Tous les projets » */
+  .p-num, .back { display: none; }
+  /* précédent / suivant : sans la place du médaillon (caché sur téléphone), flèches bien visibles */
+  .p-next a + a { padding-right: 0; }
+}
+/* entrée des pages : chaque bloc descend un peu en apparaissant, l'un après l'autre (script dans _transition.js) */
+@media (max-width: 800px) and (prefers-reduced-motion: no-preference) {
+  .entree { animation: entree .5s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i, 0) * 55ms + 60ms); }
+}
+@keyframes entree { from { opacity: 0; translate: 0 -12px; } }
