@@ -437,7 +437,7 @@ html:has(body.contact) { background: #0b0b0b; }
 }
 
 /* pied de page légal (toutes les pages) + pages légales */
-.site-foot { display: flex; flex-wrap: wrap; gap: 8px 24px; padding: 6vh 32px 8vh; font-size: 12px; color: var(--mute); position: relative; z-index: 2; }
+.site-foot { display: flex; flex-wrap: wrap; gap: 8px 24px; padding: 6vh 32px 18px;   /* collée au bas de l'écran (Tom, 20/11) */ font-size: 12px; color: var(--mute); position: relative; z-index: 2; }
 .site-foot a { color: var(--mute); }
 body.home .site-foot { margin-left: 50vw; }
 /* About : pied de page à gauche comme sur les autres pages (Tom, 20/11) */
@@ -446,7 +446,7 @@ body.legal h1 { font-size: clamp(30px, 3.4vw, 52px); line-height: 1.05; margin-b
 body.legal h2 { font-size: 18px; margin: 28px 0 8px; }
 body.legal p { font-size: 15px; line-height: 1.65; color: var(--text); }
 body.legal main a { color: var(--ink); }   /* pas « body.legal a » : le menu (blanc + difference) devenait invisible */
-@media (max-width: 800px) { .site-foot { padding: 6vh 16px 8vh; } body.home .site-foot, body.about .site-foot { margin-left: 0; } body.legal main { padding: 84px 16px 4vh; margin-left: 0; }   /* juste sous la barre de menu (plus de pictos réseaux en haut) */ }
+@media (max-width: 800px) { .site-foot { padding: 6vh 16px 16px; } body.home .site-foot, body.about .site-foot { margin-left: 0; } body.legal main { padding: 84px 16px 4vh; margin-left: 0; }   /* juste sous la barre de menu (plus de pictos réseaux en haut) */ }
 
 /* ═══ Accessibilité ═══ */
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }    /* focus clavier toujours visible */
