@@ -188,11 +188,11 @@ body.about footer { margin-left: 0; padding-left: 4vw; }
 /* ═══ Contact : page noire, l'e-mail en très grand ════ */
 body.contact { --bg: #0b0b0b; --ink: #f4f4f1; --mute: #8a8a86; --line: #2a2a28; }
 body.contact #stage { position: fixed; right: 0; top: 0; width: 42vw; height: 100vh; z-index: 1; }
-body.contact main { position: relative; z-index: 2; margin-left: clamp(190px, 17vw, 280px); width: calc(60vw - clamp(190px, 17vw, 280px)); padding: 24vh 0 10vh; }   /* à droite du menu fixe, comme les pages légales et la FAQ */
+body.contact main { position: relative; z-index: 2; margin-left: clamp(190px, 17vw, 280px); width: calc(60vw - clamp(190px, 17vw, 280px)); padding: var(--haut-page) 0 10vh; }   /* titre à la même hauteur que la FAQ (Tom, 20/11) */   /* à droite du menu fixe, comme les pages légales et la FAQ */
 .mega {
   display: block; width: fit-content; color: var(--ink); text-decoration: none;
   font-weight: 700; font-size: clamp(34px, 5.6vw, 96px); line-height: .95; letter-spacing: -0.03em;
-  transform: scaleX(1.18); transform-origin: left center; margin: 18px 0 10vh;
+  transform: scaleX(1.18); transform-origin: left center; margin: 0 0 10vh;
 }
 .mega span { display: block; }
 .mega:hover { opacity: .7; }
