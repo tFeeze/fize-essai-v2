@@ -927,3 +927,12 @@ body > main { flex: 1 0 auto; }
 @keyframes entree { from { opacity: 0; translate: 0 -12px; } }
 /* téléphone : pas d'écran de chargement (bobine) là où le logo 3D est masqué → la page s'ouvre aussitôt (Tom, 20/11) */
 @media (max-width: 800px) { body.projet #loading, body.contact #loading, body.about #loading { display: none; } }
+
+/* WORK + phrase d'accroche (H1) — Tom, 20/11 :
+   ordinateur : la phrase posée sur la ligne de base de WORK, moins de vide avant la liste ;
+   téléphone : la phrase passe sous WORK, pleine largeur, plus lisible */
+.work-head { align-items: last baseline; padding-bottom: 4vh; }
+@media (max-width: 800px) {
+  .work-head { flex-direction: column; align-items: flex-start; gap: 10px; padding-bottom: 4vh; }
+  .work-head .wa { text-align: left; max-width: none; white-space: normal; font-size: 14px; line-height: 1.45; }
+}
