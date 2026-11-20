@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Contact — Fize</title>
-<link rel="stylesheet" href="site.css?v=4dcb7367">
+<link rel="stylesheet" href="site.css?v=f358386a">
   <meta name="description" content="Décrivez votre projet d&#x27;impression 3D : fichier ou référence, dimensions, finition, date. Atelier à Paris 18e.">
   <link rel="canonical" href="https://fize-lab.com/contact.html">
   <meta property="og:type" content="website">
@@ -157,7 +157,10 @@
   </footer>
 
 <script>
-  window.LOGO_CONFIG = { mode: 'fixed', frame: 0.72 };   // V3 : logo F-LAB, large → plus de place
+  // ordinateur : logo dans une bande basse à côté du titre → il prend 2,4 × sa hauteur en largeur ; téléphone : 0,72 (Tom, 20/11)
+  const logoLarge = matchMedia('(min-width: 801px)');
+  window.LOGO_CONFIG = { mode: 'fixed', frame: logoLarge.matches ? 2.4 : 0.72 };
+  logoLarge.addEventListener('change', e => window.setLogoFrame?.(e.matches ? 2.4 : 0.72));   // V3 : logo F-LAB, large → plus de place
 
   // ── Où partent les demandes ───────────────────────────────────────────────────────
   // En ligne sur Netlify : envoi à Netlify Forms (POST sur « / »), qui transmet la demande par e-mail.
