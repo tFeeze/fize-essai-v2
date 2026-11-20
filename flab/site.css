@@ -884,9 +884,10 @@ body { min-height: 100vh; min-height: 100svh; display: flex; flex-direction: col
 body > main { flex: 1 0 auto; }
 .site-foot { margin-top: auto; flex-shrink: 0; }
 
-/* Contact (ordinateur) : le logo 3D sur la ligne du titre, à droite, et le formulaire sur toute la largeur — Tom, 20/11 */
+/* Contact (ordinateur) : le logo 3D en médaillon en bas à droite (comme l'accueil et les projets),
+   le formulaire sur toute la largeur, en laissant la place du médaillon — Tom, 20/11 */
 @media (min-width: 801px) {
-  body.contact #stage { position: absolute; top: var(--haut-page); right: 32px; width: min(36vw, 560px); height: clamp(150px, 12.5vw, 230px); }
-  body.contact main { width: auto; max-width: 1100px; padding-right: 32px; }
+  body.contact #stage { position: fixed; top: auto; right: 20px; bottom: 16px; width: 150px; height: 150px; z-index: 15; }
+  body.contact main { width: auto; max-width: 1100px; padding-right: 190px; }
   body.contact .form { max-width: none; }
 }
