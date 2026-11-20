@@ -891,3 +891,9 @@ body > main { flex: 1 0 auto; }
   body.contact main { width: auto; max-width: 1100px; padding-right: 190px; }
   body.contact .form { max-width: none; }
 }
+
+/* Contact et About sur téléphone : pas de logo, le titre juste sous la barre de menu (Tom, 20/11) */
+@media (max-width: 800px) {
+  body.contact #stage, body.about #stage { display: none; }
+  body.contact main, body.about main { padding-top: 84px; }
+}
