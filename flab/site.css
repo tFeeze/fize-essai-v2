@@ -146,7 +146,7 @@ body.scrolled .to-top { display: block; }
 }
 .rows a.row { position: relative; z-index: 1; }        /* le titre reste devant la photo */
 .rows a.row {
-  display: grid; grid-template-columns: 60px 1fr auto; align-items: baseline; gap: 16px;
+  display: grid; grid-template-columns: clamp(82px, 7.5vw, 126px) 1fr auto; align-items: baseline; gap: 16px;   /* 1re colonne = largeur du menu fixe (suit sa taille) : les titres passent juste à droite (Tom, 20/11) */
   padding: 12px 0; color: inherit; text-decoration: none;
 }
 .rows .n { font: 500 11px/1 Menlo, monospace; color: var(--mute); }
