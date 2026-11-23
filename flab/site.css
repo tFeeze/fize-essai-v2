@@ -762,9 +762,10 @@ body.mise-a .p-gallery figure.p-video { max-width: none; }
 
 /* B — Planche : le texte reste en colonne étroite à gauche ; à droite, toutes les photos en mosaïque,
    chacune à ses vraies proportions (rien n'est coupé) */
-body.mise-b main { display: grid; grid-template-columns: minmax(240px, 1fr) minmax(0, 3fr); gap: 0 48px; margin: 0 32px; }
+body.mise-b main { display: grid; grid-template-columns: minmax(240px, 1fr) minmax(0, 3fr); gap: 0 48px; margin: 0 32px 0 230px; }
+/* ↑ tout le contenu commence à droite du menu fixe, aligné sur le titre : le menu ne passe plus jamais dessus (Tom, 23/11) */
 body.mise-b .p-top { display: contents; }
-body.mise-b .p-side { grid-column: 1; grid-row: 1 / span 2; position: sticky; top: 120px; align-self: start; gap: 24px; padding-bottom: 6vh; }
+body.mise-b .p-side { grid-column: 1; grid-row: 1 / span 2; position: sticky; top: 28px; align-self: start; gap: 24px; padding-bottom: 6vh; }
 body.mise-b .p-intro { font-size: clamp(20px, 1.7vw, 28px); }
 body.mise-b .p-hero { grid-column: 2; grid-row: 1; width: 100%; height: auto; max-height: 90vh; object-fit: contain; object-position: left top; margin-bottom: 12px; }
 body.mise-b .p-gallery { grid-column: 2; grid-row: 2; display: block; columns: 2; column-gap: 12px; margin: 0; max-width: none; }
@@ -981,3 +982,5 @@ html.lb-on { overflow: hidden; }
   .lb-prev { left: 12px; } .lb-next { right: 12px; }
   .lb figcaption { text-align: center; flex-direction: column; gap: 6px; align-items: center; justify-content: flex-start; height: 58px; }   /* hauteur fixe : rien ne bouge d'une photo à l'autre */
 }
+/* pages projet (ordinateur) : « ← Tous les projets » sur un fond de page, lisible quand les photos passent dessous */
+@media (min-width: 801px) { body.projet .back { background: var(--bg); padding: 5px 8px; margin: -5px -8px; } }
