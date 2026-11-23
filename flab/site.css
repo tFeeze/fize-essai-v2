@@ -984,3 +984,5 @@ html.lb-on { overflow: hidden; }
 }
 /* pages projet (ordinateur) : « ← Tous les projets » sur un fond de page, lisible quand les photos passent dessous */
 @media (min-width: 801px) { body.projet .back { background: var(--bg); padding: 5px 8px; margin: -5px -8px; } }
+/* pages projet : pas de légende sous les photos (Tom, 23/11) — elle reste dans la visionneuse et dans le texte alternatif */
+body.projet .p-gallery figcaption { display: none; }
