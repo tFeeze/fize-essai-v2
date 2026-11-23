@@ -13,7 +13,10 @@ window.loadStep?.(0.8);   // le moteur 3D est chargé
 if (window.PIECES_V2) window.LOGO_MODELS = window.PIECES_V2;
 // V3 : sur téléphone, 5 pièces seulement (le boîtier Raspberry Pi et la plaque Eiffage restent sur ordinateur)
 if (window.LOGO_MODELS && matchMedia('(pointer: coarse)').matches && Math.min(innerWidth, innerHeight) < 700)
-  window.LOGO_MODELS = window.LOGO_MODELS.filter(m => !['buste', 'plaque-logo'].includes(m.slug));
+{ // Tom, 23/11 : le buste bronze prend la place du cochon (kit rose), en bas à droite ; la plaque Eiffage reste sur ordinateur
+  const L = window.LOGO_MODELS, buste = L.find(m => m.slug === 'buste');
+  window.LOGO_MODELS = L.filter(m => !['buste', 'plaque-logo'].includes(m.slug)).map(m => m.slug === 'kit-rose' && buste ? buste : m);
+}
 const CFG = Object.assign({ mode: 'fixed', stage: 0, frame: 0.42 }, window.LOGO_CONFIG);
 // Téléphone et tablette : le logo ne suit pas de souris et ne tourne pas, donc une image du logo
 // en chrome (fond et étoile transparents) remplace le rendu 3D : rien à calculer à chaque image.
