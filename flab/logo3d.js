@@ -914,7 +914,7 @@ function showTip(pr, place) {
     const n = String((window.PROJECTS || []).indexOf(pr) + 1).padStart(2, '0');
     const pic = pr.hover_thumb || pr.thumb;           // image dédiée au survol si le projet en a une (vignette)
     tip.innerHTML = (pic ? `<div class="frame"><img src="img/${pic}" alt=""></div>` : '')
-      + `<div class="txt"><i>N° ${n}</i><b>${pr.title}</b><span>${pr.cat}${pr.finish ? ' — ' + pr.finish : ''}</span><em>Voir le projet →</em></div>`;
+      + `<div class="txt"><i>N° ${n}</i><b>${pr.title}</b><span>${[pr.cat, pr.finish].filter(Boolean).join(' — ')}</span><em>Voir le projet →</em></div>`;
     tip.style.rotate = ((pr.slug.length % 5) - 2) * 1.4 + 'deg';   // chaque fiche a sa petite inclinaison
   }
   const [x, y] = place(tip.offsetWidth, tip.offsetHeight);
