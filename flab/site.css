@@ -988,3 +988,5 @@ html.lb-on { overflow: hidden; }
 body.projet .p-gallery figcaption { display: none; }
 /* vidéo hébergée d'un projet (projects.json « clip ») */
 .p-clip video { display: block; width: 100%; height: auto; background: #000; }
+/* logo client en couleurs (image, pas un SVG à teinter) : ex. Pyrofolies sur le projet Squeezie */
+.p-meta .p-logo img.couleur, :root .p-meta .p-logo img.couleur { filter: none; height: 34px; max-width: 90px; }
