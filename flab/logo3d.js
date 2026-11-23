@@ -11,11 +11,12 @@ import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 window.loadStep?.(0.8);   // le moteur 3D est chargé
 // V2 interactive : pièces fines (rendus.json → models-v2.js), chacune avec sa vraie matière
 if (window.PIECES_V2) window.LOGO_MODELS = window.PIECES_V2;
-// V3 : sur téléphone, 5 pièces seulement (le boîtier Raspberry Pi et la plaque Eiffage restent sur ordinateur)
+// V3 : sur téléphone, 4 pièces seulement (voir ci-dessous)
 if (window.LOGO_MODELS && matchMedia('(pointer: coarse)').matches && Math.min(innerWidth, innerHeight) < 700)
-{ // Tom, 23/11 : le buste bronze prend la place du cochon (kit rose), en bas à droite ; la plaque Eiffage reste sur ordinateur
-  const L = window.LOGO_MODELS, buste = L.find(m => m.slug === 'buste');
-  window.LOGO_MODELS = L.filter(m => !['buste', 'plaque-logo'].includes(m.slug)).map(m => m.slug === 'kit-rose' && buste ? buste : m);
+{ // Tom, 23/11 : sur téléphone, 4 pièces — en haut les bijoux et le micro, en bas Garfield et le buste bronze
+  // (ordre = places : haut gauche, haut droite, bas gauche, bas droite ; Justice, cochon et plaque restent sur ordinateur)
+  const L = window.LOGO_MODELS;
+  window.LOGO_MODELS = ['bijoux', 'micro', 'garfield', 'buste'].map(sl => L.find(m => m.slug === sl)).filter(Boolean);
 }
 const CFG = Object.assign({ mode: 'fixed', stage: 0, frame: 0.42 }, window.LOGO_CONFIG);
 // Téléphone et tablette : le logo ne suit pas de souris et ne tourne pas, donc une image du logo
