@@ -297,7 +297,7 @@
     // chargés en arrière-plan : la page (liste des projets…) s'affiche sans les attendre
     const need = [add('logo-data.js?v=486514b4')];
     if (C.orbit) need.push(add(C.models ? C.models + '?v=10a0e0a6' : 'models-home.js?v=8c2298e7'));
-    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=54183368', true); });
+    Promise.all(need).then(() => { window.loadStep?.(0.6); add('logo3d.js?v=5b5ddc3d', true); });
   }
 })();
 </script>

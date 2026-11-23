@@ -984,7 +984,9 @@ addEventListener('scroll', () => {
 // emplacements autour du logo, en fraction de la zone visible (x, y) — écran large puis écran en hauteur
 // profondeur de chaque pièce (unités du logo, qui mesure 1) : devant / derrière le logo, pour étager la scène
 const DEPTHS = [0.55, -0.9, 0.25, -0.45, 0.8, -1.3, -0.2, 0.4];
-const SLOTS_WIDE = [[-0.58, 0.36], [0.6, 0.44], [-0.66, -0.4], [0.56, -0.46], [-0.08, -0.78], [0.04, 0.78], [-0.38, -0.74], [0.34, -0.76]];   // V3 : 6e (kit rose) recentré
+// ordinateur — 4 pièces au-dessus du logo, 4 en dessous, réparties sur toute la largeur (Tom, 23/11) ; ordre de rendus.json :
+// Justice, micro, plaque Eiffage, buste, bijoux, cochon (Le Motif), Garfield, disque (Squeezie)
+const SLOTS_WIDE = [[-0.72, 0.3], [0.66, 0.5], [-0.3, 0.66], [0.7, -0.4], [-0.4, -0.62], [0.22, 0.7], [-0.78, -0.42], [0.2, -0.66]];
 const SLOTS_TALL = [[-0.48, 0.6], [0.5, 0.58], [-0.46, -0.62], [0.46, -0.64], [0.02, -0.92]];   // + Garfield, en bas au centre   // V3 : téléphone, 4 pièces (2 au-dessus, 2 en dessous du logo)   // téléphone : 6 pièces (2 au-dessus, 2 de côté, 2 en dessous)
 
 // ── Cadrage (dans la colonne gauche) ───────────────────
