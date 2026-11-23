@@ -986,3 +986,5 @@ html.lb-on { overflow: hidden; }
 @media (min-width: 801px) { body.projet .back { background: var(--bg); padding: 5px 8px; margin: -5px -8px; } }
 /* pages projet : pas de légende sous les photos (Tom, 23/11) — elle reste dans la visionneuse et dans le texte alternatif */
 body.projet .p-gallery figcaption { display: none; }
+/* vidéo hébergée d'un projet (projects.json « clip ») */
+.p-clip video { display: block; width: 100%; height: auto; background: #000; }
