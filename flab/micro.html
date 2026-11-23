@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Micro Kalash — Fize</title>
 <meta name="description" content="Accessoire de scène. Fabrication et conception d&#x27;un micro pour le concert du rappeur Kalash à Paris La Défense Arena.">
-<link rel="stylesheet" href="site.css?v=fa614278">
+<link rel="stylesheet" href="site.css?v=d8b1ce2c">
   <meta name="robots" content="noindex, nofollow">
   <link rel="canonical" href="https://fizelab.com/micro.html">
   <meta property="og:type" content="website">
@@ -288,6 +288,7 @@
   const SLUGS = ["buste", "disque-squeezie", "micro", "kit-rose", "garfield", "plaque-logo", "bijoux", "justice", "scooter", "guitare-chicha"];
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const KEY = 'fize-warp';
+  const TRAVERSEE = false;   // animation « on passe à travers l'étoile du logo » retirée (Tom, 23/11) — true pour la rétablir
   // pivot : le centre de l'étoile (mesuré sur l'image du logo) ; SR = rayon du disque inscrit dans l'étoile
   const OX = 0.5766, OY = 0.4714, SR = 0.0968, RATIO = 733 / 744;
 
@@ -338,7 +339,7 @@
   }
   function warpTo(url) {
     const go = () => { try { sessionStorage.setItem(KEY, '1'); } catch {} location.href = url; };
-    if (touch || !window.logoWarpOut) return go();   // téléphone : on ouvre le projet directement, sans passer par le logo (Tom, 20/11)
+    if (!TRAVERSEE || touch || !window.logoWarpOut) return go();   // plus de traversée du logo : on ouvre le projet directement (Tom, 23/11)   // téléphone : on ouvre le projet directement, sans passer par le logo (Tom, 20/11)
     // la page du projet doit être prête avant de lancer l'animation (la charger pendant figerait le logo) :
     // ordinateur → préparée au survol ; téléphone → préparée dès que le doigt touche le lien. Si elle
     // n'est pas encore là, on l'attend un court instant (0,8 s au plus), puis on part quoi qu'il arrive.
@@ -416,14 +417,14 @@
     pre.add(slug); const l = document.createElement('link'); l.rel = 'prefetch'; l.href = slug + '.html'; document.head.appendChild(l);
   }, { passive: true });
   document.addEventListener('pointerdown', e => {
-    if (e.pointerType === 'mouse' || touch) return;
+    if (!TRAVERSEE || e.pointerType === 'mouse' || touch) return;
     const a = e.target.closest?.('a[href]'); if (!a) return;
     const u = new URL(a.href, location.href), slug = u.pathname.split('/').pop().replace(/\.html$/, '');
     if (u.origin === location.origin && SLUGS.includes(slug)) preview(u.href);
   }, { passive: true });
   let dwell;
   document.addEventListener('pointerover', e => {
-    if (touch || e.pointerType !== 'mouse') return;
+    if (!TRAVERSEE || touch || e.pointerType !== 'mouse') return;
     const a = e.target.closest?.('a[href]'); clearTimeout(dwell); if (!a) return;
     const u = new URL(a.href, location.href), slug = u.pathname.split('/').pop().replace(/\.html$/, '');
     if (u.origin !== location.origin || !SLUGS.includes(slug)) return;

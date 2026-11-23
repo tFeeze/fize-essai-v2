@@ -990,3 +990,18 @@ body.projet .p-gallery figcaption { display: none; }
 .p-clip video { display: block; width: 100%; height: auto; background: #000; }
 /* logo client en couleurs (image, pas un SVG à teinter) : ex. Pyrofolies sur le projet Squeezie */
 .p-meta .p-logo img.couleur, :root .p-meta .p-logo img.couleur { filter: none; height: 34px; max-width: 90px; }
+
+/* pages projet : précédent / suivant centrés en bas de page, de part et d'autre d'un filet vertical (Tom, 23/11) */
+body.projet .p-next { justify-self: center; width: min(100%, 880px); border-top: 0; }
+body.projet .p-next a { padding: 20px 36px 30px; text-align: right; align-items: end; }
+body.projet .p-next a + a { text-align: left; align-items: start; padding-right: 36px; }
+body.projet .p-next .t { font-size: clamp(24px, 2.6vw, 42px); }
+@media (min-width: 801px) {
+  body.mise-b .p-next { translate: calc((32px - 230px) / 2) 0; }   /* main est décalé par le menu : on recentre sur l'écran */
+}
+@media (max-width: 800px) {
+  body.projet .p-next { grid-template-columns: 1fr 1fr; width: auto; }
+  body.projet .p-next a { padding: 18px 14px 24px; }
+  body.projet .p-next a + a { border-top: 0; border-left: 1px solid var(--text); padding-right: 14px; }
+  body.projet .p-next .t { font-size: clamp(16px, 5vw, 24px); }
+}
