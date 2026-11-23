@@ -13,10 +13,10 @@ window.loadStep?.(0.8);   // le moteur 3D est chargé
 if (window.PIECES_V2) window.LOGO_MODELS = window.PIECES_V2;
 // V3 : sur téléphone, 4 pièces seulement (voir ci-dessous)
 if (window.LOGO_MODELS && matchMedia('(pointer: coarse)').matches && Math.min(innerWidth, innerHeight) < 700)
-{ // Tom, 23/11 : sur téléphone, 4 pièces — en haut les bijoux et le micro, en bas Garfield et le buste bronze
+{ // Tom, 23/11 : sur téléphone, 4 pièces — en haut le disque (Squeezie) et le micro, en bas Garfield et le buste bronze
   // (ordre = places : haut gauche, haut droite, bas gauche, bas droite ; Justice, cochon et plaque restent sur ordinateur)
   const L = window.LOGO_MODELS;
-  window.LOGO_MODELS = ['bijoux', 'micro', 'garfield', 'buste'].map(sl => L.find(m => m.slug === sl)).filter(Boolean);
+  window.LOGO_MODELS = ['disque-squeezie', 'micro', 'garfield', 'buste'].map(sl => L.find(m => m.slug === sl)).filter(Boolean);
 }
 const CFG = Object.assign({ mode: 'fixed', stage: 0, frame: 0.42 }, window.LOGO_CONFIG);
 // Téléphone et tablette : le logo ne suit pas de souris et ne tourne pas, donc une image du logo
