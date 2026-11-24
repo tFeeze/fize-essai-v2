@@ -1111,6 +1111,57 @@ window.logoWarpOut = () => {
 // arrivée : la nouvelle page s'affiche directement (aucun écran d'attente)
 
 const clock = new THREE.Clock();
+
+// ── Mini explosion (survol du disque dur Squeezie) : éclair, étincelles qui retombent, petite secousse ──
+let flashTex = null;
+function boom(p) {
+  if (p.boom) { orbit.remove(p.boom.pts, p.boom.flash); }
+  const N = 90, pos = new Float32Array(N * 3), col = new Float32Array(N * 3), vel = [], vie = [];
+  for (let i = 0; i < N; i++) {
+    const u = Math.random() * 2 - 1, a = Math.random() * 6.283, r = Math.sqrt(1 - u * u);
+    const v = 1.6 + Math.random() * 2.6;
+    vel.push([r * Math.cos(a) * v, Math.abs(u) * v * 0.9 + 0.6, r * Math.sin(a) * v]);   // plutôt vers le haut
+    vie.push(0.45 + Math.random() * 0.55);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  const pts = new THREE.Points(g, new THREE.PointsMaterial({ size: 3.2 * Math.min(devicePixelRatio, 2), sizeAttenuation: false, vertexColors: true,
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+  pts.renderOrder = 5; pts.frustumCulled = false;
+  if (!flashTex) {
+    const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d');
+    const gr = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+    gr.addColorStop(0, 'rgba(255,250,220,1)'); gr.addColorStop(0.25, 'rgba(255,190,80,.85)'); gr.addColorStop(0.6, 'rgba(255,90,20,.3)'); gr.addColorStop(1, 'rgba(255,60,0,0)');
+    x.fillStyle = gr; x.fillRect(0, 0, 128, 128); flashTex = new THREE.CanvasTexture(c);
+  }
+  const flash = new THREE.Sprite(new THREE.SpriteMaterial({ map: flashTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+  flash.renderOrder = 6;
+  orbit.add(pts, flash);   // dans la scène, pas dans la pièce : au survol la pièce s'efface pour la photo, l'explosion reste
+  p.boom = { pts, flash, vel, vie, age: 0, N };
+}
+function majBoom(p, dt) {
+  const b = p.boom; b.age += Math.min(dt, 1 / 30);
+  for (const o of [b.pts, b.flash]) { o.position.copy(p.holder.position); o.position.z += 0.3; }
+  b.pts.scale.setScalar(p.baseS || 1);
+  const pos = b.pts.geometry.attributes.position.array, col = b.pts.geometry.attributes.color.array;
+  for (let i = 0; i < b.N; i++) {
+    const v = b.vel[i], k = b.age / b.vie[i];
+    v[1] -= 4.5 * Math.min(dt, 1 / 30);                              // gravité
+    const f = Math.exp(-2.2 * Math.min(dt, 1 / 30)); v[0] *= f; v[2] *= f;   // freinées par l'air
+    pos[i * 3] += v[0] * Math.min(dt, 1 / 30); pos[i * 3 + 1] += v[1] * Math.min(dt, 1 / 30); pos[i * 3 + 2] += v[2] * Math.min(dt, 1 / 30);
+    const e = Math.max(0, 1 - k);                                    // blanc-jaune → orange → rouge sombre → éteint
+    col[i * 3] = e; col[i * 3 + 1] = e * e * 0.85; col[i * 3 + 2] = e * e * e * 0.5;
+  }
+  b.pts.geometry.attributes.position.needsUpdate = true; b.pts.geometry.attributes.color.needsUpdate = true;
+  const fk = Math.min(1, b.age / 0.28);                              // l'éclair : grossit et s'éteint en 0,28 s
+  b.flash.scale.setScalar((0.6 + 2.6 * Math.sqrt(fk)) * (p.baseS || 1)); b.flash.material.opacity = (1 - fk) * 0.95;
+  const sh = Math.max(0, 1 - b.age / 0.35) * 0.06;                  // petite secousse
+  p.mesh.position.set((Math.random() - 0.5) * sh, (Math.random() - 0.5) * sh, 0);
+  if (b.age > 1.1) { orbit.remove(b.pts, b.flash); b.pts.geometry.dispose(); b.pts.material.dispose(); b.flash.material.dispose();
+    p.mesh.position.set(0, 0, 0); p.boom = null; }
+}
+
 function tick() {
   const dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
   U.uTime.value = t;
@@ -1186,7 +1237,7 @@ function tick() {
       if (p.mat.userData.uDeep) { if (!p.lit) { backlit(p, p.rest); p.lit = true; }
         p.mat.emissiveIntensity = 1; p.mat.color.setScalar(p === hovered ? 1.25 : 1); }   // survol : plus lumineuse
       else if (!p.flat && !p.finish) p.mat.color.lerp(p === hovered ? p.tint : p.rest, 1 - Math.exp(-dt * 8));   // la couleur monte en fondu
-      p.holder.scale.setScalar(s * Math.max(p.grow, 1e-3));
+      p.baseS = s; p.holder.scale.setScalar(s * Math.max(p.grow, 1e-3));
       if (p.pu && p.build < 1) {
         // départ décalé d'une pièce à l'autre ; 2,6 s par pièce ; la hauteur avance par couches entières
         p.build = Math.min(1, Math.max(0, (printClock - 0.3 - i * 0.35) / 2.6));
@@ -1202,6 +1253,14 @@ function tick() {
         p.mesh.rotation.y = p.cap + Math.sin(t * 0.45 + p.phase) * 0.44 * p.sway; }
       p.mesh.rotation.x = p.tilt + Math.sin(t * 0.7 + p.phase) * 0.08 + gone * gone * 1.2 * Math.sign(p.spin);
       p.mesh.rotation.z = Math.sin(t * 0.55 + p.phase * 1.3) * 0.1 + gone * gone * 0.8 * p.spin;
+    });
+    // Disque dur Squeezie : au survol, mini explosion (il a été fait pour sauter, Pyrofolies) — Tom, 24/11
+    pieces.forEach(p => {
+      if (p.slug !== 'disque-squeezie') return;
+      const on = p === hovered;
+      if (on && !p.wasHover) boom(p);
+      p.wasHover = on;
+      if (p.boom) majBoom(p, dt);
     });
     // V3 : séparation — aucune pièce (vignette comprise) ne chevauche une autre ni le logo. On calcule à
     // l'écran (plan de la caméra), on écarte les paires qui se touchent, on sort celles qui mordent sur le logo,
