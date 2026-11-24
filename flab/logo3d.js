@@ -1161,11 +1161,8 @@ function tick() {
       p.reachS = s * eff * p.grow;
       const hw = w / 2 * persp, hh = h / 2 * persp;               // demi-largeur / demi-hauteur visibles à cette profondeur
       // position voulue (emplacement + flottement + suivi de la souris)…
-      // V3 (Tom, 24/11) : elles glissent très légèrement VERS la souris (avant, celles de devant s'en écartaient) ;
-      // toujours un peu de profondeur : celles de devant bougent un peu plus que celles du fond
-      const vers = 0.1 + 0.12 * (z + 1.3) / 2.1;
-      let x = sx * hw + p.lx * vers;
-      let y = sy * hh + Math.sin(t * 0.9 + p.phase) * 0.05 * h / 4 - p.ly * vers;
+      let x = sx * hw - p.lx * z * 0.6 + p.lx * 0.25;
+      let y = sy * hh + Math.sin(t * 0.9 + p.phase) * 0.05 * h / 4 + p.ly * z * 0.6 - p.ly * 0.25;
       // …bornée pour que la pièce entière, même en tournant, reste dans le cadre (marge de 3 %)
       const edge = WIDE ? 0.97 * (1 - WIDE_K * 0.3) : 0.97;            // le grand angle repousse les bords : on garde la marge
       const mx = Math.max(0, hw * edge - reach), my = Math.max(0, hh * edge - reach);
