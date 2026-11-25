@@ -1005,3 +1005,16 @@ body.projet .p-next .t { font-size: clamp(24px, 2.6vw, 42px); }
   body.projet .p-next a + a { border-top: 0; border-left: 1px solid var(--text); padding-right: 14px; }
   body.projet .p-next .t { font-size: clamp(16px, 5vw, 24px); }
 }
+
+/* FAQ, Contact, CGV, mentions légales, confidentialité (ordinateur) : la colonne de texte centrée dans la page,
+   sans jamais passer sous le menu fixe à gauche (fenêtre étroite : elle reste calée à droite du menu) — Tom, 25/11 */
+@media (min-width: 801px) {
+  body.legal main, body.faq main, body.contact main {
+    --menu: clamp(190px, 17vw, 280px);
+    box-sizing: border-box; width: 100%; margin-right: auto;
+    margin-left: max(var(--menu), calc((100vw - var(--col)) / 2));
+  }
+  body.legal main { --col: 760px; max-width: var(--col); }
+  body.faq main { --col: 900px; max-width: var(--col); }
+  body.contact main { --col: 900px; max-width: var(--col); padding-right: 0; }
+}
