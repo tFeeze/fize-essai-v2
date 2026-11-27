@@ -30,7 +30,7 @@ const FLAT_AR = 269 / 686;                        // hauteur / largeur des image
 const canvas = document.getElementById('scene');
 const stageEl = document.getElementById('stage');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-const DPR = Math.min(devicePixelRatio, TOUCH ? 1.5 : 2);   // téléphone : 2 canvas plein écran, on allège
+const DPR = Math.min(devicePixelRatio, 1.5);   // 27/11 : ×1,5 partout (×2 sur un écran Retina = 4× plus de pixels pour une différence invisible en mouvement)
 renderer.setPixelRatio(DPR);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -817,7 +817,7 @@ const grille = { cv: null, g: null, img: null, rect: null, cells: [], t0: 0, sor
 if (FOND_GRILLE) {
   const cv = document.createElement('canvas'); cv.className = 'grille-canvas'; document.body.appendChild(cv);
   grille.cv = cv; grille.g = cv.getContext('2d');
-  const taille = () => { const d = Math.min(devicePixelRatio, 2); cv.width = innerWidth * d; cv.height = innerHeight * d; grille.g.setTransform(d, 0, 0, d, 0, 0); };
+  const taille = () => { const d = Math.min(devicePixelRatio, 1.5); cv.width = innerWidth * d; cv.height = innerHeight * d; grille.g.setTransform(d, 0, 0, d, 0, 0); };
   addEventListener('resize', taille); taille();
   (window.PROJECTS || []).forEach(p => { const f = p.vignette_image || p.cover; if (!f) return;
     const im = new Image(); im.src = 'img/' + f.replace(/\.(jpe?g|png)$/i, '-800.webp'); grille.cache[p.slug] = im; });
@@ -873,8 +873,12 @@ const fbm2 = (x, y) => (bruit2(x, y) * 0.6 + bruit2(x * 2.1, y * 2.1) * 0.28 + b
 const rebond = t => { const c = 1.9; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); };   // ease-out-back
 function grilleDessine() {
   if (!FOND_GRILLE || !grille.g) return;
-  const g = grille.g; g.clearRect(0, 0, innerWidth, innerHeight);
-  if (!grille.img || !grille.rect) return;
+  const g = grille.g;
+  if (!grille.img || !grille.rect) {               // 27/11 : rien à dessiner → on ne touche plus au canvas (avant : effacé à chaque image)
+    if (grille.sale) { g.clearRect(0, 0, innerWidth, innerHeight); grille.sale = false; }
+    return;
+  }
+  g.clearRect(0, 0, innerWidth, innerHeight); grille.sale = true;
   const now = performance.now(), r = grille.rect, im = grille.img, ts = now / 1000;
   // image « cover » sur le rectangle
   const sr = im.naturalWidth / im.naturalHeight, rr = r.w / r.h;
@@ -996,12 +1000,22 @@ function resize(force) {
   const r = { width: stageEl.offsetWidth, height: stageEl.offsetHeight };
   if (force !== true && r.width === rw && r.height === rh) return;
   rw = r.width; rh = r.height;
-  if (FLAT && !IN_STAGE) renderer.setSize(1, 1, false);   // l'image remplace le logo : canvas réduit au minimum
-  else renderer.setSize(r.width, r.height, false);
   camera.aspect = r.width / r.height;
   const frac = Math.min(CFG.frame, CFG.frame * camera.aspect);   // part de la hauteur occupée par le logo
   camZ = (1 / frac) / 2 / Math.tan(THREE.MathUtils.degToRad(BASE_FOV / 2));
   camera.position.set(0, 0, camZ);
+  // 27/11 : le canvas ne couvre plus tout le cadre, seulement la zone du logo (+ marge pour ses rotations) ;
+  // la caméra garde le cadrage plein cadre (setViewOffset) : à l'écran, rien ne change, 5 à 8× moins de pixels.
+  // Plein cadre pendant la transition (le logo y grandit jusqu'à couvrir l'écran) et quand les pièces sont dans le cadre.
+  const plein = IN_STAGE || document.documentElement.classList.contains('warp-stage');
+  const lw = frac * r.height, cw = plein ? r.width : Math.min(r.width, Math.ceil(lw * 1.3 + 24)),
+        ch = plein ? r.height : Math.min(r.height, Math.ceil(lw * LOGO_AR * 1.3 + lw * 0.22 + 24));
+  const cx = Math.round((r.width - cw) / 2), cy = Math.round((r.height - ch) / 2);
+  if (FLAT && !IN_STAGE) renderer.setSize(1, 1, false);   // l'image remplace le logo : canvas réduit au minimum
+  else renderer.setSize(cw, ch, false);
+  Object.assign(canvas.style, plein ? { position: '', left: '', top: '', width: '', height: '' }
+    : { position: 'absolute', left: cx + 'px', top: cy + 'px', width: cw + 'px', height: ch + 'px' });
+  if (plein) camera.clearViewOffset(); else camera.setViewOffset(r.width, r.height, cx, cy, cw, ch);
   camera.updateProjectionMatrix();
   if (flat) flat.style.width = (frac * r.height) + 'px';      // même taille que le logo 3D
 }
@@ -1162,6 +1176,11 @@ function majBoom(p, dt) {
     p.mesh.position.set(0, 0, 0); p.boom = null; }
 }
 
+// 27/11 : logo sorti de l'écran (accueil : il s'envole au scroll avant le médaillon) → on ne le calcule pas
+function logoVisible() {
+  const b = canvas.getBoundingClientRect();
+  return b.bottom > 0 && b.top < innerHeight && b.right > 0 && b.left < innerWidth && stageEl.style.visibility !== 'hidden';
+}
 function tick() {
   const dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
   U.uTime.value = t;
@@ -1391,7 +1410,7 @@ function tick() {
     renderer.setRenderTarget(L.rt); renderer.setClearColor(0x000000, 0); renderer.clear();
     renderer.render(scene, camera);
     renderer.setRenderTarget(null); renderer.render(L.sc, L.cam);
-  } else if (!FLAT || IN_STAGE) renderer.render(scene, camera);
+  } else if ((!FLAT || IN_STAGE) && logoVisible()) renderer.render(scene, camera);
   if (orbitRenderer && (orbit.visible || orbitShown > 0)) {
     psy += ((psyOn ? 1 : 0) - psy) * (1 - Math.exp(-dt * 2.5));
     if (psy > 0.002) { kaleido().draw(t, Math.min(1, psy)); document.documentElement.style.setProperty('--psy', psy.toFixed(3)); }
