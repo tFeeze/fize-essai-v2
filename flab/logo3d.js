@@ -383,21 +383,43 @@ const unwide = (nx, ny, asp) => {
 // couche en cours, rien ; la couche en cours brille (filament chaud) ; des particules convergent vers elle
 // depuis l'espace autour, comme le fil qui se dépose. uLevel : hauteur imprimée (repère de la pièce, -1 → 1).
 const PRINT = !matchMedia('(prefers-reduced-motion: reduce)').matches;
-const LAYER = 0.022;                               // épaisseur d'une couche (la pièce mesure 2 de haut)
-const PRINT_SPEED = new URLSearchParams(location.search).has('lent') ? 0.2 : 1;   // ?lent : ralenti, pour régler
+const PRINT_SPEED = new URLSearchParams(window.QS_INIT ?? location.search).has('lent') ? 0.2 : 1;   // ?lent : ralenti, pour régler
+const SCAN_FIGE = parseFloat(new URLSearchParams(window.QS_INIT ?? location.search).get('scan'));   // ?scan=0.5 : pièces figées à mi-construction, pour régler
 let printClock = 0;                                // temps d'animation réel (les à-coups de chargement ne comptent pas)
+// 27/11 — « scan » (essais/scan-particules.html) : le front monte par à-coups, il penche et tangue, sa lisière est
+// irrégulière ; au-dessus, la pièce n'est qu'un fantôme de verre ; sur le front, des étincelles qui s'échappent.
+const SCAN_GLSL = `
+  float scH(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+  float scN(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
+    return mix(mix(scH(i), scH(i+vec2(1,0)), f.x), mix(scH(i+vec2(0,1)), scH(i+vec2(1,1)), f.x), f.y); }
+  float scFront(vec3 o, float t){
+    return sin(t * 1.3) * 0.16 * o.x + cos(t * 0.9) * 0.12 * o.z
+         + (scN(o.xz * 7.0 + t * 1.7) - 0.5) * 0.08 + (scN(o.xz * 31.0 - t * 3.0) - 0.5) * 0.025; }`;
+// vrai fond de la page (body transparent → celui de html) : clair sur l'accueil, sombre sur Contact
+const SCAN_SOMBRE = (() => { for (const el of [document.body, document.documentElement]) {
+  const c = getComputedStyle(el).backgroundColor.match(/[\d.]+/g);
+  if (c && (c[3] === undefined || +c[3] > 0.5)) return +c[0] + +c[1] + +c[2] < 3 * 110; } return false; })();
+const SCAN_MARGE = 0.36;                           // le front (penché + lisière) déborde au plus de ±0,34
+// montée : trois poussées (accélère, presque à l'arrêt, repart), départ et arrivée en douceur ; jamais de recul
+const montee = k => {
+  const u = k + 0.85 * Math.sin(2 * Math.PI * 3 * k) / (2 * Math.PI * 3);
+  return u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
+};
 function printable(mat, hot) {
-  const u = { uLevel: { value: PRINT ? -1.2 : 9 }, uHot: { value: hot } };
+  const u = { uLevel: { value: PRINT ? -9 : 9 }, uHot: { value: hot } };
   const prev = mat.onBeforeCompile;
   mat.onBeforeCompile = (sh, r) => {
     prev?.call(mat, sh, r);
-    Object.assign(sh.uniforms, u);
-    sh.vertexShader = 'varying float vBy;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vBy = position.y;');
-    sh.fragmentShader = 'uniform float uLevel; uniform vec3 uHot; varying float vBy;\n' + sh.fragmentShader
-      .replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\n if (vBy > uLevel) discard;')
-      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
-        float hotL = 1.0 - smoothstep(0.0, ${(LAYER * 2.5).toFixed(3)}, uLevel - vBy);
-        totalEmissiveRadiance += uHot * hotL * 1.6;`);
+    Object.assign(sh.uniforms, u, { uScanT: U.uTime });
+    sh.vertexShader = 'varying vec3 vScanP;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vScanP = position;');
+    sh.fragmentShader = 'uniform float uLevel; uniform float uScanT; uniform vec3 uHot; varying vec3 vScanP;\n' + SCAN_GLSL + '\n' + sh.fragmentShader
+      .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
+        float dScan = uLevel > 8.0 ? -9.0 : vScanP.y - (uLevel + scFront(vScanP, uScanT));
+        if (dScan > 0.0) discard;`)
+      // bord chaud ajouté tout à la fin (après le gris de repos) : il garde la couleur des étincelles
+      .replace('#include <dithering_fragment>', `#include <dithering_fragment>
+        { float hotS = smoothstep(0.07, 0.0, -dScan), edge = smoothstep(0.014, 0.0, -dScan);
+          gl_FragColor.rgb = mix(gl_FragColor.rgb, uHot, hotS * hotS * 0.75 + edge * 0.25) + uHot * edge * ${SCAN_SOMBRE ? '0.6' : '0.15'}; }`);
   };
   return u;
 }
@@ -435,38 +457,76 @@ function verre(mat, u) {
   mat.customProgramCacheKey = () => (key ? key() : '') + ':verre';
 }
 function filament(geo, color, u) {
-  const src = geo.attributes.position, n = Math.min(1600, src.count), step = src.count / n;
-  const target = new Float32Array(n * 3), dir = new Float32Array(n * 3), seed = new Float32Array(n);
-  for (let k = 0; k < n; k++) {
-    const j = Math.floor(k * step);
-    target.set([src.getX(j), src.getY(j), src.getZ(j)], k * 3);
-    const a = Math.random() * Math.PI * 2, b = Math.random() * 0.8 + 0.2;   // les grains arrivent de côté et d'en haut
-    dir.set([Math.cos(a) * 1.4, b * 1.2, Math.sin(a) * 1.4], k * 3);
-    seed[k] = Math.random();
+  // étincelles : points tirés sur la surface (au prorata de l'aire) ; elles vivent autour du front et s'échappent
+  const P = geo.attributes.position.array, NO = geo.attributes.normal?.array, I = geo.index?.array;
+  const nT = (I ? I.length : P.length / 3) / 3, vx = t => I ? I[t] : t;
+  const areas = new Float32Array(nT); let tot = 0;
+  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+  for (let t = 0; t < nT; t++) {
+    a.fromArray(P, vx(t * 3) * 3); b.fromArray(P, vx(t * 3 + 1) * 3); c.fromArray(P, vx(t * 3 + 2) * 3);
+    tot += b.sub(a).cross(c.sub(a)).length() / 2; areas[t] = tot;
+  }
+  const N = 2600, pos = new Float32Array(N * 3), nor = new Float32Array(N * 3), rnd = new Float32Array(N * 3);
+  for (let n = 0; n < N; n++) {
+    const r = Math.random() * tot; let lo = 0, hi = nT - 1;
+    while (lo < hi) { const mid = (lo + hi) >> 1; if (areas[mid] < r) lo = mid + 1; else hi = mid; }
+    let wa = Math.random(), wb = Math.random(); if (wa + wb > 1) { wa = 1 - wa; wb = 1 - wb; } const wc = 1 - wa - wb;
+    for (let k = 0; k < 3; k++) {
+      const i0 = vx(lo * 3) * 3 + k, i1 = vx(lo * 3 + 1) * 3 + k, i2 = vx(lo * 3 + 2) * 3 + k;
+      pos[n * 3 + k] = P[i0] * wc + P[i1] * wa + P[i2] * wb;
+      nor[n * 3 + k] = NO ? NO[i0] * wc + NO[i1] * wa + NO[i2] * wb : 0;
+    }
+    rnd.set([Math.random(), Math.random(), Math.random()], n * 3);
   }
   const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.BufferAttribute(target, 3));
-  g.setAttribute('aDir', new THREE.BufferAttribute(dir, 3));
-  g.setAttribute('aSeed', new THREE.BufferAttribute(seed, 1));
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setAttribute('aNor', new THREE.BufferAttribute(nor, 3));
+  g.setAttribute('aRnd', new THREE.BufferAttribute(rnd, 3));
+  const blend = SCAN_SOMBRE ? THREE.AdditiveBlending : THREE.NormalBlending;   // sur fond clair, l'additif disparaît
   const m = new THREE.ShaderMaterial({
-    uniforms: { uLevel: u.uLevel, uColor: { value: color }, uPx: { value: Math.min(devicePixelRatio, 2) } },
-    vertexShader: `uniform float uLevel; uniform float uPx; attribute vec3 aDir; attribute float aSeed; varying float vA;
+    uniforms: { uLevel: u.uLevel, uScanT: U.uTime, uColor: { value: color }, uPx: { value: Math.min(devicePixelRatio, 1.5) } },
+    vertexShader: `uniform float uLevel; uniform float uScanT; uniform float uPx; attribute vec3 aNor; attribute vec3 aRnd; varying float vA;
+      ${SCAN_GLSL}
       void main() {
-        float d = position.y - uLevel;                      // distance à la couche en cours
-        float span = 0.35 + aSeed * 0.25;
-        float t = clamp(1.0 - d / span, 0.0, 1.0);          // 0 : encore loin · 1 : déposé
-        vA = (d > 0.0 && d < span) ? t : 0.0;               // visible seulement en vol
-        vec3 p = position + aDir * pow(1.0 - t, 2.0) * 0.9;
+        float d = position.y - (uLevel + scFront(position, uScanT));
+        float vie = clamp(-d / 0.3, 0.0, 1.0);                 // 0 sur le front → 1 loin dessous
+        vec3 nn = normalize(aNor + vec3(0.0, 0.25, 0.0) + 1e-4);
+        vec3 p = position + nn * (0.006 + vie * (0.05 + 0.22 * aRnd.x))
+               + vec3(sin(uScanT * 7.0 + aRnd.y * 40.0), 0.0, cos(uScanT * 6.0 + aRnd.z * 40.0)) * 0.006;
+        p.y += vie * vie * 0.08 * (aRnd.y - 0.3);
+        float scint = 0.45 + 0.55 * sin(uScanT * (18.0 + 30.0 * aRnd.z) + aRnd.x * 6.28);
+        vA = (d > 0.0 ? smoothstep(0.05, 0.0, d) * 0.5 : pow(1.0 - vie, 2.2)) * scint * step(aRnd.y, 0.85 - vie * 0.5);
         vec4 mv = modelViewMatrix * vec4(p, 1.0);
         gl_Position = projectionMatrix * mv;
-        gl_PointSize = uPx * (2.0 + 3.0 * (1.0 - t)) * (6.0 / -mv.z);
+        gl_PointSize = vA > 0.0 ? uPx * (2.2 + 3.6 * aRnd.x) * (1.0 - vie * 0.5) * (6.0 / -mv.z) : 0.0;
       }`,
     fragmentShader: `uniform vec3 uColor; varying float vA;
       void main() { if (vA <= 0.0) discard; float r = length(gl_PointCoord - 0.5); if (r > 0.5) discard;
-        gl_FragColor = vec4(uColor, vA * (1.0 - r * 2.0)); }`,
-    transparent: true, depthWrite: false });
+        float core = smoothstep(0.5, 0.0, r);
+        gl_FragColor = vec4(mix(uColor, vec3(1.0, 0.95, 0.85), ${SCAN_SOMBRE ? 'core * core' : '0.0'}), core * vA); }`,
+    transparent: true, depthWrite: false, blending: blend });
   const pts = new THREE.Points(g, m); pts.frustumCulled = false;
-  return pts;
+  // fantôme : la pièce en verre au-dessus du front, avec les stries des couches à venir
+  const ghost = new THREE.Mesh(geo, new THREE.ShaderMaterial({
+    uniforms: { uLevel: u.uLevel, uScanT: U.uTime, uCol: { value: new THREE.Color(SCAN_SOMBRE ? '#a9c4ff' : '#3f63c4') } },
+    vertexShader: `varying vec3 vO; varying vec3 vN; varying vec3 vV;
+      void main(){ vO = position; vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        vN = normalize(normalMatrix * normal); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }`,
+    fragmentShader: `uniform float uLevel; uniform float uScanT; uniform vec3 uCol; varying vec3 vO; varying vec3 vN; varying vec3 vV;
+      ${SCAN_GLSL}
+      void main(){
+        float d = vO.y - (uLevel + scFront(vO, uScanT));
+        if (d < 0.0) discard;
+        float fr = pow(1.0 - abs(dot(vN, vV)), 2.0);
+        float couche = smoothstep(0.35, 0.5, abs(fract(vO.y * 90.0) - 0.5));
+        float pres = smoothstep(0.9, 0.0, d);
+        float a = ${SCAN_SOMBRE ? '(0.05 + fr * 0.5 + couche * 0.06) * (0.35 + 0.65 * pres)' : '(0.14 + fr * 0.55 + couche * 0.1) * (0.55 + 0.45 * pres)'};
+        gl_FragColor = vec4(uCol * (0.6 + fr), a);
+      }`,
+    transparent: true, depthWrite: false, blending: blend }));
+  ghost.renderOrder = 2;
+  const grp = new THREE.Group(); grp.add(ghost, pts);
+  return grp;
 }
 const projectOf = slug => (window.PROJECTS || []).find(p => p.slug === slug);
 let orbitShow = window.ORBIT_START ?? 1, orbitShown = orbitShow;   // la page peut la fixer avant le chargement du moteur
@@ -560,7 +620,6 @@ if (CFG.orbit && window.LOGO_MODELS) {
     if (mat.userData.glow) mesh.add(mat.userData.glow);
     let pu = null, dots = null;
     if (!flatPic) {
-      pu = printable(mat, new THREE.Color('#fff4e0'));
       // V3 : les grains qui « impriment » la pièce sont en couleur (celle de la pièce ; pour l'argent, le blanc
       // veiné, le multicolore ou la résine claire, la couleur du projet)
       let dotCol = mat.color;
@@ -571,6 +630,8 @@ if (CFG.orbit && window.LOGO_MODELS) {
         const hsl = {}; dotCol.getHSL(hsl);                  // franchement colorés, même si la teinte du projet est sourde
         dotCol.setHSL(hsl.h, Math.max(hsl.s, 0.8), Math.min(0.6, Math.max(0.45, hsl.l)));
       }
+      dotCol = dotCol.clone();
+      pu = printable(mat, dotCol);                          // bord du scan : même couleur que les étincelles
       dots = filament(geo, dotCol, pu); dots.visible = PRINT; mesh.add(dots);
     }
     const grey = { value: 1 };
@@ -586,7 +647,7 @@ if (CFG.orbit && window.LOGO_MODELS) {
       ig.setAttribute('color', new THREE.Float32BufferAttribute(Float32Array.from(new Uint8Array(bytes(d.col)), v => (v / 255) ** 2.2), 3));
       ig.setIndex(new THREE.BufferAttribute(d.wide ? new Uint32Array(bytes(d.idx)) : new Uint16Array(bytes(d.idx)), 1));
       const im = new THREE.MeshPhysicalMaterial({ color: 0xffffff, vertexColors: true, roughness: 0.35, metalness: 0.15, clearcoat: 0.4 });
-      if (pu) { const iu = printable(im, new THREE.Color('#fff4e0')); iu.uLevel = pu.uLevel; }   // s'imprime en même temps que le boîtier
+      if (pu) { const iu = printable(im, pu.uHot.value); iu.uLevel = pu.uLevel; }   // s'imprime en même temps que le boîtier
       greyable(im, grey);
       const inner = new THREE.Mesh(ig, im); inner.renderOrder = -1; mesh.add(inner);
       mesh.renderOrder = 1;
@@ -1258,11 +1319,13 @@ function tick() {
       else if (!p.flat && !p.finish) p.mat.color.lerp(p === hovered ? p.tint : p.rest, 1 - Math.exp(-dt * 8));   // la couleur monte en fondu
       p.baseS = s; p.holder.scale.setScalar(s * Math.max(p.grow, 1e-3));
       if (p.pu && p.build < 1) {
-        // départ décalé d'une pièce à l'autre ; 2,6 s par pièce ; la hauteur avance par couches entières
+        // départ décalé d'une pièce à l'autre ; 2,6 s par pièce ; le front va du dessous au-dessus de la pièce
         p.build = Math.min(1, Math.max(0, (printClock - 0.3 - i * 0.35) / 2.6));
-        const e = p.build < 1 ? p.build : 1;
-        p.pu.uLevel.value = p.build >= 1 ? 9 : Math.floor((-1.02 + e * 2.06) / LAYER) * LAYER + LAYER;
-        if (p.build >= 1 && p.dots) { p.dots.visible = false; }
+        if (SCAN_FIGE >= 0) p.build = Math.min(SCAN_FIGE, 0.999);
+        const bb = p.bb ??= (p.mesh.geometry.computeBoundingBox(), p.mesh.geometry.boundingBox);
+        const y0 = bb.min.y - SCAN_MARGE, y1 = bb.max.y + SCAN_MARGE;
+        p.pu.uLevel.value = p.build >= 1 ? 9 : y0 + montee(p.build) * (y1 - y0);
+        if (p.build >= 1 && p.dots) { p.dots.visible = false; }   // fini : fantôme et étincelles ne coûtent plus rien
       }
       // elles restent debout : elles tournent lentement sur elles-mêmes et se balancent un peu en lévitant ;
       // au scroll, elles basculent en s'envolant
